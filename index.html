@@ -1,2 +1,109 @@
-Your trusted partner in eLearning design.
-Simply put, we are learning designers, eLearning developers, and multimedia experts. We create award-winning online courses that develop skills, change behaviour, and raise awareness.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cobblestone Learning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cobblestone: '#2d3748',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <header class="bg-cobblestone text-white py-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Cobblestone Learning</h1>
+            <nav>
+                <a href="#services" class="ml-4">Services</a>
+                <a href="#projects" class="ml-4">Projects</a>
+                <a href="#contact" class="ml-4">Contact</a>
+            </nav>
+        </div>
+    </header>
+    
+    <section class="container mx-auto my-12">
+        <h2 class="text-3xl font-bold mb-6">Your trusted partner in eLearning design</h2>
+        <p>Simply put, we are learning designers, eLearning developers, and multimedia experts. We create award-winning online courses that develop skills, change behaviour, and raise awareness.</p>
+        <button class="bg-blue-500 text-white px-4 py-2 rounded mt-4">Request a quote</button>
+    </section>
+
+    <section id="services" class="container mx-auto my-12">
+        <h2 class="text-3xl font-bold mb-6">eLearning Services</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded shadow">
+                <h3 class="text-xl font-bold mb-2">Consultancy</h3>
+                <p>Expert guidance to strategize and optimise your eLearning initiatives.</p>
+            </div>
+            <div class="bg-white p-6 rounded shadow">
+                <h3 class="text-xl font-bold mb-2">Design</h3>
+                <p>Decide on your learning objectives, models, and preferred experiences.</p>
+            </div>
+            <div class="bg-white p-6 rounded shadow">
+                <h3 class="text-xl font-bold mb-2">Development</h3>
+                <p>Bring learning designs to life using industry standard authoring tools.</p>
+            </div>
+            <div class="bg-white p-6 rounded shadow">
+                <h3 class="text-xl font-bold mb-2">Conversion</h3>
+                <p>Transform existing content into engaging eLearning experiences.</p>
+            </div>
+            <div class="bg-white p-6 rounded shadow">
+                <h3 class="text-xl font-bold mb-2">Translation</h3>
+                <p>Break down barriers and ensure multilingual accessibility.</p>
+            </div>
+            <div class="bg-white p-6 rounded shadow">
+                <h3 class="text-xl font-bold mb-2">Hosting</h3>
+                <p>Secure, reliable hosting solutions for your eLearning courses.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="projects" class="container mx-auto my-12">
+        <h2 class="text-3xl font-bold mb-6">Our GitHub Projects</h2>
+        <div id="repo-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- GitHub repos will be injected here by JavaScript -->
+        </div>
+    </section>
+
+    <section id="contact" class="container mx-auto my-12">
+        <h2 class="text-3xl font-bold mb-6">Contact Us</h2>
+        <p>Reach out to us today! Are you ready to create memorable learning experiences for your learners?</p>
+        <button class="bg-blue-500 text-white px-4 py-2 rounded mt-4">Contact us</button>
+    </section>
+
+    <footer class="bg-cobblestone text-white py-4">
+        <div class="container mx-auto text-center">
+            &copy; 2024 Cobblestone Learning. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('https://api.github.com/users/cobblestonelearning/repos')
+                .then(response => response.json())
+                .then(data => {
+                    const repoCards = document.getElementById('repo-cards');
+                    data.forEach(repo => {
+                        const repoCard = document.createElement('div');
+                        repoCard.className = 'bg-white p-6 rounded shadow';
+                        repoCard.innerHTML = `
+                            <h3 class="text-xl font-bold mb-2">${repo.name}</h3>
+                            <p>${repo.description || 'No description available'}</p>
+                            <p class="text-sm text-gray-600">⭐ ${repo.stargazers_count} | 🍴 ${repo.forks_count}</p>
+                            <a href="${repo.html_url}" target="_blank" class="text-blue-500">View Repository</a>
+                        `;
+                        repoCards.appendChild(repoCard);
+                    });
+                })
+                .catch(error => console.error('Error fetching GitHub repos:', error));
+        });
+    </script>
+</body>
+</html>
