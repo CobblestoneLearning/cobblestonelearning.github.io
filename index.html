@@ -36,6 +36,16 @@
             max-height: 90%;
             overflow-y: auto;
         }
+        .file-tree ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        .file-tree li::before {
+            content: '📁 ';
+        }
+        .file-tree li.file::before {
+            content: '📄 ';
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -140,25 +150,20 @@
                 .then(repo => {
                     const modalBody = document.getElementById('modal-body');
                     modalBody.innerHTML = `
-                        <h3 class="text-xl font-bold mb-2">${repo.name}</h3>
-                        <p>${repo.description || 'No description available'}</p>
-                        <p class="text-sm text-gray-600">⭐ ${repo.stargazers_count} | 🍴 ${repo.forks_count}</p>
-                        <p class="text-sm text-gray-600">Language: ${repo.language || 'N/A'}</p>
-                        <p class="text-sm text-gray-600">Open Issues: ${repo.open_issues_count}</p>
-                        <p class="text-sm text-gray-600">License: ${repo.license ? repo.license.name : 'No license'}</p>
+                        <div class="bg-gray-100 p-4 rounded mb-4">
+                            <h3 class="text-xl font-bold mb-2">${repo.name}</h3>
+                            <p>${repo.description || 'No description available'}</p>
+                            <p class="text-sm text-gray-600">⭐ ${repo.stargazers_count} | 🍴 ${repo.forks_count}</p>
+                            <p class="text-sm text-gray-600">Language: ${repo.language || 'N/A'}</p>
+                            <p class="text-sm text-gray-600">Open Issues: ${repo.open_issues_count}</p>
+                            <p class="text-sm text-gray-600">License: ${repo.license ? repo.license.name : 'No license'}</p>
+                        </div>
+                        <div class="bg-gray-100 p-4 rounded mb-4">
+                            <h4 class="text-lg font-bold mb-2">File Structure</h4>
+                            <div id="file-tree" class="file-tree"></div>
+                        </div>
                     `;
-                    fetch(`https://api.github.com/repos/cobblestonelearning/${repoName}/contents`)
-                        .then(response => response.json())
-                        .then(contents => {
-                            const fileList = document.createElement('ul');
-                            fileList.className = 'list-disc list-inside';
-                            contents.forEach(file => {
-                                const listItem = document.createElement('li');
-                                listItem.textContent = file.name;
-                                fileList.appendChild(listItem);
-                            });
-                            modalBody.appendChild(fileList);
-                        });
+                    fetchFileStructure(repoName, '');
 
                     fetch(`https://api.github.com/repos/cobblestonelearning/${repoName}/readme`)
                         .then(response => response.json())
@@ -172,6 +177,14 @@
                                     readmeModalBody.innerHTML = atob(readme.content);
                                     modalBody.innerHTML = '';
                                     modalBody.appendChild(readmeModalBody);
+                                    const closeButton = document.createElement('button');
+                                    closeButton.className = 'bg-red-500 text-white px-4 py-2 rounded mt-4';
+                                    closeButton.textContent = 'Close';
+                                    closeButton.onclick = () => {
+                                        document.getElementById('modal').style.display = 'none';
+                                        document.getElementById('modal-body').innerHTML = '';
+                                    };
+                                    modalBody.appendChild(closeButton);
                                 };
                                 modalBody.appendChild(readmeButton);
                             }
@@ -192,6 +205,14 @@
                                             indexModalBody.innerHTML = indexContent;
                                             modalBody.innerHTML = '';
                                             modalBody.appendChild(indexModalBody);
+                                            const closeButton = document.createElement('button');
+                                            closeButton.className = 'bg-red-500 text-white px-4 py-2 rounded mt-4';
+                                            closeButton.textContent = 'Close';
+                                            closeButton.onclick = () => {
+                                                document.getElementById('modal').style.display = 'none';
+                                                document.getElementById('modal-body').innerHTML = '';
+                                            };
+                                            modalBody.appendChild(closeButton);
                                         });
                                 };
                                 modalBody.appendChild(indexButton);
@@ -200,6 +221,36 @@
 
                     document.getElementById('modal').style.display = 'flex';
                 });
+        }
+
+        function fetchFileStructure(repoName, path) {
+            fetch(`https://api.github.com/repos/cobblestonelearning/${repoName}/contents/${path}`)
+                .then(response => response.json())
+                .then(contents => {
+                    const fileTree = document.getElementById('file-tree');
+                    const ul = document.createElement('ul');
+                    contents.forEach(file => {
+                        const li = document.createElement('li');
+                        li.textContent = file.name;
+                        li.className = file.type === 'dir' ? 'folder' : 'file';
+                        if (file.type === 'dir') {
+                            li.addEventListener('click', () => {
+                                li.classList.toggle('open');
+                                if (li.classList.contains('open')) {
+                                    fetchFileStructure(repoName, file.path);
+                                } else {
+                                    const subUl = li.querySelector('ul');
+                                    if (subUl) {
+                                        subUl.remove();
+                                    }
+                                }
+                            });
+                        }
+                        ul.appendChild(li);
+                    });
+                    fileTree.appendChild(ul);
+                })
+                .catch(error => console.error('Error fetching file structure:', error));
         }
 
         document.getElementById('close-modal').onclick = function() {
