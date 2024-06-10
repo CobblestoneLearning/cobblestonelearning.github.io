@@ -16,10 +16,31 @@
             }
         }
     </script>
+    <style>
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
     <header class="bg-cobblestone text-white py-4">
-        <div class="container mx-auto flex justify-between items-center">
+        <div class="container mx-auto flex justify-between items-center px-4">
             <h1 class="text-2xl font-bold">Cobblestone Learning</h1>
             <nav>
                 <a href="#services" class="ml-4">Services</a>
@@ -29,13 +50,13 @@
         </div>
     </header>
     
-    <section class="container mx-auto my-12">
+    <section class="container mx-auto my-12 px-4">
         <h2 class="text-3xl font-bold mb-6">Your trusted partner in eLearning design</h2>
         <p>Simply put, we are learning designers, eLearning developers, and multimedia experts. We create award-winning online courses that develop skills, change behaviour, and raise awareness.</p>
         <button class="bg-blue-500 text-white px-4 py-2 rounded mt-4">Request a quote</button>
     </section>
 
-    <section id="services" class="container mx-auto my-12">
+    <section id="services" class="container mx-auto my-12 px-4">
         <h2 class="text-3xl font-bold mb-6">eLearning Services</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white p-6 rounded shadow">
@@ -65,14 +86,14 @@
         </div>
     </section>
 
-    <section id="projects" class="container mx-auto my-12">
+    <section id="projects" class="container mx-auto my-12 px-4">
         <h2 class="text-3xl font-bold mb-6">Our GitHub Projects</h2>
         <div id="repo-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- GitHub repos will be injected here by JavaScript -->
         </div>
     </section>
 
-    <section id="contact" class="container mx-auto my-12">
+    <section id="contact" class="container mx-auto my-12 px-4">
         <h2 class="text-3xl font-bold mb-6">Contact Us</h2>
         <p>Reach out to us today! Are you ready to create memorable learning experiences for your learners?</p>
         <button class="bg-blue-500 text-white px-4 py-2 rounded mt-4">Contact us</button>
@@ -83,6 +104,13 @@
             &copy; 2024 Cobblestone Learning. All rights reserved.
         </div>
     </footer>
+
+    <div id="modal" class="modal flex">
+        <div class="modal-content">
+            <button id="close-modal" class="bg-red-500 text-white px-4 py-2 rounded mb-4">Close</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -97,13 +125,87 @@
                             <h3 class="text-xl font-bold mb-2">${repo.name}</h3>
                             <p>${repo.description || 'No description available'}</p>
                             <p class="text-sm text-gray-600">⭐ ${repo.stargazers_count} | 🍴 ${repo.forks_count}</p>
-                            <a href="${repo.html_url}" target="_blank" class="text-blue-500">View Repository</a>
+                            <button class="bg-blue-500 text-white px-4 py-2 rounded mt-4" onclick="fetchRepoDetails('${repo.name}')">View Details</button>
+                            <a href="${repo.html_url}" target="_blank" class="text-blue-500 ml-4">View Repository</a>
                         `;
                         repoCards.appendChild(repoCard);
                     });
                 })
                 .catch(error => console.error('Error fetching GitHub repos:', error));
         });
+
+        function fetchRepoDetails(repoName) {
+            fetch(`https://api.github.com/repos/cobblestonelearning/${repoName}`)
+                .then(response => response.json())
+                .then(repo => {
+                    const modalBody = document.getElementById('modal-body');
+                    modalBody.innerHTML = `
+                        <h3 class="text-xl font-bold mb-2">${repo.name}</h3>
+                        <p>${repo.description || 'No description available'}</p>
+                        <p class="text-sm text-gray-600">⭐ ${repo.stargazers_count} | 🍴 ${repo.forks_count}</p>
+                        <p class="text-sm text-gray-600">Language: ${repo.language || 'N/A'}</p>
+                        <p class="text-sm text-gray-600">Open Issues: ${repo.open_issues_count}</p>
+                        <p class="text-sm text-gray-600">License: ${repo.license ? repo.license.name : 'No license'}</p>
+                    `;
+                    fetch(`https://api.github.com/repos/cobblestonelearning/${repoName}/contents`)
+                        .then(response => response.json())
+                        .then(contents => {
+                            const fileList = document.createElement('ul');
+                            fileList.className = 'list-disc list-inside';
+                            contents.forEach(file => {
+                                const listItem = document.createElement('li');
+                                listItem.textContent = file.name;
+                                fileList.appendChild(listItem);
+                            });
+                            modalBody.appendChild(fileList);
+                        });
+
+                    fetch(`https://api.github.com/repos/cobblestonelearning/${repoName}/readme`)
+                        .then(response => response.json())
+                        .then(readme => {
+                            if (readme.content) {
+                                const readmeButton = document.createElement('button');
+                                readmeButton.className = 'bg-green-500 text-white px-4 py-2 rounded mt-4';
+                                readmeButton.textContent = 'View README';
+                                readmeButton.onclick = () => {
+                                    const readmeModalBody = document.createElement('div');
+                                    readmeModalBody.innerHTML = atob(readme.content);
+                                    modalBody.innerHTML = '';
+                                    modalBody.appendChild(readmeModalBody);
+                                };
+                                modalBody.appendChild(readmeButton);
+                            }
+                        });
+
+                    fetch(`https://api.github.com/repos/cobblestonelearning/${repoName}/contents/index.html`)
+                        .then(response => response.json())
+                        .then(indexFile => {
+                            if (indexFile.download_url) {
+                                const indexButton = document.createElement('button');
+                                indexButton.className = 'bg-yellow-500 text-white px-4 py-2 rounded mt-4';
+                                indexButton.textContent = 'View Index';
+                                indexButton.onclick = () => {
+                                    fetch(indexFile.download_url)
+                                        .then(response => response.text())
+                                        .then(indexContent => {
+                                            const indexModalBody = document.createElement('div');
+                                            indexModalBody.innerHTML = indexContent;
+                                            modalBody.innerHTML = '';
+                                            modalBody.appendChild(indexModalBody);
+                                        });
+                                };
+                                modalBody.appendChild(indexButton);
+                            }
+                        });
+
+                    document.getElementById('modal').style.display = 'flex';
+                });
+        }
+
+        document.getElementById('close-modal').onclick = function() {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('modal-body').innerHTML = '';
+        };
     </script>
 </body>
 </html>
