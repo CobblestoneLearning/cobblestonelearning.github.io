@@ -213,7 +213,7 @@
                                 readmeButton.textContent = 'View README';
                                 readmeButton.onclick = () => {
                                     const readmeModalBody = document.createElement('div');
-                                    readmeModalBody.innerHTML = atob(readme.content);
+                                    readmeModalBody.innerHTML = `<pre class="line-numbers"><code class="language-markdown">${Prism.highlight(atob(readme.content), Prism.languages.markdown, 'markdown')}</code></pre>`;
                                     modalBody.innerHTML = '';
                                     modalBody.appendChild(readmeModalBody);
                                     const closeButton = document.createElement('button');
@@ -224,6 +224,7 @@
                                         document.getElementById('modal-body').innerHTML = '';
                                     };
                                     modalBody.appendChild(closeButton);
+                                    Prism.highlightAll();
                                 };
                                 modalBody.appendChild(readmeButton);
                             }
@@ -273,6 +274,7 @@
                     document.getElementById('modal').style.display = 'flex';
 
                     new ClipboardJS('.copy-button');
+                    Prism.highlightAll();
                 });
         }
 
