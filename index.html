@@ -16,6 +16,11 @@
             }
         }
     </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/themes/prism.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.10/clipboard.min.js"></script>
     <style>
         .modal {
             position: fixed;
@@ -45,6 +50,12 @@
         }
         .file-tree li.file::before {
             content: '📄 ';
+        }
+        .copy-button {
+            position: relative;
+            top: -1.6rem;
+            right: -95%;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -244,8 +255,11 @@
                     const files = Object.values(gist.files).map(file => {
                         return `
                             <div class="bg-white p-4 rounded shadow mb-4">
-                                <h4 class="text-lg font-bold">${file.filename}</h4>
-                                <pre class="bg-gray-200 p-4 rounded">${file.content}</pre>
+                                <div class="flex justify-between items-center">
+                                    <h4 class="text-lg font-bold">${file.filename}</h4>
+                                    <button class="copy-button" data-clipboard-text="${file.content}">Copy</button>
+                                </div>
+                                <pre class="bg-gray-200 p-4 rounded line-numbers"><code class="language-${getLanguage(file.filename)}">${Prism.highlight(file.content, Prism.languages[getLanguage(file.filename)], getLanguage(file.filename))}</code></pre>
                             </div>
                         `;
                     }).join('');
@@ -257,7 +271,31 @@
                         ${files}
                     `;
                     document.getElementById('modal').style.display = 'flex';
+
+                    new ClipboardJS('.copy-button');
                 });
+        }
+
+        function getLanguage(filename) {
+            const extension = filename.split('.').pop();
+            switch (extension) {
+                case 'js':
+                    return 'javascript';
+                case 'html':
+                    return 'markup';
+                case 'css':
+                    return 'css';
+                case 'json':
+                    return 'json';
+                case 'md':
+                    return 'markdown';
+                case 'py':
+                    return 'python';
+                case 'java':
+                    return 'java';
+                default:
+                    return 'plaintext';
+            }
         }
 
         function fetchFileStructure(repoName, path) {
