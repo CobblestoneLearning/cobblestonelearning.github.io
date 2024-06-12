@@ -55,6 +55,7 @@
             <nav>
                 <a href="#services" class="ml-4">Services</a>
                 <a href="#projects" class="ml-4">Projects</a>
+                <a href="#gists" class="ml-4">Gists</a>
                 <a href="#contact" class="ml-4">Contact</a>
             </nav>
         </div>
@@ -103,6 +104,13 @@
         </div>
     </section>
 
+    <section id="gists" class="container mx-auto my-12 px-4">
+        <h2 class="text-3xl font-bold mb-6">Our GitHub Gists</h2>
+        <div id="gist-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- GitHub gists will be injected here by JavaScript -->
+        </div>
+    </section>
+
     <section id="contact" class="container mx-auto my-12 px-4">
         <h2 class="text-3xl font-bold mb-6">Contact Us</h2>
         <p>Reach out to us today! Are you ready to create memorable learning experiences for your learners?</p>
@@ -142,6 +150,26 @@
                     });
                 })
                 .catch(error => console.error('Error fetching GitHub repos:', error));
+
+            fetch('https://api.github.com/users/cobblestonelearning/gists')
+                .then(response => response.json())
+                .then(data => {
+                    const gistCards = document.getElementById('gist-cards');
+                    data.forEach(gist => {
+                        const gistCard = document.createElement('div');
+                        gistCard.className = 'bg-white p-6 rounded shadow';
+                        const files = Object.values(gist.files).map(file => file.filename).join(', ');
+                        gistCard.innerHTML = `
+                            <h3 class="text-xl font-bold mb-2">${gist.description || 'No description available'}</h3>
+                            <p>Files: ${files}</p>
+                            <p class="text-sm text-gray-600">💻 ${Object.keys(gist.files).length} file(s)</p>
+                            <button class="bg-blue-500 text-white px-4 py-2 rounded mt-4" onclick="fetchGistDetails('${gist.id}')">View Details</button>
+                            <a href="${gist.html_url}" target="_blank" class="text-blue-500 ml-4">View Gist</a>
+                        `;
+                        gistCards.appendChild(gistCard);
+                    });
+                })
+                .catch(error => console.error('Error fetching GitHub gists:', error));
         });
 
         function fetchRepoDetails(repoName) {
@@ -219,6 +247,30 @@
                             }
                         });
 
+                    document.getElementById('modal').style.display = 'flex';
+                });
+        }
+
+        function fetchGistDetails(gistId) {
+            fetch(`https://api.github.com/gists/${gistId}`)
+                .then(response => response.json())
+                .then(gist => {
+                    const modalBody = document.getElementById('modal-body');
+                    const files = Object.values(gist.files).map(file => {
+                        return `
+                            <div class="bg-white p-4 rounded shadow mb-4">
+                                <h4 class="text-lg font-bold">${file.filename}</h4>
+                                <pre class="bg-gray-200 p-4 rounded">${file.content}</pre>
+                            </div>
+                        `;
+                    }).join('');
+                    modalBody.innerHTML = `
+                        <div class="bg-gray-100 p-4 rounded mb-4">
+                            <h3 class="text-xl font-bold mb-2">${gist.description || 'No description available'}</h3>
+                            <p class="text-sm text-gray-600">💻 ${Object.keys(gist.files).length} file(s)</p>
+                        </div>
+                        ${files}
+                    `;
                     document.getElementById('modal').style.display = 'flex';
                 });
         }
