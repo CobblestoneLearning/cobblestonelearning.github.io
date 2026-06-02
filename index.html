@@ -449,7 +449,7 @@
    These values are safe to be public. The OAuth client secret is
    NEVER here — code exchange happens server-side at exchangeUrl.
    ============================================================ */
-var AUTH_CONFIG = { clientId: '', exchangeUrl: '', scope: 'read:org repo', org: 'CobblestoneLearning' };
+var AUTH_CONFIG = { clientId: 'Ov23liHyPVBdzXg8TOYS', exchangeUrl: 'https://cobblestone-oauth.cobblestonelearning.workers.dev', scope: 'read:org repo', org: 'CobblestoneLearning' };
 var ghToken = null;            // IN-MEMORY ONLY. Never write the token to localStorage/sessionStorage.
 function authConfigured() { return !!(AUTH_CONFIG.clientId && AUTH_CONFIG.exchangeUrl); }
 
