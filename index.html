@@ -3,24 +3,22 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Cobblestone Learning — Your trusted partner in eLearning design</title>
-<meta name="description" content="Cobblestone Learning — award-winning eLearning design, development, conversion, translation and hosting. Learning. Creativity. Trust." />
+<title>Cobblestone Learning — Repository Hub</title>
+<meta name="description" content="Internal repository hub for Cobblestone Learning. Browse, search and explore the company's GitHub organisation, repositories and gists." />
+<meta name="robots" content="noindex, nofollow" />
 
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
 
-<!-- Tailwind (Play CDN) -->
+<!-- Tailwind (Play CDN — no SRI, it is dynamic) -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = {
     theme: {
       extend: {
-        screens: {
-          /* extra-small breakpoint for the hero type ramp (425px+) */
-          xs: '425px'
-        },
+        screens: { xs: '425px' },
         colors: {
           cyan: '#27AAE1',
           cblue: '#0074B4',
@@ -31,18 +29,8 @@
           lightbg: '#F8F9FB',
           cborder: '#E8ECF0'
         },
-        fontFamily: {
-          sans: ['Montserrat', 'Helvetica', 'Arial', 'sans-serif']
-        },
-        /* The markup relies on numeric weight utilities (font-300 … font-800).
-           Tailwind does not ship these by default, so map them explicitly. */
-        fontWeight: {
-          '300': '300',
-          '400': '400',
-          '600': '600',
-          '700': '700',
-          '800': '800'
-        }
+        fontFamily: { sans: ['Montserrat', 'Helvetica', 'Arial', 'sans-serif'] },
+        fontWeight: { '300': '300', '400': '400', '600': '600', '700': '700', '800': '800' }
       }
     }
   };
@@ -53,9 +41,6 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" integrity="sha512-cbQXwDFK7lj2Fqfkuxbo5iD1dSbLlJGXGpfTDqbggqjHJeyzx88I3rfwjS38WJag/ihH7lzuGlGHpDBymLirZQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-core.min.js" integrity="sha512-LCKPTo0gtJ74zCNMbWw04ltmujpzSR4oW+fgN+Y1YclhM5ZrHCZQAJE4quEodcI/G122sRhSGU2BsSRUZ2Gu3w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/plugins/line-numbers/prism-line-numbers.min.js" integrity="sha512-dubtf8xMHSQlExGRQ5R7toxHLgSDZ0K7AunqPWHXmJQ8XyVIG19S1T95gBxlAeGOK02P4Da2RTnQz0Za0H0ebQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<!-- Language grammars used by getLanguage(): markup/css/js/clike are bundled in prism-core's
-     own components below; markdown, json, python and java are loaded explicitly so the
-     advertised languages actually highlight (and README markdown never throws). -->
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-markup.min.js" integrity="sha512-+ELqhG7rn9xgybNJa3VI05AczCW2IaKwpKdDC5lD8RMAGc6t+OEV0Cta1QyKCrsncgaRHiN80atxfVo72+M8xg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-css.min.js" integrity="sha512-Jv/EO8zjSyqIDa2S0YjCGFY+mEROxud6g7AhfA0KcggjdzhPBhoRyetxV7G7/dnfBdZBzcOvpRn1K+J6sn3jyw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-clike.min.js" integrity="sha512-/Rynaa6ehLZJO9fdk+EUsgiOdJqFSFUB4Qgy+gP4vU4U1DrmPJWypfXe1CgyaV7rRdZjGxdpLe9djxhx1ZHvqQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -67,10 +52,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.10/clipboard.min.js" integrity="sha512-PIisRT8mFfdxx99gMs7WAY5Gp+CtjYYxKvF93w8yWAvX548UBNADHu7Qkavgr6yRG+asocqfuk5crjNd5z9s6Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <noscript>
-  <style>
-    /* If JS is disabled, reveal-on-scroll content must still be visible. */
-    .reveal { opacity: 1 !important; transform: none !important; }
-  </style>
+  <style>.reveal { opacity: 1 !important; transform: none !important; }</style>
 </noscript>
 
 <style>
@@ -85,462 +67,318 @@
     --cborder: #E8ECF0;
   }
 
-  /* Overflow guards — never allow horizontal scroll on small screens. */
   html, body { max-width: 100%; overflow-x: hidden; }
   html { scroll-behavior: smooth; }
-  body { font-family: 'Montserrat', Helvetica, Arial, sans-serif; color: var(--dark); background: #fff; }
+  body { font-family: 'Montserrat', Helvetica, Arial, sans-serif; color: var(--dark); background: var(--lightbg); }
   *, *::before, *::after { box-sizing: border-box; }
-
   ::selection { background: rgba(39,170,225,0.25); }
-
   a { color: var(--cblue); }
-
-  /* Body / muted copy — darker than brand grey for WCAG AA on white. */
   .text-body-muted { color: var(--greytext); }
 
-  /* ------- Hero gradient + mosaic motif ------- */
-  /* Two-stop ramp using only the two approved brand blues (no invented midpoint). */
-  .hero-grad {
-    background: linear-gradient(135deg, #27AAE1 0%, #0074B4 100%);
-    position: relative;
-    overflow: hidden;
-  }
-  /* Cobblestone-tile mosaic: subtle layered diagonal grid nodding to the logo tiles */
-  .hero-mosaic {
-    position: absolute;
-    inset: -10%;
-    background-image:
-      linear-gradient(135deg, rgba(255,255,255,0.07) 1px, transparent 1px),
-      linear-gradient(45deg, rgba(255,255,255,0.05) 1px, transparent 1px);
-    background-size: 46px 46px, 46px 46px;
-    transform: rotate(0deg);
-    opacity: 0.9;
-    pointer-events: none;
-    animation: mosaicDrift 26s linear infinite;
-  }
-  @keyframes mosaicDrift {
-    0%   { background-position: 0 0, 0 0; }
-    100% { background-position: 460px 460px, -460px 460px; }
-  }
-  /* Floating glowing tiles */
-  .tile-float {
-    position: absolute;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.10);
-    border: 1px solid rgba(255,255,255,0.18);
-    backdrop-filter: blur(2px);
-    transform: rotate(var(--r,0deg));
-    animation: tileBob 9s ease-in-out infinite;
-  }
-  @keyframes tileBob {
-    0%,100% { transform: translateY(0) rotate(var(--r,0deg)); }
-    50%     { transform: translateY(-18px) rotate(var(--r,0deg)); }
-  }
-  /* Decorative glows — on-palette brand cyan/blue at low opacity. */
-  .hero-glow {
-    position: absolute;
-    border-radius: 9999px;
-    filter: blur(70px);
-    opacity: 0.45;
-    pointer-events: none;
-  }
+  /* ------- Card surface ------- */
+  .surface { background: #fff; border: 1px solid var(--cborder); }
 
-  /* ------- Glass cards ------- */
-  .glass {
-    background: rgba(255,255,255,0.10);
-    border: 1px solid rgba(255,255,255,0.22);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-  }
-  .glass-light {
-    background: rgba(255,255,255,0.72);
-    border: 1px solid var(--cborder);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
+  /* Repo / gist card hover lift */
+  .data-card { transition: transform .28s cubic-bezier(.16,.84,.44,1), box-shadow .28s ease, border-color .28s ease; will-change: transform; }
+  .data-card:hover { transform: translateY(-5px); box-shadow: 0 18px 40px -22px rgba(0,116,180,0.4); border-color: rgba(39,170,225,0.6); }
 
-  /* Logo pill on dark surfaces */
-  .logo-pill {
-    background: #fff;
-    border-radius: 14px;
-    padding: 10px 16px;
-    box-shadow: 0 10px 30px rgba(0,40,80,0.18);
-    display: inline-flex;
-    align-items: center;
-  }
-
-  /* ------- Service card hover ------- */
-  .service-card {
-    transition: transform .35s cubic-bezier(.16,.84,.44,1), box-shadow .35s ease, border-color .35s ease;
-    will-change: transform;
-  }
-  .service-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 24px 50px -20px rgba(0,116,180,0.35);
-    border-color: rgba(39,170,225,0.55);
-  }
-  .service-icon {
-    transition: transform .35s ease, background .35s ease;
-  }
-  .service-card:hover .service-icon { transform: scale(1.08) rotate(-3deg); }
-
-  /* Repo / gist card hover */
-  .data-card { transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease; }
-  .data-card:hover { transform: translateY(-5px); box-shadow: 0 18px 40px -22px rgba(0,116,180,0.4); border-color: rgba(39,170,225,0.5); }
+  /* Stat tile */
+  .stat-tile { transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease; }
+  .stat-tile:hover { transform: translateY(-3px); box-shadow: 0 14px 30px -20px rgba(0,116,180,0.35); border-color: rgba(39,170,225,0.5); }
 
   /* ------- Buttons ------- */
-  .btn { transition: transform .2s ease, box-shadow .25s ease, background .25s ease, color .2s ease; }
-  .btn-primary {
-    background: linear-gradient(135deg, #27AAE1, #0074B4);
-    color: #fff; box-shadow: 0 10px 24px -10px rgba(0,116,180,0.7);
-  }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -10px rgba(0,116,180,0.85); }
+  .btn { transition: transform .2s ease, box-shadow .25s ease, background .25s ease, color .2s ease, border-color .2s ease; }
+  .btn-primary { background: linear-gradient(135deg, #0074B4, #005C90); color: #fff; box-shadow: 0 8px 20px -10px rgba(0,116,180,0.7); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 26px -10px rgba(0,116,180,0.85); }
   .btn-ghost { background: #fff; color: var(--cblue); border: 1.5px solid var(--cborder); }
   .btn-ghost:hover { border-color: var(--cyan); transform: translateY(-2px); }
-  .btn-white { background: #fff; color: var(--cblue); }
-  .btn-white:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -12px rgba(0,0,0,0.35); }
-  .btn-outline-white { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.7); }
-  .btn-outline-white:hover { background: rgba(255,255,255,0.14); transform: translateY(-2px); }
 
-  /* Nav link underline */
-  .nav-link { position: relative; }
-  .nav-link::after {
-    content: ''; position: absolute; left: 0; bottom: -4px; height: 2px; width: 0;
-    background: linear-gradient(90deg, #27AAE1, #0074B4); transition: width .3s ease;
+  /* ------- Controls / chips ------- */
+  .chip {
+    cursor: pointer; font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 9999px;
+    background: #fff; color: var(--greytext); border: 1.5px solid var(--cborder);
+    transition: background .2s ease, color .2s ease, border-color .2s ease, transform .15s ease;
+    white-space: nowrap; display: inline-flex; align-items: center; gap: 7px;
   }
-  .nav-link:hover::after, .nav-link:focus-visible::after { width: 100%; }
+  .chip:hover { border-color: var(--cyan); color: var(--cblue); }
+  .chip[aria-pressed="true"] { background: linear-gradient(135deg,#0074B4,#005C90); color: #fff; border-color: transparent; }
+  .chip[aria-pressed="true"] .text-grey, .chip[aria-pressed="true"] span { color: #fff; }
+  .chip .dot { width: 9px; height: 9px; border-radius: 9999px; flex: none; }
+
+  .control-field {
+    background: #fff; border: 1.5px solid var(--cborder); border-radius: 12px;
+    transition: border-color .2s ease, box-shadow .2s ease;
+  }
+  .control-field:focus-within { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(39,170,225,0.15); }
+  select.control-select { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; }
+
+  /* Language dot in cards */
+  .lang-dot { width: 11px; height: 11px; border-radius: 9999px; display: inline-block; flex: none; box-shadow: 0 0 0 2px rgba(0,0,0,0.04); }
+
+  /* Topic pill */
+  .topic-pill {
+    font-size: 11px; font-weight: 700; letter-spacing: .2px; padding: 3px 9px; border-radius: 9999px;
+    background: #E8F4FC; color: var(--cblue); white-space: nowrap;
+  }
+  .badge {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+    padding: 3px 9px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .badge-live { background: #F0FAF3; color: #1E7D44; border: 1px solid #B7E4C5; }
+  .badge-archived { background: #F0F2F5; color: #6B6B6B; }
+  .badge-fork { background: #FFF8E1; color: #8A6500; }
+
+  /* Copy command button on cards */
+  .copy-cmd {
+    cursor: pointer; font-size: 12px; font-weight: 700; letter-spacing: .3px;
+    background: #fff; color: var(--cblue); border: 1.5px solid var(--cborder);
+    padding: 7px 12px; border-radius: 10px; transition: border-color .2s ease, color .2s ease, background .2s ease, transform .15s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .copy-cmd:hover { border-color: var(--cyan); transform: translateY(-1px); }
+  .copy-cmd.copied { background: #F0FAF3; color: #1E7D44; border-color: #B7E4C5; }
 
   /* ------- Scroll reveal ------- */
-  .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s cubic-bezier(.16,.84,.44,1); }
+  .reveal { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s cubic-bezier(.16,.84,.44,1); }
   .reveal.in { opacity: 1; transform: none; }
-
-  /* Section eyebrow */
-  .eyebrow {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
-    color: var(--cblue);
-  }
-  .eyebrow::before { content: ''; width: 26px; height: 2px; background: linear-gradient(90deg,#27AAE1,#0074B4); display: inline-block; }
 
   /* ------- Modal ------- */
   .modal {
     position: fixed; inset: 0; z-index: 60;
-    background: rgba(20,32,46,0.62);
+    background: rgba(20,32,46,0.55);
     backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
     display: none; align-items: center; justify-content: center; padding: 16px;
   }
   .modal.open { display: flex; animation: fadeIn .2s ease; }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   .modal-content {
-    background: #fff; border-radius: 18px; width: 100%; max-width: 860px;
+    background: #fff; border-radius: 18px; width: 100%; max-width: 880px;
     max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;
     box-shadow: 0 30px 80px -20px rgba(0,0,0,0.5);
-    animation: popIn .28s cubic-bezier(.16,.84,.44,1);
+    animation: popIn .26s cubic-bezier(.16,.84,.44,1);
   }
-  @keyframes popIn { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
-  .modal-scroll { overflow-y: auto; padding: 0 28px 28px; }
+  @keyframes popIn { from { opacity: 0; transform: translateY(16px) scale(.985); } to { opacity: 1; transform: none; } }
+  .modal-scroll { overflow-y: auto; padding: 0 24px 26px; }
   .modal-head {
     position: sticky; top: 0; z-index: 2; background: #fff;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 28px 16px; border-bottom: 1px solid var(--cborder);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 18px 24px 14px; border-bottom: 1px solid var(--cborder);
   }
-  /* Keep wide code blocks inside the modal — never push the page wide. */
   .modal-content pre { max-width: 100%; overflow-x: auto; }
 
   /* File tree */
+  .file-tree { overflow-x: auto; }
   .file-tree ul { list-style: none; padding-left: 18px; margin: 4px 0; }
-  .file-tree li {
-    padding: 3px 0; cursor: default; font-size: 14px; color: var(--dark);
-    display: flex; align-items: center; gap: 6px;
-  }
+  .file-tree li { padding: 3px 0; cursor: default; font-size: 14px; color: var(--dark); display: flex; align-items: center; gap: 6px; word-break: break-word; }
   .file-tree li.folder { cursor: pointer; font-weight: 600; }
   .file-tree li.folder:hover { color: var(--cblue); }
   .file-tree li.folder > ul { width: 100%; }
-  .file-tree li::before { content: '\01F4C1'; }
-  .file-tree li.file::before { content: '\01F4C4'; }
+  .file-tree li::before { content: '\01F4C1' / ''; }
+  .file-tree li.file::before { content: '\01F4C4' / ''; }
+  @supports not (content: '' / '') {
+    .file-tree li::before { content: '\01F4C1'; }
+    .file-tree li.file::before { content: '\01F4C4'; }
+  }
+  @media (max-width: 480px) { .file-tree ul { padding-left: 12px; } }
 
   /* gist copy button */
   .copy-button {
     cursor: pointer; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
-    background: linear-gradient(135deg,#27AAE1,#0074B4); color: #fff;
-    padding: 5px 12px; border-radius: 8px; border: none; transition: transform .2s ease, opacity .2s ease;
+    background: linear-gradient(135deg,#0074B4,#005C90); color: #fff;
+    padding: 7px 14px; border-radius: 8px; border: none; min-height: 32px; transition: transform .2s ease, opacity .2s ease;
   }
   .copy-button:hover { transform: translateY(-1px); opacity: .92; }
 
-  /* Skeleton loader — on-palette light/border greys. */
+  /* Skeleton loader */
   .skeleton {
     background: linear-gradient(100deg, #E8ECF0 30%, #F8F9FB 50%, #E8ECF0 70%);
-    background-size: 200% 100%; animation: shimmer 1.4s infinite;
-    border-radius: 12px;
+    background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 10px;
   }
   @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
   /* Focus visibility */
-  a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
-    outline: 3px solid rgba(39,170,225,0.6); outline-offset: 2px; border-radius: 6px;
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible, select:focus-visible, input:focus-visible {
+    outline: 3px solid rgba(39,170,225,0.55); outline-offset: 2px; border-radius: 6px;
   }
-
-  /* Mobile nav */
-  #mobile-menu { transition: max-height .35s ease, opacity .3s ease; max-height: 0; opacity: 0; overflow: hidden; }
-  #mobile-menu.open { max-height: 360px; opacity: 1; }
 
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .hero-mosaic, .tile-float { animation: none !important; }
     .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
     .modal.open, .modal-content { animation: none !important; }
-    .service-card, .data-card, .btn { transition: none !important; }
+    .data-card, .stat-tile, .btn, .chip, .copy-cmd, .copy-button { transition: none !important; }
+    .data-card:hover, .stat-tile:hover, .btn-primary:hover, .btn-ghost:hover, .copy-cmd:hover, .copy-button:hover { transform: none !important; }
     .skeleton { animation: none !important; }
-    /* Reduce continuous compositing cost of decorative blur layers. */
-    .hero-glow { filter: blur(40px); opacity: 0.3; }
-  }
-
-  /* Trim expensive blur on small screens to ease low-end mobile paint cost. */
-  @media (max-width: 640px) {
-    .hero-glow { filter: blur(48px); }
   }
 </style>
 </head>
 
-<body class="bg-white text-dark antialiased">
+<body class="bg-lightbg text-dark antialiased">
 
-<a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-3 focus:left-3 focus:bg-white focus:text-cblue focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg">Skip to content</a>
+<a href="#repos" class="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-3 focus:left-3 focus:bg-white focus:text-cblue focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg">Skip to repositories</a>
 
-<!-- ============ HEADER (solid white from the start — dark+cyan logo always on white) ============ -->
-<header class="sticky top-0 z-50 bg-white shadow-sm border-b border-cborder">
-  <div class="max-w-7xl mx-auto px-5 sm:px-8">
-    <div class="flex items-center justify-between h-[72px] gap-4">
-      <a href="#top" class="flex items-center gap-3 shrink-0" aria-label="Cobblestone Learning home">
-        <img src="cobblestone-logo.png" alt="Cobblestone Learning logo" class="h-12 w-auto" width="1870" height="769" decoding="async" fetchpriority="high" />
-      </a>
-
-      <nav class="hidden md:flex items-center gap-8" aria-label="Primary">
-        <a href="#services" class="nav-link text-sm font-600 text-dark hover:text-cblue">Services</a>
-        <a href="#projects" class="nav-link text-sm font-600 text-dark hover:text-cblue">Projects</a>
-        <a href="#gists" class="nav-link text-sm font-600 text-dark hover:text-cblue">Gists</a>
-        <a href="#contact" class="nav-link text-sm font-600 text-dark hover:text-cblue">Contact</a>
-        <a href="mailto:eoin.oneill@cobblestonelearning.com" class="btn btn-primary text-sm font-700 px-5 py-2.5 rounded-full">Request a quote</a>
-      </nav>
-
-      <button id="menu-toggle" class="md:hidden inline-flex items-center justify-center w-11 h-11 rounded-lg text-dark hover:bg-lightbg" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
-        <svg id="icon-open" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        <svg id="icon-close" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
-      </button>
-    </div>
-
-    <div id="mobile-menu" class="md:hidden">
-      <nav class="flex flex-col gap-1 pb-4 pt-1" aria-label="Mobile">
-        <a href="#services" class="mob-link px-3 py-3 rounded-lg font-600 text-dark hover:bg-lightbg">Services</a>
-        <a href="#projects" class="mob-link px-3 py-3 rounded-lg font-600 text-dark hover:bg-lightbg">Projects</a>
-        <a href="#gists" class="mob-link px-3 py-3 rounded-lg font-600 text-dark hover:bg-lightbg">Gists</a>
-        <a href="#contact" class="mob-link px-3 py-3 rounded-lg font-600 text-dark hover:bg-lightbg">Contact</a>
-        <a href="mailto:eoin.oneill@cobblestonelearning.com" class="mob-link btn btn-primary text-center font-700 px-5 py-3 rounded-full mt-2">Request a quote</a>
-      </nav>
+<!-- ============ TOP BAR ============ -->
+<header id="site-header" class="sticky top-0 z-50 bg-white border-b border-cborder">
+  <div class="max-w-[1400px] mx-auto px-4 sm:px-8">
+    <div class="flex items-center justify-between h-[68px] gap-4">
+      <div class="flex items-center gap-3 min-w-0">
+        <img src="cobblestone-logo.png" alt="Cobblestone Learning logo" class="h-9 sm:h-10 w-auto shrink-0" width="1870" height="769" decoding="async" fetchpriority="high" />
+        <span class="hidden sm:inline-block h-7 w-px bg-cborder mx-1" aria-hidden="true"></span>
+        <span class="hidden sm:inline-flex items-center gap-2 text-xs font-700 tracking-wide uppercase text-greytext">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan" aria-hidden="true"></span>Repository Hub
+        </span>
+      </div>
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <a href="https://cobblestonelearning.github.io/" target="_blank" rel="noopener" class="hidden md:inline-flex items-center gap-1.5 text-sm font-600 text-greytext hover:text-cblue px-3 py-2 rounded-lg transition-colors">
+          Org Pages
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </a>
+        <a href="https://github.com/cobblestonelearning" target="_blank" rel="noopener" class="btn btn-ghost inline-flex items-center gap-2 text-sm font-700 px-4 py-2.5 rounded-full">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.05.78 2.12 0 1.53-.01 2.77-.01 3.15 0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>
+          <span class="hidden xs:inline">GitHub Org</span>
+          <span class="xs:hidden">GitHub</span>
+        </a>
+      </div>
     </div>
   </div>
 </header>
 
-<main id="main">
+<main>
 
-<!-- ============ HERO ============ -->
-<section id="top" class="hero-grad text-white">
-  <div class="hero-mosaic" aria-hidden="true"></div>
-  <div class="hero-glow" aria-hidden="true" style="width:380px;height:380px;background:var(--cyan);top:-120px;right:-80px;"></div>
-  <div class="hero-glow" aria-hidden="true" style="width:300px;height:300px;background:var(--cblue);bottom:-100px;left:-60px;"></div>
-
-  <!-- floating tiles -->
-  <div class="tile-float hidden sm:block" aria-hidden="true" style="width:64px;height:64px;top:18%;left:8%;--r:8deg;animation-delay:.2s;"></div>
-  <div class="tile-float hidden md:block" aria-hidden="true" style="width:42px;height:42px;top:64%;left:14%;--r:-6deg;animation-delay:1.4s;"></div>
-  <div class="tile-float hidden md:block" aria-hidden="true" style="width:80px;height:80px;top:28%;right:10%;--r:-10deg;animation-delay:.8s;"></div>
-  <div class="tile-float hidden lg:block" aria-hidden="true" style="width:50px;height:50px;bottom:16%;right:18%;--r:12deg;animation-delay:2s;"></div>
-
-  <div class="relative max-w-7xl mx-auto px-5 sm:px-8 pt-20 pb-24 sm:pt-28 sm:pb-32">
-    <div class="max-w-3xl">
-      <span class="reveal inline-flex items-center gap-2 glass text-white text-xs sm:text-sm font-700 tracking-wide uppercase px-4 py-2 rounded-full mb-7 max-w-full">
-        <span class="w-2 h-2 rounded-full shrink-0" style="background:var(--yellow)" aria-hidden="true"></span>
-        Learning. Creativity. Trust.
-      </span>
-
-      <h1 class="reveal text-[1.85rem] xs:text-3xl sm:text-5xl lg:text-[3.85rem] font-800 leading-[1.1] sm:leading-[1.05] tracking-tight mb-6 break-words">
-        Your trusted partner in <span class="text-white/95 underline decoration-yellow decoration-4 underline-offset-[6px]">eLearning design</span>
-      </h1>
-
-      <p class="reveal text-base sm:text-xl text-white/90 font-300 leading-relaxed max-w-full sm:max-w-2xl mb-9">
-        Simply put, we are learning designers, eLearning developers, and multimedia experts. We create award-winning online courses that develop skills, change behaviour, and raise awareness.
+<!-- ============ INTRO + STAT BAR ============ -->
+<section class="bg-white border-b border-cborder">
+  <div class="max-w-[1400px] mx-auto px-4 sm:px-8 pt-8 pb-7 sm:pt-10 sm:pb-9">
+    <div class="reveal mb-7 max-w-2xl">
+      <h1 class="text-2xl sm:text-3xl font-800 tracking-tight mb-2">Cobblestone Learning repositories</h1>
+      <p class="text-body-muted text-sm sm:text-base font-400 leading-relaxed">
+        Your internal command centre for the <code class="font-600 text-cblue bg-lightbg px-1.5 py-0.5 rounded">cobblestonelearning</code> GitHub organisation. Search, filter and explore every repository and gist — read the code, preview live pages and copy a clone command in one click.
       </p>
+    </div>
 
-      <div class="reveal flex flex-col sm:flex-row gap-4">
-        <a href="mailto:eoin.oneill@cobblestonelearning.com" class="btn btn-white font-700 px-7 py-3.5 rounded-full text-center inline-flex items-center justify-center gap-2">
-          Request a quote
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </a>
-        <a href="#services" class="btn btn-outline-white font-700 px-7 py-3.5 rounded-full text-center">Explore our services</a>
+    <dl class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4" id="stat-bar" aria-label="Organisation statistics" aria-busy="true">
+      <!-- repos -->
+      <div class="stat-tile reveal surface rounded-2xl p-4 sm:p-5">
+        <div class="flex items-center gap-2 mb-1.5 text-cblue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          <dt class="text-xs font-700 uppercase tracking-wide text-greytext">Repositories</dt>
+        </div>
+        <dd class="text-2xl sm:text-3xl font-800 leading-none" id="stat-repos">—</dd>
+        <p class="text-xs text-body-muted font-600 mt-1.5" id="stat-repos-sub">in the organisation</p>
       </div>
-
-      <dl class="reveal grid grid-cols-3 gap-3 sm:gap-8 mt-14 max-w-full sm:max-w-xl">
-        <div class="min-w-0">
-          <dt class="sr-only">Disciplines</dt>
-          <dd class="text-2xl sm:text-4xl font-800">6</dd>
-          <p class="text-white/90 text-xs sm:text-sm font-600 mt-1 break-words">Core disciplines</p>
+      <!-- languages -->
+      <div class="stat-tile reveal surface rounded-2xl p-4 sm:p-5" style="transition-delay:60ms">
+        <div class="flex items-center gap-2 mb-1.5 text-cblue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          <dt class="text-xs font-700 uppercase tracking-wide text-greytext">Languages</dt>
         </div>
-        <div class="min-w-0">
-          <dt class="sr-only">Focus</dt>
-          <dd class="text-2xl sm:text-4xl font-800">LCT</dd>
-          <p class="text-white/90 text-xs sm:text-sm font-600 mt-1 break-words">Learning · Creativity · Trust</p>
+        <dd class="text-2xl sm:text-3xl font-800 leading-none" id="stat-langs">—</dd>
+        <p class="text-xs text-body-muted font-600 mt-1.5" id="stat-langs-sub">distinct primary languages</p>
+      </div>
+      <!-- last update -->
+      <div class="stat-tile reveal surface rounded-2xl p-4 sm:p-5" style="transition-delay:120ms">
+        <div class="flex items-center gap-2 mb-1.5 text-cblue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <dt class="text-xs font-700 uppercase tracking-wide text-greytext">Last update</dt>
         </div>
-        <div class="min-w-0">
-          <dt class="sr-only">Recognition</dt>
-          <dd class="text-2xl sm:text-4xl font-800">Award<span class="text-yellow" aria-hidden="true">·</span></dd>
-          <p class="text-white/90 text-xs sm:text-sm font-600 mt-1 break-words">Winning courses</p>
+        <dd class="text-2xl sm:text-3xl font-800 leading-none" id="stat-updated">—</dd>
+        <p class="text-xs text-body-muted font-600 mt-1.5" id="stat-updated-sub">across all repos</p>
+      </div>
+      <!-- live pages -->
+      <div class="stat-tile reveal surface rounded-2xl p-4 sm:p-5" style="transition-delay:180ms">
+        <div class="flex items-center gap-2 mb-1.5 text-cblue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <dt class="text-xs font-700 uppercase tracking-wide text-greytext">Live pages</dt>
         </div>
-      </dl>
-    </div>
-  </div>
-
-  <!-- wave divider -->
-  <div class="relative -mb-1" aria-hidden="true">
-    <svg viewBox="0 0 1440 70" preserveAspectRatio="none" class="w-full h-[50px] sm:h-[70px] block"><path fill="#FFFFFF" d="M0,40 C240,80 480,0 720,24 C960,48 1200,80 1440,36 L1440,80 L0,80 Z"></path></svg>
+        <dd class="text-2xl sm:text-3xl font-800 leading-none" id="stat-pages">—</dd>
+        <p class="text-xs text-body-muted font-600 mt-1.5" id="stat-pages-sub">published demos</p>
+      </div>
+    </dl>
   </div>
 </section>
 
-<!-- ============ SERVICES ============ -->
-<section id="services" class="bg-white py-20 sm:py-28">
-  <div class="max-w-7xl mx-auto px-5 sm:px-8">
-    <div class="max-w-2xl mb-14 reveal">
-      <span class="eyebrow mb-4">What we do</span>
-      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-800 leading-tight mt-3 mb-4">eLearning Services</h2>
-      <p class="text-body-muted text-lg font-400 leading-relaxed">
-        From first strategy to final delivery — a complete, end-to-end partnership for organisations that take learning seriously.
-      </p>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="services-grid">
-      <!-- cards injected via renderServices() -->
+<!-- ============ CONTROLS BAR (sticky) ============ -->
+<div id="controls" class="sticky top-[var(--header-h,68px)] z-40 bg-lightbg/95 backdrop-blur border-b border-cborder">
+  <div class="max-w-[1400px] mx-auto px-4 sm:px-8 py-3.5">
+    <div class="flex flex-col gap-3">
+      <div class="flex flex-col sm:flex-row gap-3">
+        <!-- search -->
+        <div class="control-field flex items-center gap-2 px-3.5 py-2.5 flex-1 min-w-0">
+          <svg class="text-grey shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <label for="search" class="sr-only">Search repositories by name, description or topic</label>
+          <input id="search" type="search" autocomplete="off" placeholder="Search repositories by name, description or topic…" aria-controls="repo-cards" class="w-full bg-transparent border-0 outline-none text-sm font-600 text-dark placeholder:text-greytext placeholder:font-400" />
+          <button id="search-clear" type="button" class="hidden shrink-0 -mr-1 p-2 rounded-full text-greytext hover:text-cblue" aria-label="Clear search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+          </button>
+        </div>
+        <!-- sort + toggles -->
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div class="control-field flex items-center gap-1.5 px-3 py-2.5">
+            <svg class="text-grey shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="13" y2="6"/><line x1="3" y1="12" x2="11" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/><polyline points="16 9 19 6 22 9"/><line x1="19" y1="6" x2="19" y2="18"/></svg>
+            <label for="sort" class="sr-only">Sort repositories</label>
+            <select id="sort" class="control-select text-sm font-600 text-dark pr-1 py-0">
+              <option value="updated">Recently updated</option>
+              <option value="name">Name A–Z</option>
+              <option value="size">Largest</option>
+            </select>
+          </div>
+          <label class="control-field flex items-center gap-2 px-3 py-2.5 cursor-pointer select-none" title="Show forked and archived repositories">
+            <input id="show-extra" type="checkbox" class="accent-cyan w-4 h-4 cursor-pointer" />
+            <span class="text-sm font-600 text-greytext whitespace-nowrap">Forks &amp; archived</span>
+          </label>
+        </div>
+      </div>
+      <!-- language chips -->
+      <div class="flex items-center gap-2 overflow-x-auto -mx-1 px-1 pt-1 pb-1.5" id="lang-filter" role="group" aria-label="Filter by language">
+        <button type="button" class="chip" data-lang="__all" aria-pressed="true">All languages</button>
+        <span id="lang-chip-skeleton" class="flex items-center gap-2" aria-hidden="true">
+          <span class="skeleton inline-block h-8 w-20 rounded-full"></span>
+          <span class="skeleton inline-block h-8 w-24 rounded-full"></span>
+          <span class="skeleton inline-block h-8 w-16 rounded-full"></span>
+        </span>
+      </div>
     </div>
   </div>
-</section>
+</div>
 
-<!-- ============ PROJECTS (GitHub repos) ============ -->
-<section id="projects" class="bg-lightbg py-20 sm:py-28 border-y border-cborder">
-  <div class="max-w-7xl mx-auto px-5 sm:px-8">
-    <div class="max-w-2xl mb-12 reveal">
-      <span class="eyebrow mb-4">Open source</span>
-      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-800 leading-tight mt-3 mb-4">Our GitHub Projects</h2>
-      <p class="text-body-muted text-lg font-400 leading-relaxed">Tools, packages and experiments we build and share — pulled live from our GitHub organisation.</p>
-    </div>
-    <p id="repo-status" class="sr-only" role="status" aria-live="polite">Loading projects…</p>
-    <div id="repo-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" aria-busy="true"></div>
+<!-- ============ REPOSITORIES ============ -->
+<section id="repos" class="max-w-[1400px] mx-auto px-4 sm:px-8 pt-7 pb-12 sm:pt-9">
+  <div class="flex items-baseline justify-between gap-4 mb-5">
+    <h2 class="text-lg sm:text-xl font-800 tracking-tight">Repositories</h2>
+    <p id="repo-count" class="text-sm font-600 text-greytext" aria-hidden="true"></p>
   </div>
+  <p id="repo-status" class="sr-only" role="status" aria-live="polite">Loading repositories…</p>
+  <div id="repo-cards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5" aria-busy="true"></div>
 </section>
 
 <!-- ============ GISTS ============ -->
-<section id="gists" class="bg-white py-20 sm:py-28">
-  <div class="max-w-7xl mx-auto px-5 sm:px-8">
-    <div class="max-w-2xl mb-12 reveal">
-      <span class="eyebrow mb-4">Snippets</span>
-      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-800 leading-tight mt-3 mb-4">Our GitHub Gists</h2>
-      <p class="text-body-muted text-lg font-400 leading-relaxed">Handy code snippets and references, shared openly from our team.</p>
+<section id="gists" class="bg-white border-t border-cborder">
+  <div class="max-w-[1400px] mx-auto px-4 sm:px-8 py-11 sm:py-12">
+    <div class="flex items-baseline justify-between gap-4 mb-5">
+      <h2 class="text-lg sm:text-xl font-800 tracking-tight">Gists</h2>
+      <p id="gist-count" class="text-sm font-600 text-greytext" aria-hidden="true"></p>
     </div>
     <p id="gist-status" class="sr-only" role="status" aria-live="polite">Loading gists…</p>
-    <div id="gist-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" aria-busy="true"></div>
-  </div>
-</section>
-
-<!-- ============ CONTACT ============ -->
-<section id="contact" class="hero-grad text-white relative overflow-hidden py-20 sm:py-28">
-  <div class="hero-mosaic" aria-hidden="true"></div>
-  <div class="hero-glow" aria-hidden="true" style="width:360px;height:360px;background:var(--cyan);top:-120px;left:10%;"></div>
-  <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
-    <div class="grid lg:grid-cols-2 gap-12 items-center">
-      <div class="reveal">
-        <span class="inline-flex items-center gap-2 glass text-xs font-700 tracking-wide uppercase px-4 py-2 rounded-full mb-6">
-          <span class="w-2 h-2 rounded-full" style="background:var(--yellow)" aria-hidden="true"></span> Let's talk
-        </span>
-        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-800 leading-tight mb-5">Ready to create memorable learning experiences?</h2>
-        <p class="text-white/90 text-lg font-300 leading-relaxed mb-8 max-w-xl">
-          Reach out today. Whether you are starting from scratch or transforming existing material, we will help you build courses your learners remember.
-        </p>
-        <div class="flex flex-col sm:flex-row gap-4">
-          <a href="mailto:info@cobblestonelearning.com" class="btn btn-white font-700 px-7 py-3.5 rounded-full text-center break-words">Email info@cobblestonelearning.com</a>
-          <a href="tel:+35319081582" class="btn btn-outline-white font-700 px-7 py-3.5 rounded-full text-center inline-flex items-center justify-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            +353 1 908 1582
-          </a>
-        </div>
-        <p class="text-white/90 text-sm mt-6">
-          Prefer a quote? <a href="mailto:eoin.oneill@cobblestonelearning.com" class="underline decoration-yellow underline-offset-2 text-white font-600 hover:text-white">Email Eoin O'Neill</a> directly.
-        </p>
-      </div>
-
-      <div class="reveal">
-        <div class="glass rounded-2xl p-7 sm:p-9">
-          <h3 class="text-xl font-700 mb-6">Get in touch</h3>
-          <ul class="space-y-5">
-            <li class="flex items-start gap-4">
-              <span class="shrink-0 w-10 h-10 rounded-xl bg-white/15 border border-white/25 grid place-items-center" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              </span>
-              <div><p class="font-700">Studio</p><p class="text-white/90 text-sm">5 Lombard Street, Dublin 2, Ireland</p></div>
-            </li>
-            <li class="flex items-start gap-4">
-              <span class="shrink-0 w-10 h-10 rounded-xl bg-white/15 border border-white/25 grid place-items-center" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
-              </span>
-              <div class="min-w-0"><p class="font-700">Email</p><a href="mailto:info@cobblestonelearning.com" class="text-white/90 text-sm underline-offset-2 hover:underline break-words">info@cobblestonelearning.com</a></div>
-            </li>
-            <li class="flex items-start gap-4">
-              <span class="shrink-0 w-10 h-10 rounded-xl bg-white/15 border border-white/25 grid place-items-center" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              </span>
-              <div><p class="font-700">Phone</p><a href="tel:+35319081582" class="text-white/90 text-sm hover:underline underline-offset-2">+353 1 908 1582</a></div>
-            </li>
-            <li class="flex items-start gap-4">
-              <span class="shrink-0 w-10 h-10 rounded-xl bg-white/15 border border-white/25 grid place-items-center" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-              </span>
-              <div class="min-w-0"><p class="font-700">Web</p><a href="https://www.cobblestonelearning.com" target="_blank" rel="noopener" class="text-white/90 text-sm hover:underline underline-offset-2 break-words">www.cobblestonelearning.com</a></div>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+    <div id="gist-cards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5" aria-busy="true"></div>
   </div>
 </section>
 
 </main>
 
 <!-- ============ FOOTER ============ -->
-<footer class="bg-dark text-white/80 pt-16 pb-8">
-  <div class="max-w-7xl mx-auto px-5 sm:px-8">
-    <div class="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr] mb-12">
-      <div>
-        <span class="logo-pill mb-5">
-          <img src="cobblestone-logo.png" alt="Cobblestone Learning logo" class="h-12 w-auto" width="1870" height="769" loading="lazy" decoding="async" />
-        </span>
-        <p class="text-sm leading-relaxed max-w-sm">Learning. Creativity. Trust. Award-winning eLearning design, development and delivery from the heart of Dublin.</p>
+<footer class="bg-white border-t border-cborder">
+  <div class="max-w-[1400px] mx-auto px-4 sm:px-8 py-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left">
+      <div class="flex items-center gap-3">
+        <img src="cobblestone-logo.png" alt="Cobblestone Learning logo" class="h-8 w-auto" width="1870" height="769" loading="lazy" decoding="async" />
+        <span class="hidden sm:inline-block h-6 w-px bg-cborder" aria-hidden="true"></span>
+        <span class="text-xs font-600 tracking-wide text-greytext">Learning. Creativity. Trust.</span>
       </div>
-      <div>
-        <h3 class="text-white font-700 text-sm uppercase tracking-wide mb-4">Explore</h3>
-        <ul class="space-y-2.5 text-sm">
-          <li><a href="#services" class="hover:text-cyan transition-colors">Services</a></li>
-          <li><a href="#projects" class="hover:text-cyan transition-colors">Projects</a></li>
-          <li><a href="#gists" class="hover:text-cyan transition-colors">Gists</a></li>
-          <li><a href="#contact" class="hover:text-cyan transition-colors">Contact</a></li>
-        </ul>
+      <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-5 text-xs text-body-muted">
+        <a href="https://github.com/cobblestonelearning" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 font-700 text-cblue hover:underline underline-offset-2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.05.78 2.12 0 1.53-.01 2.77-.01 3.15 0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>
+          github.com/cobblestonelearning
+        </a>
+        <span class="font-600">Internal repository hub &middot; &copy; 2026 Cobblestone Learning</span>
       </div>
-      <div>
-        <h3 class="text-white font-700 text-sm uppercase tracking-wide mb-4">Contact</h3>
-        <ul class="space-y-2.5 text-sm">
-          <li>5 Lombard Street, Dublin 2, Ireland</li>
-          <li><a href="mailto:info@cobblestonelearning.com" class="hover:text-cyan transition-colors break-words">info@cobblestonelearning.com</a></li>
-          <li><a href="tel:+35319081582" class="hover:text-cyan transition-colors">+353 1 908 1582</a></li>
-          <li><a href="https://www.cobblestonelearning.com" target="_blank" rel="noopener" class="hover:text-cyan transition-colors break-words">www.cobblestonelearning.com</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/60">
-      <p>&copy; 2026 Cobblestone Learning. All rights reserved.</p>
-      <p>Company Reg. No. 611352 &middot; VAT IE 3493287IH &middot; Dublin, Ireland</p>
     </div>
   </div>
 </footer>
@@ -549,8 +387,8 @@
 <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
   <div class="modal-content">
     <div class="modal-head">
-      <h2 id="modal-title" class="text-lg font-700 text-dark" tabindex="-1">Details</h2>
-      <button id="close-modal" class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-lightbg hover:bg-cborder text-dark transition-colors" aria-label="Close dialog">
+      <h2 id="modal-title" class="text-base sm:text-lg font-700 text-dark min-w-0 truncate" tabindex="-1">Details</h2>
+      <button id="close-modal" class="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-full bg-lightbg hover:bg-cborder text-dark transition-colors" aria-label="Close dialog">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
       </button>
     </div>
@@ -562,39 +400,6 @@
 
 <script>
 /* ============================================================
-   SERVICES — rendered from data for clean, consistent markup
-   ============================================================ */
-(function renderServices() {
-  var services = [
-    { t: 'Consultancy',  d: 'Expert guidance to strategize and optimise your eLearning initiatives.',
-      p: '<path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 0-5 0v-15A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 1 5 0v-15A2.5 2.5 0 0 0 14.5 2z"/>' },
-    { t: 'Design',       d: 'Decide on your learning objectives, models, and preferred experiences.',
-      p: '<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>' },
-    { t: 'Development',  d: 'Bring learning designs to life using industry standard authoring tools.',
-      p: '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>' },
-    { t: 'Conversion',   d: 'Transform existing content into engaging eLearning experiences.',
-      p: '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>' },
-    { t: 'Translation',  d: 'Break down barriers and ensure multilingual accessibility.',
-      p: '<path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/>' },
-    { t: 'Hosting',      d: 'Secure, reliable hosting solutions for your eLearning courses.',
-      p: '<rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>' }
-  ];
-  var grid = document.getElementById('services-grid');
-  services.forEach(function (s, i) {
-    var card = document.createElement('article');
-    card.className = 'service-card reveal glass-light rounded-2xl p-7';
-    card.style.transitionDelay = (i % 3) * 70 + 'ms';
-    card.innerHTML =
-      '<div class="service-icon w-14 h-14 rounded-xl grid place-items-center mb-5" style="background:linear-gradient(135deg,rgba(39,170,225,0.16),rgba(0,116,180,0.16));color:#0074B4;">' +
-        '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + s.p + '</svg>' +
-      '</div>' +
-      '<h3 class="text-xl font-700 mb-2">' + s.t + '</h3>' +
-      '<p class="text-body-muted leading-relaxed font-400">' + s.d + '</p>';
-    grid.appendChild(card);
-  });
-})();
-
-/* ============================================================
    Helpers
    ============================================================ */
 function escapeHtml(str) {
@@ -603,59 +408,139 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-/* Resolve a Prism grammar safely. Returns { grammar, token } and always
-   falls back to the always-present `markup` grammar / token so highlighting
-   can never throw on a missing language component. */
+/* Debounced live-region announcement so rapid filtering does not flood
+   the screen-reader queue while the user is still typing. */
+var _statusTimers = {};
+function announceStatus(el, text) {
+  if (!el) return;
+  var id = el.id || 'status';
+  clearTimeout(_statusTimers[id]);
+  _statusTimers[id] = setTimeout(function () { el.textContent = text; }, 400);
+}
+
+/* "updated 2h ago" style relative time from an ISO date. */
+function timeAgo(iso) {
+  if (!iso) return 'unknown';
+  var then = new Date(iso).getTime();
+  if (isNaN(then)) return 'unknown';
+  var s = Math.max(0, Math.floor((Date.now() - then) / 1000));
+  if (s < 60) return 'just now';
+  var m = Math.floor(s / 60); if (m < 60) return m + 'm ago';
+  var h = Math.floor(m / 60); if (h < 24) return h + 'h ago';
+  var d = Math.floor(h / 24); if (d < 7) return d + 'd ago';
+  var w = Math.floor(d / 7); if (w < 5) return w + 'w ago';
+  var mo = Math.floor(d / 30); if (mo < 12) return mo + 'mo ago';
+  return Math.floor(d / 365) + 'y ago';
+}
+
+/* Human repo size from KB (GitHub `size` field is in KB). */
+function fmtSize(kb) {
+  if (kb == null) return '';
+  if (kb < 1024) return kb + ' KB';
+  var mb = kb / 1024;
+  if (mb < 1024) return (mb < 10 ? mb.toFixed(1) : Math.round(mb)) + ' MB';
+  return (mb / 1024).toFixed(1) + ' GB';
+}
+
+/* GitHub-style language colours (subset; falls back to brand cyan). */
+var LANG_COLORS = {
+  'JavaScript': '#f1e05a', 'TypeScript': '#3178c6', 'HTML': '#e34c26', 'CSS': '#563d7c',
+  'SCSS': '#c6538c', 'Python': '#3572A5', 'PHP': '#4F5D95', 'Java': '#b07219',
+  'C#': '#178600', 'C++': '#f34b7d', 'C': '#555555', 'Ruby': '#701516', 'Go': '#00ADD8',
+  'Rust': '#dea584', 'Shell': '#89e051', 'Vue': '#41b883', 'Svelte': '#ff3e00',
+  'Dart': '#00B4AB', 'Kotlin': '#A97BFF', 'Swift': '#F05138', 'Jupyter Notebook': '#DA5B0B',
+  'Dockerfile': '#384d54', 'Makefile': '#427819', 'Lua': '#000080', 'Perl': '#0298c3',
+  'R': '#198CE7', 'Objective-C': '#438eff', 'PowerShell': '#012456', 'Vim Script': '#199f4b',
+  'Handlebars': '#f7931e', 'Twig': '#c1d026', 'Less': '#1d365d', 'Astro': '#ff5a03',
+  'MDX': '#fcb32c', 'Markdown': '#083fa1', 'Nunjucks': '#3d8137'
+};
+function langColor(lang) { return (lang && LANG_COLORS[lang]) || '#27AAE1'; }
+
+/* Resolve a Prism grammar safely (always falls back to `markup`). */
 function prismGrammar(lang) {
   var P = (typeof Prism !== 'undefined') ? Prism : null;
   if (P && P.languages && P.languages[lang]) return { grammar: P.languages[lang], token: lang };
   if (P && P.languages && P.languages.markup) return { grammar: P.languages.markup, token: 'markup' };
   return { grammar: null, token: lang };
 }
-
-/* Highlight if Prism is available; otherwise return escaped plain text. */
-function prismHighlight(code, lang) {
-  var g = prismGrammar(lang);
-  if (typeof Prism !== 'undefined' && g.grammar) {
-    try { return { html: Prism.highlight(code, g.grammar, g.token), token: g.token }; }
-    catch (e) { /* fall through */ }
+function getLanguage(filename) {
+  var extension = (filename || '').split('.').pop().toLowerCase();
+  switch (extension) {
+    case 'js':   return 'javascript';
+    case 'mjs':  return 'javascript';
+    case 'html': return 'markup';
+    case 'xml':  return 'markup';
+    case 'css':  return 'css';
+    case 'scss': return 'css';
+    case 'json': return 'json';
+    case 'md':   return 'markdown';
+    case 'py':   return 'python';
+    case 'java': return 'java';
+    default:     return 'markup';
   }
-  return { html: escapeHtml(code), token: g.token };
 }
 
-function emptyState(container, statusEl, title, message) {
+/* base64 decode that tolerates the newlines GitHub embeds in content. */
+function safeAtob(b64) {
+  try { return decodeURIComponent(escape(atob(String(b64).replace(/\s/g, '')))); }
+  catch (e) {
+    try { return atob(String(b64).replace(/\s/g, '')); } catch (e2) { return ''; }
+  }
+}
+
+/* "Live" demo URL for has_pages repos. */
+function pagesUrl(repo) {
+  if (repo.homepage && /^https?:\/\//.test(repo.homepage)) return repo.homepage;
+  if (repo.name === 'cobblestonelearning.github.io') return 'https://cobblestonelearning.github.io/';
+  return 'https://cobblestonelearning.github.io/' + repo.name + '/';
+}
+
+/* ---- shared empty / fallback state ---- */
+function emptyState(container, statusEl, title, message, rateLimited) {
   container.setAttribute('aria-busy', 'false');
   if (statusEl) statusEl.textContent = title;
+  var icon = rateLimited
+    ? '<path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="10"/>'
+    : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
   container.innerHTML =
-    '<div class="col-span-full glass-light rounded-2xl p-10 text-center border border-cborder">' +
+    '<div class="col-span-full surface rounded-2xl p-9 text-center">' +
       '<div class="w-14 h-14 mx-auto mb-4 rounded-full grid place-items-center" style="background:rgba(39,170,225,0.12);color:#0074B4;">' +
-        '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
+        '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + icon + '</svg>' +
       '</div>' +
       '<h3 class="text-lg font-700 mb-2">' + escapeHtml(title) + '</h3>' +
-      '<p class="text-body-muted text-sm max-w-md mx-auto mb-5">' + escapeHtml(message) + '</p>' +
-      '<a href="https://github.com/cobblestonelearning" target="_blank" rel="noopener" class="btn btn-ghost inline-flex items-center gap-2 font-700 text-sm px-5 py-2.5 rounded-full">' +
-        'Visit us on GitHub' +
-        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>' +
-      '</a>' +
+      '<p class="text-body-muted text-sm max-w-md mx-auto mb-5 leading-relaxed">' + escapeHtml(message) + '</p>' +
+      '<div class="flex flex-wrap items-center justify-center gap-3">' +
+        '<button type="button" class="btn btn-ghost inline-flex items-center gap-2 font-700 text-sm px-5 py-2.5 rounded-full" onclick="location.reload()">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Retry</button>' +
+        '<a href="https://github.com/cobblestonelearning" target="_blank" rel="noopener" class="btn btn-primary inline-flex items-center gap-2 font-700 text-sm px-5 py-2.5 rounded-full">Open on GitHub' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>' +
+      '</div>' +
     '</div>';
 }
 
-function showSkeletons(container, count) {
+function showRepoSkeletons(container, count) {
   var html = '';
   for (var i = 0; i < count; i++) {
     html +=
-      '<div class="glass-light rounded-2xl p-7" aria-hidden="true">' +
-        '<div class="skeleton h-5 w-2/3 mb-4"></div>' +
+      '<div class="surface rounded-2xl p-6" aria-hidden="true">' +
+        '<div class="flex items-center justify-between mb-4"><div class="skeleton h-5 w-1/2"></div><div class="skeleton h-5 w-12 rounded-full"></div></div>' +
         '<div class="skeleton h-3 w-full mb-2"></div>' +
         '<div class="skeleton h-3 w-5/6 mb-6"></div>' +
-        '<div class="skeleton h-9 w-32"></div>' +
+        '<div class="flex gap-3 mb-6"><div class="skeleton h-3 w-20"></div><div class="skeleton h-3 w-16"></div></div>' +
+        '<div class="flex gap-3"><div class="skeleton h-9 w-24 rounded-full"></div><div class="skeleton h-9 w-20 rounded-lg"></div></div>' +
       '</div>';
   }
   container.innerHTML = html;
 }
 
 /* ============================================================
-   GitHub fetch — Projects + Gists (preserved behaviour)
+   State
+   ============================================================ */
+var ALL_REPOS = [];
+var FILTERS = { search: '', lang: '__all', sort: 'updated', showExtra: false };
+
+/* ============================================================
+   Fetch + bootstrap
    ============================================================ */
 document.addEventListener('DOMContentLoaded', function () {
   var repoCards = document.getElementById('repo-cards');
@@ -663,98 +548,367 @@ document.addEventListener('DOMContentLoaded', function () {
   var repoStatus = document.getElementById('repo-status');
   var gistStatus = document.getElementById('gist-status');
 
-  showSkeletons(repoCards, 3);
-  showSkeletons(gistCards, 3);
+  showRepoSkeletons(repoCards, 6);
+  showRepoSkeletons(gistCards, 3);
+
+  wireControls();
 
   /* ---- Repos ---- */
-  fetch('https://api.github.com/users/cobblestonelearning/repos')
+  fetch('https://api.github.com/users/cobblestonelearning/repos?per_page=100&sort=updated')
     .then(function (response) {
-      if (!response.ok) throw new Error('GitHub API responded ' + response.status);
+      if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
       return response.json();
     })
     .then(function (data) {
+      document.getElementById('lang-chip-skeleton').remove();
       if (!Array.isArray(data) || data.length === 0) {
-        emptyState(repoCards, repoStatus, 'No public projects to show right now',
-          'Our repositories could not be loaded — the GitHub API may be temporarily rate-limited. Please try again shortly.');
+        ALL_REPOS = [];
+        computeStats([]);
+        buildLangChips([]);
+        emptyState(repoCards, repoStatus, 'No repositories found',
+          'The organisation returned no repositories. If this is unexpected, the public GitHub API may be temporarily rate-limited.', false);
         return;
       }
-      repoCards.innerHTML = '';
-      repoCards.setAttribute('aria-busy', 'false');
-      if (repoStatus) repoStatus.textContent = data.length + ' projects loaded.';
-      data.forEach(function (repo, idx) {
-        var card = document.createElement('article');
-        card.className = 'data-card reveal glass-light rounded-2xl p-7 flex flex-col';
-        card.style.transitionDelay = (idx % 3) * 60 + 'ms';
-        card.innerHTML =
-          '<h3 class="text-lg font-700 mb-2 break-words">' + escapeHtml(repo.name) + '</h3>' +
-          '<p class="text-body-muted text-sm leading-relaxed mb-4 grow">' + escapeHtml(repo.description || 'No description available') + '</p>' +
-          '<div class="flex items-center gap-4 text-sm text-body-muted mb-5 font-600">' +
-            '<span title="Stars"><span aria-hidden="true">&#11088;</span> ' + (repo.stargazers_count || 0) + '<span class="sr-only"> stars</span></span>' +
-            '<span title="Forks"><span aria-hidden="true">&#127860;</span> ' + (repo.forks_count || 0) + '<span class="sr-only"> forks</span></span>' +
-            (repo.language ? '<span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background:#27AAE1" aria-hidden="true"></span>' + escapeHtml(repo.language) + '</span>' : '') +
-          '</div>' +
-          '<div class="flex items-center gap-3 mt-auto pt-1">' +
-            '<button class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full" data-repo="' + escapeHtml(repo.name) + '">View Details</button>' +
-            '<a href="' + escapeHtml(repo.html_url) + '" target="_blank" rel="noopener" class="text-cblue text-sm font-700 hover:underline underline-offset-2 inline-flex items-center gap-1">View Repository' +
-              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>' +
-            '</a>' +
-          '</div>';
-        card.querySelector('button[data-repo]').addEventListener('click', function () {
-          fetchRepoDetails(repo.name);
-        });
-        repoCards.appendChild(card);
-      });
-      observeReveals(repoCards);
+      ALL_REPOS = data;
+      computeStats(data);
+      buildLangChips(data);
+      applyFilters();
     })
     .catch(function (error) {
       console.error('Error fetching GitHub repos:', error);
-      emptyState(repoCards, repoStatus, 'Projects are taking a break',
-        'We could not reach GitHub just now (the public API limits unauthenticated requests). Please try again in a little while.');
+      var skel = document.getElementById('lang-chip-skeleton');
+      if (skel) skel.remove();
+      computeStats([]);
+      var rl = error && error.status === 403;
+      emptyState(repoCards, repoStatus,
+        rl ? 'GitHub rate limit reached' : 'Could not load repositories',
+        rl ? 'The unauthenticated GitHub API limits requests per hour from a shared IP. Wait a few minutes and retry — no sign-in is required.'
+           : 'We could not reach GitHub just now. Check your connection and try again in a little while.',
+        rl);
     });
 
   /* ---- Gists ---- */
   fetch('https://api.github.com/users/cobblestonelearning/gists')
     .then(function (response) {
-      if (!response.ok) throw new Error('GitHub API responded ' + response.status);
+      if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
       return response.json();
     })
     .then(function (data) {
       if (!Array.isArray(data) || data.length === 0) {
-        emptyState(gistCards, gistStatus, 'No public gists to show right now',
-          'Our gists could not be loaded — the GitHub API may be temporarily rate-limited. Please try again shortly.');
+        emptyState(gistCards, gistStatus, 'No gists yet',
+          'This organisation has not published any public gists.', false);
+        document.getElementById('gist-count').textContent = '';
         return;
       }
-      gistCards.innerHTML = '';
-      gistCards.setAttribute('aria-busy', 'false');
-      if (gistStatus) gistStatus.textContent = data.length + ' gists loaded.';
-      data.forEach(function (gist, idx) {
-        var fileNames = Object.values(gist.files || {}).map(function (f) { return f.filename; });
-        var card = document.createElement('article');
-        card.className = 'data-card reveal glass-light rounded-2xl p-7 flex flex-col';
-        card.style.transitionDelay = (idx % 3) * 60 + 'ms';
-        card.innerHTML =
-          '<h3 class="text-lg font-700 mb-2 break-words">' + escapeHtml(gist.description || 'No description available') + '</h3>' +
-          '<p class="text-body-muted text-sm leading-relaxed mb-3 grow break-words">Files: ' + escapeHtml(fileNames.join(', ')) + '</p>' +
-          '<p class="text-sm text-body-muted font-600 mb-5"><span aria-hidden="true">&#128187;</span> ' + fileNames.length + ' file(s)</p>' +
-          '<div class="flex items-center gap-3 mt-auto pt-1">' +
-            '<button class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full" data-gist="' + escapeHtml(gist.id) + '">View Details</button>' +
-            '<a href="' + escapeHtml(gist.html_url) + '" target="_blank" rel="noopener" class="text-cblue text-sm font-700 hover:underline underline-offset-2 inline-flex items-center gap-1">View Gist' +
-              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>' +
-            '</a>' +
-          '</div>';
-        card.querySelector('button[data-gist]').addEventListener('click', function () {
-          fetchGistDetails(gist.id);
-        });
-        gistCards.appendChild(card);
-      });
-      observeReveals(gistCards);
+      renderGists(data, gistCards, gistStatus);
     })
     .catch(function (error) {
       console.error('Error fetching GitHub gists:', error);
-      emptyState(gistCards, gistStatus, 'Gists are taking a break',
-        'We could not reach GitHub just now (the public API limits unauthenticated requests). Please try again in a little while.');
+      var rl = error && error.status === 403;
+      emptyState(gistCards, gistStatus,
+        rl ? 'GitHub rate limit reached' : 'Could not load gists',
+        rl ? 'The unauthenticated GitHub API is temporarily rate-limited. Wait a few minutes and retry.'
+           : 'We could not reach GitHub just now. Please try again in a little while.',
+        rl);
     });
 });
+
+/* ============================================================
+   Stats
+   ============================================================ */
+function computeStats(repos) {
+  var elRepos = document.getElementById('stat-repos');
+  var elLangs = document.getElementById('stat-langs');
+  var elUpdated = document.getElementById('stat-updated');
+  var elPages = document.getElementById('stat-pages');
+
+  var statBar = document.getElementById('stat-bar');
+  if (statBar) statBar.setAttribute('aria-busy', 'false');
+
+  if (!repos.length) {
+    elRepos.textContent = '0';
+    elLangs.textContent = '0';
+    elUpdated.textContent = '—';
+    elPages.textContent = '0';
+    return;
+  }
+  var langs = {};
+  var pages = 0;
+  var latest = 0;
+  repos.forEach(function (r) {
+    if (r.language) langs[r.language] = true;
+    if (r.has_pages) pages++;
+    var t = new Date(r.pushed_at || r.updated_at).getTime();
+    if (!isNaN(t) && t > latest) latest = t;
+  });
+  elRepos.textContent = repos.length;
+  document.getElementById('stat-repos-sub').textContent = repos.length === 1 ? 'repository in the organisation' : 'repositories in the organisation';
+  elLangs.textContent = Object.keys(langs).length;
+  elUpdated.textContent = latest ? timeAgo(new Date(latest).toISOString()) : '—';
+  elPages.textContent = pages;
+}
+
+/* ============================================================
+   Language filter chips (built dynamically)
+   ============================================================ */
+function buildLangChips(repos) {
+  var wrap = document.getElementById('lang-filter');
+  var counts = {};
+  repos.forEach(function (r) { if (r.language) counts[r.language] = (counts[r.language] || 0) + 1; });
+  var langs = Object.keys(counts).sort(function (a, b) {
+    return counts[b] - counts[a] || a.localeCompare(b);
+  });
+  langs.forEach(function (lang) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'chip';
+    btn.setAttribute('data-lang', lang);
+    btn.setAttribute('aria-pressed', 'false');
+    btn.innerHTML = '<span class="dot" style="background:' + langColor(lang) + '"></span>' + escapeHtml(lang) +
+      ' <span class="chip-count text-greytext font-600">' + counts[lang] + '</span>';
+    wrap.appendChild(btn);
+  });
+  wrap.addEventListener('click', function (e) {
+    var btn = e.target.closest('.chip');
+    if (!btn) return;
+    FILTERS.lang = btn.getAttribute('data-lang');
+    wrap.querySelectorAll('.chip').forEach(function (c) {
+      c.setAttribute('aria-pressed', String(c === btn));
+    });
+    applyFilters();
+  });
+}
+
+/* ============================================================
+   Controls wiring
+   ============================================================ */
+function wireControls() {
+  var search = document.getElementById('search');
+  var clearBtn = document.getElementById('search-clear');
+  var sort = document.getElementById('sort');
+  var showExtra = document.getElementById('show-extra');
+
+  var debounce;
+  search.addEventListener('input', function () {
+    clearBtn.classList.toggle('hidden', !search.value);
+    clearTimeout(debounce);
+    debounce = setTimeout(function () {
+      FILTERS.search = search.value.trim().toLowerCase();
+      applyFilters();
+    }, 120);
+  });
+  clearBtn.addEventListener('click', function () {
+    search.value = ''; clearBtn.classList.add('hidden');
+    FILTERS.search = ''; applyFilters(); search.focus();
+  });
+  sort.addEventListener('change', function () { FILTERS.sort = sort.value; applyFilters(); });
+  showExtra.addEventListener('change', function () { FILTERS.showExtra = showExtra.checked; applyFilters(); });
+}
+
+/* ============================================================
+   Filter + sort + render
+   ============================================================ */
+function applyFilters() {
+  var list = ALL_REPOS.slice();
+
+  if (!FILTERS.showExtra) {
+    list = list.filter(function (r) { return !r.fork && !r.archived; });
+  }
+  if (FILTERS.lang !== '__all') {
+    list = list.filter(function (r) { return r.language === FILTERS.lang; });
+  }
+  if (FILTERS.search) {
+    var q = FILTERS.search;
+    list = list.filter(function (r) {
+      var hay = (r.name + ' ' + (r.description || '') + ' ' + ((r.topics || []).join(' '))).toLowerCase();
+      return hay.indexOf(q) !== -1;
+    });
+  }
+  list.sort(function (a, b) {
+    if (FILTERS.sort === 'name') return a.name.localeCompare(b.name);
+    if (FILTERS.sort === 'size') return (b.size || 0) - (a.size || 0);
+    return new Date(b.pushed_at || b.updated_at) - new Date(a.pushed_at || a.updated_at);
+  });
+
+  renderRepos(list);
+}
+
+function renderRepos(list) {
+  var container = document.getElementById('repo-cards');
+  var statusEl = document.getElementById('repo-status');
+  var countEl = document.getElementById('repo-count');
+  container.setAttribute('aria-busy', 'false');
+
+  var total = ALL_REPOS.length;
+  var shown = list.length;
+  countEl.textContent = shown === total ? shown + ' shown' : shown + ' of ' + total + ' shown';
+  announceStatus(statusEl, shown === 0
+    ? 'No repositories match your filters.'
+    : shown + (shown === 1 ? ' repository' : ' repositories') + ' shown.');
+
+  if (shown === 0) {
+    container.innerHTML =
+      '<div class="col-span-full surface rounded-2xl p-9 text-center">' +
+        '<div class="w-14 h-14 mx-auto mb-4 rounded-full grid place-items-center" style="background:rgba(39,170,225,0.12);color:#0074B4;">' +
+          '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+        '</div>' +
+        '<h3 class="text-lg font-700 mb-2">No matching repositories</h3>' +
+        '<p class="text-body-muted text-sm max-w-md mx-auto mb-5">Try a different search term, language filter, or include forks &amp; archived repositories.</p>' +
+        '<button type="button" id="reset-filters" class="btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full">Reset filters</button>' +
+      '</div>';
+    var rb = document.getElementById('reset-filters');
+    if (rb) rb.addEventListener('click', resetFilters);
+    return;
+  }
+
+  var frag = document.createDocumentFragment();
+  list.forEach(function (repo, idx) {
+    frag.appendChild(buildRepoCard(repo, idx));
+  });
+  container.innerHTML = '';
+  container.appendChild(frag);
+  observeReveals(container);
+}
+
+function resetFilters() {
+  FILTERS = { search: '', lang: '__all', sort: 'updated', showExtra: false };
+  var search = document.getElementById('search');
+  search.value = '';
+  document.getElementById('search-clear').classList.add('hidden');
+  document.getElementById('sort').value = 'updated';
+  document.getElementById('show-extra').checked = false;
+  document.querySelectorAll('#lang-filter .chip').forEach(function (c) {
+    c.setAttribute('aria-pressed', String(c.getAttribute('data-lang') === '__all'));
+  });
+  applyFilters();
+}
+
+function buildRepoCard(repo, idx) {
+  var card = document.createElement('article');
+  card.className = 'data-card reveal surface rounded-2xl p-6 flex flex-col';
+  card.style.transitionDelay = (idx % 3) * 50 + 'ms';
+
+  var badges = '';
+  if (repo.has_pages) {
+    badges += '<a href="' + escapeHtml(pagesUrl(repo)) + '" target="_blank" rel="noopener" class="badge badge-live hover:underline" title="View the live published page">' +
+      '<span class="w-1.5 h-1.5 rounded-full" style="background:#2D9E5A" aria-hidden="true"></span>Live</a>';
+  }
+  if (repo.archived) badges += '<span class="badge badge-archived">Archived</span>';
+  if (repo.fork) badges += '<span class="badge badge-fork">Fork</span>';
+
+  var topics = (repo.topics || []).slice(0, 4).map(function (t) {
+    return '<span class="topic-pill">' + escapeHtml(t) + '</span>';
+  }).join('');
+  var moreTopics = (repo.topics || []).length > 4 ? '<span class="topic-pill">+' + ((repo.topics || []).length - 4) + '</span>' : '';
+
+  var meta = [];
+  meta.push('<span class="inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>updated ' + escapeHtml(timeAgo(repo.pushed_at || repo.updated_at)) + '</span>');
+  if (repo.size != null) meta.push('<span class="inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>' + escapeHtml(fmtSize(repo.size)) + '</span>');
+  if (repo.default_branch) meta.push('<span class="inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>' + escapeHtml(repo.default_branch) + '</span>');
+  if (repo.open_issues_count > 0) meta.push('<span class="inline-flex items-center gap-1.5" title="Open issues"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' + repo.open_issues_count + ' open</span>');
+
+  var langHtml = repo.language
+    ? '<span class="inline-flex items-center gap-1.5 font-600"><span class="lang-dot" style="background:' + langColor(repo.language) + '" aria-hidden="true"></span>' + escapeHtml(repo.language) + '</span>'
+    : '<span class="text-greytext font-600">No primary language</span>';
+
+  var cloneCmd = 'git clone ' + (repo.clone_url || (repo.html_url + '.git'));
+
+  card.innerHTML =
+    '<div class="flex items-start justify-between gap-3 mb-2">' +
+      '<h3 class="text-base font-800 break-words min-w-0 leading-snug">' +
+        '<a href="' + escapeHtml(repo.html_url) + '" target="_blank" rel="noopener" class="hover:text-cblue hover:underline underline-offset-2 decoration-cyan">' + escapeHtml(repo.name) + '</a>' +
+      '</h3>' +
+      (badges ? '<div class="flex flex-wrap items-center gap-1.5 justify-end shrink-0">' + badges + '</div>' : '') +
+    '</div>' +
+    '<p class="text-body-muted text-sm leading-relaxed mb-3 grow">' + escapeHtml(repo.description || 'No description provided.') + '</p>' +
+    (topics ? '<div class="flex flex-wrap gap-1.5 mb-3">' + topics + moreTopics + '</div>' : '') +
+    '<div class="flex items-center gap-1.5 text-sm mb-3">' + langHtml + '</div>' +
+    '<div class="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-xs text-body-muted mb-4">' + meta.join('') + '</div>' +
+    '<div class="flex items-center gap-2 mt-auto pt-1">' +
+      '<button class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full inline-flex items-center gap-1.5" data-repo="' + escapeHtml(repo.name) + '">' +
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Explore</button>' +
+      '<a href="' + escapeHtml(repo.html_url) + '" target="_blank" rel="noopener" class="btn btn-ghost text-sm font-700 px-3.5 py-2.5 rounded-full inline-flex items-center gap-1.5" aria-label="Open ' + escapeHtml(repo.name) + ' on GitHub">' +
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.05.78 2.12 0 1.53-.01 2.77-.01 3.15 0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>GitHub</a>' +
+      '<button class="copy-cmd ml-auto" type="button" data-clone="' + escapeHtml(cloneCmd) + '" aria-label="Copy git clone command for ' + escapeHtml(repo.name) + '">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>' +
+        '<span class="copy-label">Clone</span></button>' +
+    '</div>';
+
+  card.querySelector('button[data-repo]').addEventListener('click', function () { fetchRepoDetails(repo.name); });
+
+  var copyBtn = card.querySelector('.copy-cmd');
+  copyBtn.addEventListener('click', function () {
+    copyText(cloneCmd, function (ok) {
+      if (!ok) return;
+      copyBtn.classList.add('copied');
+      copyBtn.querySelector('.copy-label').textContent = 'Copied!';
+      setTimeout(function () {
+        copyBtn.classList.remove('copied');
+        var lbl = copyBtn.querySelector('.copy-label'); if (lbl) lbl.textContent = 'Clone';
+      }, 1600);
+    });
+  });
+
+  return card;
+}
+
+/* Clipboard with graceful fallback. */
+function copyText(text, cb) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function () { cb(true); }, function () { cb(legacyCopy(text)); });
+  } else {
+    cb(legacyCopy(text));
+  }
+}
+function legacyCopy(text) {
+  try {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    var ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) { return false; }
+}
+
+/* ============================================================
+   Gists
+   ============================================================ */
+function renderGists(data, container, statusEl) {
+  container.innerHTML = '';
+  container.setAttribute('aria-busy', 'false');
+  if (statusEl) statusEl.textContent = data.length + (data.length === 1 ? ' gist' : ' gists') + ' loaded.';
+  document.getElementById('gist-count').textContent = data.length + ' total';
+
+  var frag = document.createDocumentFragment();
+  data.forEach(function (gist, idx) {
+    var files = Object.values(gist.files || {});
+    var fileNames = files.map(function (f) { return f.filename; });
+    var card = document.createElement('article');
+    card.className = 'data-card reveal surface rounded-2xl p-6 flex flex-col';
+    card.style.transitionDelay = (idx % 3) * 50 + 'ms';
+    card.innerHTML =
+      '<div class="flex items-start gap-2 mb-2">' +
+        '<span class="shrink-0 mt-0.5 text-cblue" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>' +
+        '<h3 class="text-base font-800 break-words leading-snug min-w-0">' + escapeHtml(gist.description || 'Untitled gist') + '</h3>' +
+      '</div>' +
+      '<p class="text-body-muted text-sm leading-relaxed mb-3 grow break-words">' + escapeHtml(fileNames.slice(0, 6).join(', ')) + (fileNames.length > 6 ? ' …' : '') + '</p>' +
+      '<div class="flex items-center gap-3 text-xs text-body-muted mb-4 font-600">' +
+        '<span class="inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' + fileNames.length + (fileNames.length === 1 ? ' file' : ' files') + '</span>' +
+        '<span class="inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>updated ' + escapeHtml(timeAgo(gist.updated_at)) + '</span>' +
+      '</div>' +
+      '<div class="flex items-center gap-2 mt-auto pt-1">' +
+        '<button class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full inline-flex items-center gap-1.5" data-gist="' + escapeHtml(gist.id) + '">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View</button>' +
+        '<a href="' + escapeHtml(gist.html_url) + '" target="_blank" rel="noopener" class="btn btn-ghost text-sm font-700 px-3.5 py-2.5 rounded-full inline-flex items-center gap-1.5">Open gist' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>' +
+      '</div>';
+    card.querySelector('button[data-gist]').addEventListener('click', function () { fetchGistDetails(gist.id); });
+    frag.appendChild(card);
+  });
+  container.appendChild(frag);
+  observeReveals(container);
+}
 
 /* ============================================================
    MODAL system (focus management + Esc + overlay)
@@ -765,20 +919,16 @@ var modalTitle = document.getElementById('modal-title');
 var lastFocused = null;
 
 function openModal() {
-  lastFocused = document.activeElement;
+  if (!modal.classList.contains('open')) lastFocused = document.activeElement;
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
   focusModalStart();
   document.addEventListener('keydown', onModalKeydown);
 }
-
-/* Re-establish focus to the dialog heading. Call this after every
-   modalBody.innerHTML rewrite so focus is never dropped to <body>. */
 function focusModalStart() {
   if (modalTitle && typeof modalTitle.focus === 'function') modalTitle.focus();
   else modal.focus();
 }
-
 function closeModal() {
   modal.classList.remove('open');
   modalBody.innerHTML = '';
@@ -787,51 +937,148 @@ function closeModal() {
   document.removeEventListener('keydown', onModalKeydown);
   if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
 }
-
 function onModalKeydown(e) {
   if (e.key === 'Escape') { closeModal(); return; }
   if (e.key === 'Tab') {
-    var focusables = modal.querySelectorAll('a[href], button:not([disabled]), iframe, [tabindex]:not([tabindex="-1"])');
+    var nodeList = modal.querySelectorAll('a[href], button:not([disabled]), iframe, input, select, [tabindex]:not([tabindex="-1"])');
+    var focusables = Array.prototype.slice.call(nodeList);
     if (!focusables.length) return;
     var first = focusables[0], last = focusables[focusables.length - 1];
-    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    var active = document.activeElement;
+    /* If focus is on a non-trappable element (e.g. the tabindex="-1" title
+       used for the initial focus, or anything outside the modal), pull it
+       back into the trap rather than letting it escape to browser chrome. */
+    if (focusables.indexOf(active) === -1) {
+      e.preventDefault();
+      (e.shiftKey ? last : first).focus();
+      return;
+    }
+    if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
   }
 }
-
 document.getElementById('close-modal').addEventListener('click', closeModal);
 modal.addEventListener('mousedown', function (e) { if (e.target === modal) closeModal(); });
 
 /* ============================================================
-   Repo details modal (file tree + README + index preview)
+   Repo details modal (meta + clone + file tree + README + preview)
    ============================================================ */
+var modalClipboard = null;
 function fetchRepoDetails(repoName) {
+  /* preserve the trigger focus across the async detail render */
+  if (!modal.classList.contains('open')) lastFocused = document.activeElement;
   fetch('https://api.github.com/repos/cobblestonelearning/' + repoName)
     .then(function (response) {
-      if (!response.ok) throw new Error('GitHub API responded ' + response.status);
+      if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
       return response.json();
     })
     .then(function (repo) {
       modalTitle.textContent = repo.name;
+      var cloneCmd = 'git clone ' + (repo.clone_url || (repo.html_url + '.git'));
+
+      var metaRows = '';
+      function row(label, value) {
+        return '<div><span class="text-greytext block text-[11px] uppercase tracking-wide font-700 mb-0.5">' + label + '</span><span class="font-600 text-dark break-words">' + value + '</span></div>';
+      }
+      metaRows += row('Language', repo.language
+        ? '<span class="inline-flex items-center gap-1.5"><span class="lang-dot" style="background:' + langColor(repo.language) + '"></span>' + escapeHtml(repo.language) + '</span>'
+        : 'N/A');
+      metaRows += row('Updated', escapeHtml(timeAgo(repo.pushed_at || repo.updated_at)));
+      metaRows += row('Size', escapeHtml(fmtSize(repo.size)) || 'N/A');
+      metaRows += row('Default branch', escapeHtml(repo.default_branch || 'N/A'));
+      if (repo.open_issues_count > 0) metaRows += row('Open issues', repo.open_issues_count);
+      if (repo.license && repo.license.name) metaRows += row('License', escapeHtml(repo.license.name));
+
+      var badges = '';
+      if (repo.has_pages) badges += '<a href="' + escapeHtml(pagesUrl(repo)) + '" target="_blank" rel="noopener" class="badge badge-live hover:underline"><span class="w-1.5 h-1.5 rounded-full" style="background:#2D9E5A"></span>Live page</a>';
+      if (repo.archived) badges += '<span class="badge badge-archived">Archived</span>';
+      if (repo.fork) badges += '<span class="badge badge-fork">Fork</span>';
+      var topics = (repo.topics || []).map(function (t) { return '<span class="topic-pill">' + escapeHtml(t) + '</span>'; }).join('');
+
       modalBody.innerHTML =
-        '<div class="bg-lightbg border border-cborder p-5 rounded-xl mb-5">' +
-          '<p class="text-dark leading-relaxed mb-4">' + escapeHtml(repo.description || 'No description available') + '</p>' +
-          '<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">' +
-            '<div><span class="text-body-muted block text-xs uppercase tracking-wide font-700 mb-0.5">Stars</span><span aria-hidden="true">&#11088;</span> ' + (repo.stargazers_count || 0) + '</div>' +
-            '<div><span class="text-body-muted block text-xs uppercase tracking-wide font-700 mb-0.5">Forks</span><span aria-hidden="true">&#127860;</span> ' + (repo.forks_count || 0) + '</div>' +
-            '<div><span class="text-body-muted block text-xs uppercase tracking-wide font-700 mb-0.5">Issues</span>' + (repo.open_issues_count || 0) + '</div>' +
-            '<div><span class="text-body-muted block text-xs uppercase tracking-wide font-700 mb-0.5">Language</span>' + escapeHtml(repo.language || 'N/A') + '</div>' +
-            '<div class="col-span-2"><span class="text-body-muted block text-xs uppercase tracking-wide font-700 mb-0.5">License</span>' + escapeHtml(repo.license ? repo.license.name : 'No license') + '</div>' +
-          '</div>' +
+        '<div class="surface rounded-xl p-5 mb-5">' +
+          (badges ? '<div class="flex flex-wrap gap-2 mb-3">' + badges + '</div>' : '') +
+          '<p class="text-dark leading-relaxed mb-4">' + escapeHtml(repo.description || 'No description provided.') + '</p>' +
+          (topics ? '<div class="flex flex-wrap gap-1.5 mb-4">' + topics + '</div>' : '') +
+          '<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">' + metaRows + '</div>' +
         '</div>' +
-        '<div class="bg-lightbg border border-cborder p-5 rounded-xl mb-5">' +
-          '<h3 class="text-base font-700 mb-2">File Structure</h3>' +
+        '<div class="surface rounded-xl p-4 mb-5">' +
+          '<div class="flex items-center justify-between gap-3 mb-2">' +
+            '<h3 class="text-sm font-700 inline-flex items-center gap-2"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Clone</h3>' +
+            '<button class="copy-button" id="copy-clone" data-clipboard-text="' + escapeHtml(cloneCmd) + '">Copy</button>' +
+          '</div>' +
+          '<pre class="rounded-lg bg-lightbg border border-cborder px-3 py-2.5 text-[13px] overflow-x-auto"><code>' + escapeHtml(cloneCmd) + '</code></pre>' +
+        '</div>' +
+        '<div class="surface rounded-xl p-5 mb-5">' +
+          '<h3 class="text-sm font-700 mb-2 inline-flex items-center gap-2"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>File structure</h3>' +
+          '<p class="text-xs text-greytext mb-2">Use Enter or Space to expand folders.</p>' +
           '<div id="file-tree" class="file-tree"></div>' +
         '</div>' +
         '<div id="repo-actions" class="flex flex-wrap gap-3"></div>';
 
+      /* clone copy */
+      if (typeof ClipboardJS !== 'undefined') {
+        if (modalClipboard) modalClipboard.destroy();
+        modalClipboard = new ClipboardJS('#copy-clone');
+        modalClipboard.on('success', function (e) {
+          var b = e.trigger; var prev = b.textContent;
+          b.textContent = 'Copied!'; setTimeout(function () { b.textContent = prev; }, 1500);
+          e.clearSelection();
+        });
+      } else {
+        var cb = document.getElementById('copy-clone');
+        if (cb) cb.addEventListener('click', function () {
+          copyText(cloneCmd, function (ok) { if (ok) { cb.textContent = 'Copied!'; setTimeout(function () { cb.textContent = 'Copy'; }, 1500); } });
+        });
+      }
+
       var actions = document.getElementById('repo-actions');
       fetchFileStructure(repoName, '');
+
+      /* Only mutate the actions row while it is still the live details view
+         (the user may have closed the modal or switched to README/Preview
+         before these async fetches resolve). */
+      function actionsLive() {
+        return actions.isConnected && document.getElementById('repo-actions') === actions;
+      }
+      function appendAction(node) {
+        if (!actionsLive()) return;
+        var ph = actions.querySelector('[data-actions-loading]');
+        if (ph && node !== ph) actions.insertBefore(node, ph);
+        else actions.appendChild(node);
+      }
+
+      /* placeholder shown until README / preview availability resolves so the
+         row never silently pops in extra buttons with no affordance */
+      var actionsLoading = document.createElement('span');
+      actionsLoading.setAttribute('data-actions-loading', '');
+      actionsLoading.className = 'skeleton inline-block h-10 w-44 rounded-full';
+      actionsLoading.setAttribute('aria-hidden', 'true');
+      var pendingActions = 2; /* README + index.html */
+      function settleAction() {
+        if (--pendingActions <= 0 && actionsLive()) {
+          var ph = actions.querySelector('[data-actions-loading]');
+          if (ph) ph.remove();
+        }
+      }
+
+      /* primary "open repo" action always present */
+      var openA = document.createElement('a');
+      openA.href = repo.html_url; openA.target = '_blank'; openA.rel = 'noopener';
+      openA.className = 'btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2';
+      openA.innerHTML = 'Open on GitHub<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
+      appendAction(openA);
+
+      if (repo.has_pages) {
+        var liveA = document.createElement('a');
+        liveA.href = pagesUrl(repo); liveA.target = '_blank'; liveA.rel = 'noopener';
+        liveA.className = 'btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2';
+        liveA.style.borderColor = '#B7E4C5'; liveA.style.color = '#1E7D44';
+        liveA.innerHTML = 'View live page<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
+        appendAction(liveA);
+      }
+
+      appendAction(actionsLoading);
 
       /* README */
       fetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/readme')
@@ -839,25 +1086,25 @@ function fetchRepoDetails(repoName) {
         .then(function (readme) {
           if (readme && readme.content) {
             var readmeButton = document.createElement('button');
-            readmeButton.className = 'btn btn-primary font-700 text-sm px-5 py-2.5 rounded-full';
-            readmeButton.textContent = 'View README';
+            readmeButton.className = 'btn btn-primary font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2';
+            readmeButton.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>View README';
             readmeButton.onclick = function () {
+              if (modalClipboard) { modalClipboard.destroy(); modalClipboard = null; }
               modalTitle.textContent = repoName + ' — README';
-              var hl = prismHighlight(safeAtob(readme.content), 'markdown');
-              modalBody.innerHTML =
-                '<pre class="line-numbers rounded-xl"><code class="language-' + hl.token + '">' + hl.html + '</code></pre>';
-              var back = document.createElement('button');
-              back.className = 'btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full mt-4';
-              back.textContent = 'Back to details';
-              back.onclick = function () { fetchRepoDetails(repoName); };
+              var token = prismGrammar('markdown').token;
+              /* Inject escaped raw source only; let Prism (and the line-numbers
+                 plugin) perform a single highlight pass to avoid double-escaping. */
+              modalBody.innerHTML = '<pre class="line-numbers rounded-xl"><code class="language-' + token + '">' + escapeHtml(safeAtob(readme.content)) + '</code></pre>';
+              var back = makeBackButton(repoName);
               modalBody.appendChild(back);
               if (typeof Prism !== 'undefined') Prism.highlightAllUnder(modalBody);
               focusModalStart();
             };
-            actions.appendChild(readmeButton);
+            appendAction(readmeButton);
           }
         })
-        .catch(function (e) { console.error('Error fetching README:', e); });
+        .catch(function (e) { console.error('Error fetching README:', e); })
+        .then(settleAction);
 
       /* index.html preview */
       fetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/index.html')
@@ -865,30 +1112,35 @@ function fetchRepoDetails(repoName) {
         .then(function (indexFile) {
           if (indexFile && indexFile.download_url) {
             var indexButton = document.createElement('button');
-            indexButton.className = 'btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full';
-            indexButton.style.borderColor = '#FFC20E';
-            indexButton.style.color = '#8A6500';
-            indexButton.textContent = 'View Index';
+            indexButton.className = 'btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2';
+            indexButton.style.borderColor = '#FFC20E'; indexButton.style.color = '#8A6500';
+            indexButton.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Preview index.html';
             indexButton.onclick = function () { fetchIndexContent(indexFile.download_url, repoName); };
-            actions.appendChild(indexButton);
+            appendAction(indexButton);
           }
         })
-        .catch(function (e) { console.error('Error fetching index.html:', e); });
+        .catch(function (e) { console.error('Error fetching index.html:', e); })
+        .then(settleAction);
 
       openModal();
     })
     .catch(function (error) {
       console.error('Error fetching repo details:', error);
+      var rl = error && error.status === 403;
       modalTitle.textContent = 'Unavailable';
-      modalBody.innerHTML = '<p class="text-body-muted">Sorry — we could not load this repository right now. The GitHub API may be rate-limited. Please try again shortly.</p>';
+      modalBody.innerHTML = '<p class="text-body-muted leading-relaxed">' +
+        (rl ? 'The GitHub API is temporarily rate-limited. Please wait a few minutes and try again.'
+            : 'We could not load this repository right now. Please try again shortly.') + '</p>';
       openModal();
     });
 }
 
-/* base64 decode that tolerates the newlines GitHub embeds in content. */
-function safeAtob(b64) {
-  try { return atob(String(b64).replace(/\s/g, '')); }
-  catch (e) { return ''; }
+function makeBackButton(repoName) {
+  var back = document.createElement('button');
+  back.className = 'btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full mt-4 inline-flex items-center gap-2';
+  back.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back to details';
+  back.onclick = function () { fetchRepoDetails(repoName); };
+  return back;
 }
 
 /* ============================================================
@@ -896,83 +1148,88 @@ function safeAtob(b64) {
    ============================================================ */
 var gistClipboard = null;
 function fetchGistDetails(gistId) {
+  if (!modal.classList.contains('open')) lastFocused = document.activeElement;
   fetch('https://api.github.com/gists/' + gistId)
     .then(function (response) {
-      if (!response.ok) throw new Error('GitHub API responded ' + response.status);
+      if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
       return response.json();
     })
     .then(function (gist) {
       modalTitle.textContent = gist.description || 'Gist';
       var files = Object.values(gist.files || {}).map(function (file) {
-        var lang = getLanguage(file.filename);
-        var hl = prismHighlight(file.content || '', lang);
+        var token = prismGrammar(getLanguage(file.filename)).token;
+        /* Inject escaped raw source only; Prism.highlightAllUnder (below) does
+           the single highlight pass so the line-numbers plugin counts correctly
+           and content is never double-escaped. */
         return '' +
-          '<div class="bg-lightbg border border-cborder p-4 rounded-xl mb-4">' +
+          '<div class="surface rounded-xl p-4 mb-4">' +
             '<div class="flex justify-between items-center mb-3 gap-3">' +
-              '<h3 class="text-base font-700 break-words min-w-0">' + escapeHtml(file.filename) + '</h3>' +
+              '<h3 class="text-sm font-700 break-words min-w-0 inline-flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="truncate">' + escapeHtml(file.filename) + '</span></h3>' +
               '<button class="copy-button shrink-0" data-clipboard-text="' + escapeHtml(file.content || '') + '">Copy</button>' +
             '</div>' +
-            '<pre class="line-numbers rounded-lg"><code class="language-' + hl.token + '">' + hl.html + '</code></pre>' +
+            '<pre class="line-numbers rounded-lg"><code class="language-' + token + '">' + escapeHtml(file.content || '') + '</code></pre>' +
           '</div>';
       }).join('');
       modalBody.innerHTML =
-        '<div class="bg-lightbg border border-cborder p-5 rounded-xl mb-5">' +
-          '<h3 class="text-lg font-700 mb-1">' + escapeHtml(gist.description || 'No description available') + '</h3>' +
-          '<p class="text-sm text-body-muted font-600"><span aria-hidden="true">&#128187;</span> ' + Object.keys(gist.files || {}).length + ' file(s)</p>' +
-        '</div>' + files;
+        '<div class="surface rounded-xl p-5 mb-5">' +
+          '<h3 class="text-base font-700 mb-1 break-words">' + escapeHtml(gist.description || 'Untitled gist') + '</h3>' +
+          '<p class="text-sm text-body-muted font-600 inline-flex items-center gap-3">' +
+            '<span class="inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' + Object.keys(gist.files || {}).length + ' file(s)</span>' +
+            '<span class="inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>updated ' + escapeHtml(timeAgo(gist.updated_at)) + '</span>' +
+          '</p>' +
+        '</div>' + files +
+        '<a href="' + escapeHtml(gist.html_url) + '" target="_blank" rel="noopener" class="btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2">Open gist on GitHub<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>';
 
       openModal();
       if (typeof ClipboardJS !== 'undefined') {
         if (gistClipboard) gistClipboard.destroy();
-        gistClipboard = new ClipboardJS('.copy-button');
+        gistClipboard = new ClipboardJS('#modal-body .copy-button');
+        gistClipboard.on('success', function (e) {
+          var b = e.trigger; var prev = b.textContent;
+          b.textContent = 'Copied!'; setTimeout(function () { b.textContent = prev; }, 1500);
+          e.clearSelection();
+        });
       }
       if (typeof Prism !== 'undefined') Prism.highlightAllUnder(modalBody);
     })
     .catch(function (error) {
       console.error('Error fetching gist details:', error);
+      var rl = error && error.status === 403;
       modalTitle.textContent = 'Unavailable';
-      modalBody.innerHTML = '<p class="text-body-muted">Sorry — we could not load this gist right now. The GitHub API may be rate-limited. Please try again shortly.</p>';
+      modalBody.innerHTML = '<p class="text-body-muted leading-relaxed">' +
+        (rl ? 'The GitHub API is temporarily rate-limited. Please wait a few minutes and try again.'
+            : 'We could not load this gist right now. Please try again shortly.') + '</p>';
       openModal();
     });
-}
-
-function getLanguage(filename) {
-  var extension = (filename || '').split('.').pop().toLowerCase();
-  switch (extension) {
-    case 'js':   return 'javascript';
-    case 'html': return 'markup';
-    case 'css':  return 'css';
-    case 'json': return 'json';
-    case 'md':   return 'markdown';
-    case 'py':   return 'python';
-    case 'java': return 'java';
-    default:     return 'markup';
-  }
 }
 
 /* ============================================================
    File structure tree (recursive, expandable folders)
    ============================================================ */
-function buildTreeList(repoName, contents) {
+function buildTreeList(repoName, contents, isRoot) {
+  contents.sort(function (a, b) {
+    if (a.type !== b.type) return a.type === 'dir' ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
   var ul = document.createElement('ul');
+  ul.setAttribute('role', isRoot ? 'tree' : 'group');
   contents.forEach(function (file) {
     var li = document.createElement('li');
     li.textContent = file.name;
     li.className = file.type === 'dir' ? 'folder' : 'file';
+    li.setAttribute('role', 'treeitem');
     if (file.type === 'dir') {
-      li.setAttribute('role', 'button');
       li.setAttribute('tabindex', '0');
       li.setAttribute('aria-expanded', 'false');
       var toggle = function () {
         var isOpen = li.classList.toggle('open');
         li.setAttribute('aria-expanded', String(isOpen));
         if (isOpen) {
-          /* Only fetch once per folder; subsequent opens reuse the cached subtree. */
-          if (li.dataset.loaded === 'true') {
-            var existing = li.querySelector(':scope > ul');
-            if (existing) existing.hidden = false;
-          } else {
-            li.dataset.loaded = 'true';
+          var existing = li.querySelector(':scope > ul');
+          if (existing) {
+            existing.hidden = false;            /* already fetched — just reveal */
+          } else if (li.dataset.loaded !== 'loading') {
+            li.dataset.loaded = 'loading';      /* fetch in flight; appended on resolve */
             fetchFileStructureInto(repoName, file.path, li);
           }
         } else {
@@ -1000,21 +1257,19 @@ function fetchFileStructure(repoName, path) {
       var fileTree = document.getElementById('file-tree');
       if (!fileTree) return;
       if (!Array.isArray(contents)) return;
-      /* Guard against a stale/duplicate root render from an in-flight fetch. */
       if (fileTree.dataset.loaded === 'true') return;
       fileTree.dataset.loaded = 'true';
-      fileTree.appendChild(buildTreeList(repoName, contents));
+      fileTree.appendChild(buildTreeList(repoName, contents, true));
     })
     .catch(function (error) {
       console.error('Error fetching file structure:', error);
       var fileTree = document.getElementById('file-tree');
       if (fileTree && !fileTree.hasChildNodes()) {
-        fileTree.innerHTML = '<p class="text-body-muted text-sm">File structure unavailable.</p>';
+        fileTree.innerHTML = '<p class="text-body-muted text-sm">File structure unavailable (the API may be rate-limited).</p>';
       }
     });
 }
 
-/* Fetch a subfolder and append its tree inside the given <li> (once). */
 function fetchFileStructureInto(repoName, path, parentLi) {
   fetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/' + path)
     .then(function (response) {
@@ -1022,15 +1277,19 @@ function fetchFileStructureInto(repoName, path, parentLi) {
       return response.json();
     })
     .then(function (contents) {
+      parentLi.dataset.loaded = 'true';
       if (!Array.isArray(contents)) return;
-      /* If a subtree already exists (race / double-open), do not append a second. */
       if (parentLi.querySelector(':scope > ul')) return;
-      parentLi.appendChild(buildTreeList(repoName, contents));
+      var sub = buildTreeList(repoName, contents, false);
+      /* If the user collapsed the folder while this fetch was in flight, keep
+         the freshly-appended children hidden so an expanded list never shows
+         under a collapsed folder. */
+      if (!parentLi.classList.contains('open')) sub.hidden = true;
+      parentLi.appendChild(sub);
     })
     .catch(function (error) {
       console.error('Error fetching file structure:', error);
-      /* Allow a retry on next open if the fetch failed. */
-      parentLi.dataset.loaded = 'false';
+      delete parentLi.dataset.loaded;
       parentLi.classList.remove('open');
       parentLi.setAttribute('aria-expanded', 'false');
     });
@@ -1046,32 +1305,34 @@ function fetchIndexContent(url, repoName) {
       return response.text();
     })
     .then(function (indexContent) {
+      if (modalClipboard) { modalClipboard.destroy(); modalClipboard = null; }
       modalTitle.textContent = (repoName || 'index.html') + ' — Preview';
       modalBody.innerHTML = '';
+      var note = document.createElement('p');
+      note.className = 'text-xs text-greytext mb-3 inline-flex items-center gap-1.5';
+      note.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>Sandboxed preview — relative assets may not resolve. Use “View live page” for the full experience.';
+      modalBody.appendChild(note);
       var iframe = document.createElement('iframe');
       iframe.srcdoc = indexContent;
       iframe.width = '100%';
       iframe.height = '560';
-      iframe.className = 'rounded-xl border border-cborder max-w-full';
+      iframe.className = 'rounded-xl border border-cborder max-w-full bg-white';
       iframe.title = (repoName || '') + ' index.html preview';
-      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+      iframe.setAttribute('sandbox', 'allow-scripts');
       modalBody.appendChild(iframe);
-      var back = document.createElement('button');
-      back.className = 'btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full mt-4';
-      back.textContent = 'Back to details';
-      back.onclick = function () { if (repoName) fetchRepoDetails(repoName); else closeModal(); };
-      modalBody.appendChild(back);
+      modalBody.appendChild(makeBackButton(repoName));
       focusModalStart();
     })
     .catch(function (error) {
       console.error('Error fetching index content:', error);
       modalBody.innerHTML = '<p class="text-body-muted">Preview unavailable for this repository.</p>';
+      modalBody.appendChild(makeBackButton(repoName));
       focusModalStart();
     });
 }
 
 /* ============================================================
-   Scroll reveal (IntersectionObserver) + mobile nav
+   Scroll reveal (IntersectionObserver)
    ============================================================ */
 var revealObserver;
 function observeReveals(scope) {
@@ -1088,35 +1349,28 @@ function observeReveals(scope) {
           revealObserver.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
   }
   nodes.forEach(function (el) { revealObserver.observe(el); });
 }
+document.addEventListener('DOMContentLoaded', function () { observeReveals(document); });
 
-document.addEventListener('DOMContentLoaded', function () {
-  observeReveals(document);
-
-  /* mobile nav */
-  var toggle = document.getElementById('menu-toggle');
-  var menu = document.getElementById('mobile-menu');
-  var iconOpen = document.getElementById('icon-open');
-  var iconClose = document.getElementById('icon-close');
-  function closeMenu() {
-    menu.classList.remove('open');
-    toggle.setAttribute('aria-expanded', 'false');
-    iconOpen.classList.remove('hidden');
-    iconClose.classList.add('hidden');
+/* ============================================================
+   Keep the sticky controls bar offset in sync with the real header
+   height (robust to font scaling / 200% zoom / wrapping) so the two
+   sticky bars never overlap.
+   ============================================================ */
+(function () {
+  var header = document.getElementById('site-header');
+  if (!header) return;
+  function syncHeaderHeight() {
+    document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
   }
-  toggle.addEventListener('click', function () {
-    var open = menu.classList.toggle('open');
-    toggle.setAttribute('aria-expanded', String(open));
-    iconOpen.classList.toggle('hidden', open);
-    iconClose.classList.toggle('hidden', !open);
-  });
-  document.querySelectorAll('.mob-link').forEach(function (link) {
-    link.addEventListener('click', closeMenu);
-  });
-});
+  syncHeaderHeight();
+  window.addEventListener('resize', syncHeaderHeight, { passive: true });
+  window.addEventListener('load', syncHeaderHeight);
+  if ('ResizeObserver' in window) { new ResizeObserver(syncHeaderHeight).observe(header); }
+})();
 </script>
 </body>
 </html>

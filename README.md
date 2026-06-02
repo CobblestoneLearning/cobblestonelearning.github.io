@@ -1,40 +1,38 @@
-# Cobblestone Learning — Landing Page
+# Cobblestone Learning — Repository Hub
 
-The public landing page for **Cobblestone Learning** — *Learning. Creativity. Trust.*
+An internal hub for the Cobblestone Learning team to **organise, showcase, and explore the
+[`cobblestonelearning`](https://github.com/cobblestonelearning) GitHub organisation** — find a
+repo, read its code, preview its live page, and copy a clone command in one click.
 
 🌐 **Live:** https://cobblestonelearning.github.io/
 
-Your trusted partner in eLearning design: learning designers, eLearning developers, and
-multimedia experts creating award-winning online courses that develop skills, change
-behaviour, and raise awareness.
+## What it does
 
-## About this site
+A single, self-contained `index.html` deployed via **GitHub Pages** (serves `main` at the repo
+root — every push redeploys automatically). No build step or dependencies.
 
-A single, self-contained `index.html` deployed via **GitHub Pages** (serves `main` at the
-repo root — every push redeploys automatically). No build step or dependencies to install.
+- **Live org overview** — a stat bar (repository count, languages, last update, published Pages)
+  computed from the GitHub API.
+- **Search, filter & sort** — instant search across name/description/topics, dynamic
+  language-filter chips, sort by recently-updated / name / size, and a forks-&-archived toggle.
+- **Rich repo cards** — description, language, "updated X ago", size, topic pills, a **Live**
+  badge for Pages-enabled repos, and a one-click **copy `git clone …`** button.
+- **Explore modal** — read the README (rendered), browse a keyboard-operable file tree, preview a
+  repo's `index.html`, and grab the clone command without leaving the page.
+- **Gists** — the org's gists with syntax-highlighted file previews and copy-to-clipboard.
+- **Resilient** — skeleton loaders and a clear fallback if the unauthenticated GitHub API is
+  rate-limited (60 requests/hour per visitor IP).
 
-- **Brand-aligned design** — Montserrat type, the Cobblestone cyan/blue palette (`#27AAE1` →
-  `#0074B4`), the cobblestone-tile/mortarboard logo, gradient hero, glassmorphism cards, and
-  scroll-reveal motion (with `prefers-reduced-motion` support).
-- **Responsive & accessible** — mobile-first (360 px → 1440 px+), semantic landmarks, alt
-  text, keyboard-operable modal with focus management, and ARIA live regions.
-- **Live GitHub feed** — the *Projects* and *Gists* sections pull from the
-  [`cobblestonelearning`](https://github.com/cobblestonelearning) org via the public GitHub
-  REST API, with a modal for repo details, file tree, README, and source preview. Falls back
-  gracefully if the unauthenticated API is rate-limited.
-- **Third-party libs (all via CDN):** Tailwind CSS, Prism.js (syntax highlighting), and
-  clipboard.js — the pinned versions carry Subresource Integrity hashes.
+Built with vanilla JS + Tailwind, Prism.js, and clipboard.js (all via CDN; the pinned libraries
+carry Subresource Integrity hashes). Cobblestone-branded (Montserrat, the cyan/blue palette, and
+the logo), responsive 360 px → 1440 px+, and accessible (keyboard, ARIA, reduced-motion).
 
 ## Local preview
 
-Open `index.html` directly in a browser, or serve the folder:
+Open `index.html` in a browser, or serve the folder:
 
 ```bash
 python3 -m http.server
 ```
 
-## Contact
-
-Cobblestone Learning · 5 Lombard Street, Dublin 2, Ireland
-[info@cobblestonelearning.com](mailto:info@cobblestonelearning.com) · +353 1 908 1582 ·
-[www.cobblestonelearning.com](https://www.cobblestonelearning.com)
+*Learning. Creativity. Trust.*
