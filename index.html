@@ -462,12 +462,14 @@ function ghFetch(url, opts) {
   return fetch(url, Object.assign({}, opts, { headers: h }));
 }
 
-/* Repo list endpoint depends on auth state: signed in → org `type=all`
-   (includes private); signed out → public user repos. */
-function reposUrl() {
-  return ghToken
-    ? 'https://api.github.com/orgs/' + AUTH_CONFIG.org + '/repos?type=all&per_page=100&sort=updated'
-    : 'https://api.github.com/users/cobblestonelearning/repos?per_page=100&sort=updated';
+/* cobblestonelearning is a personal USER account (not an org), so /orgs/... 404s.
+   Public repos always come from the user endpoint; when signed in we ALSO pull the
+   private repos the viewer can access via /user/repos and merge them in. */
+function publicReposUrl() {
+  return 'https://api.github.com/users/cobblestonelearning/repos?per_page=100&sort=updated';
+}
+function privateReposUrl() {
+  return 'https://api.github.com/user/repos?per_page=100&sort=updated&visibility=private&affiliation=owner,collaborator,organization_member';
 }
 
 /* ============================================================
@@ -673,20 +675,42 @@ function loadRepos() {
      placeholder so buildLangChips can re-render against the new repo set. */
   resetLangChips();
 
-  ghFetch(reposUrl())
-    .then(function (response) {
-      if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
-      return response.json();
-    })
-    .then(function (data) {
+  function okJson(response) {
+    if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
+    return response.json();
+  }
+
+  /* Public list is always fetched (works signed-out). When signed in, also fetch the
+     private repos the viewer can access — but never let a private-fetch failure break
+     the public view (swallow it to []). */
+  var publicReq = ghFetch(publicReposUrl()).then(okJson);
+  var privateReq = ghToken
+    ? ghFetch(privateReposUrl()).then(okJson).catch(function () { return []; })
+    : Promise.resolve([]);
+
+  Promise.all([publicReq, privateReq])
+    .then(function (parts) {
       var skel = document.getElementById('lang-chip-skeleton');
       if (skel) skel.remove();
-      if (!Array.isArray(data) || data.length === 0) {
+      var seen = {}, data = [];
+      (Array.isArray(parts[0]) ? parts[0] : [])
+        .concat(Array.isArray(parts[1]) ? parts[1] : [])
+        .forEach(function (r) {
+          if (!r || !r.owner || !r.owner.login) return;
+          if (r.owner.login.toLowerCase() !== 'cobblestonelearning') return; // only this account's repos
+          if (seen[r.id]) return;
+          seen[r.id] = true;
+          data.push(r);
+        });
+      data.sort(function (a, b) {
+        return new Date(b.updated_at || b.pushed_at || 0) - new Date(a.updated_at || a.pushed_at || 0);
+      });
+      if (data.length === 0) {
         ALL_REPOS = [];
         computeStats([]);
         buildLangChips([]);
         emptyState(repoCards, repoStatus, 'No repositories found',
-          'The organisation returned no repositories. If this is unexpected, the public GitHub API may be temporarily rate-limited.', false);
+          'No repositories were returned. If this is unexpected, the unauthenticated GitHub API may be temporarily rate-limited.', false);
         return;
       }
       ALL_REPOS = data;
