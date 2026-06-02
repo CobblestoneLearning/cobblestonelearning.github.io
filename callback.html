@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <meta name="referrer" content="no-referrer" />
+  <title>Signing in… · Cobblestone Repository Hub</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body { display: flex; align-items: center; justify-content: center;
+      font-family: 'Montserrat', Helvetica, Arial, sans-serif; background: #F8F9FB; color: #3D3D3D; }
+    .box { text-align: center; padding: 24px; }
+    .spin { width: 28px; height: 28px; margin: 0 auto 14px; border: 3px solid #E8ECF0;
+      border-top-color: #27AAE1; border-radius: 50%; animation: s 0.8s linear infinite; }
+    @keyframes s { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+    p { font-size: 14px; font-weight: 600; }
+    small { color: #6B6B6B; font-weight: 400; }
+  </style>
+</head>
+<body>
+  <main class="box">
+    <div class="spin" aria-hidden="true"></div>
+    <p id="msg">Completing sign-in…</p>
+    <small>You can close this window if it doesn't close on its own.</small>
+  </main>
+  <script>
+    // OAuth popup callback: hand the authorization code back to the opener (same origin),
+    // which performs the secret-bearing token exchange via the worker. This page never
+    // sees the client secret or the access token.
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var message = {
+        source: 'cobblestone-oauth',
+        code: params.get('code'),
+        state: params.get('state'),
+        error: params.get('error'),
+        error_description: params.get('error_description')
+      };
+      try {
+        if (window.opener && !window.opener.closed) {
+          // targetOrigin pinned to this exact origin — the opener is on the same Pages domain.
+          window.opener.postMessage(message, window.location.origin);
+          document.getElementById('msg').textContent = 'Signed in — returning to the hub…';
+        } else {
+          document.getElementById('msg').textContent = 'Sign-in complete. Please return to the hub tab.';
+        }
+      } catch (e) {
+        document.getElementById('msg').textContent = 'Sign-in finished. You can close this window.';
+      }
+      setTimeout(function () { try { window.close(); } catch (e) {} }, 400);
+    })();
+  </script>
+</body>
+</html>

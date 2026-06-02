@@ -127,6 +127,23 @@
   .badge-live { background: #F0FAF3; color: #1E7D44; border: 1px solid #B7E4C5; }
   .badge-archived { background: #F0F2F5; color: #6B6B6B; }
   .badge-fork { background: #FFF8E1; color: #8A6500; }
+  /* Private repo / "private repos included" pill — amber, distinct from Live */
+  .badge-private { background: #FFF8E1; color: #8A6500; border: 1px solid #F0E0A8; }
+
+  /* ------- Toast (auth feedback) ------- */
+  #toast-region {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    z-index: 80; display: flex; flex-direction: column; gap: 8px; align-items: center;
+    width: max-content; max-width: calc(100vw - 32px); pointer-events: none;
+  }
+  .toast {
+    background: #3D3D3D; color: #fff; font-size: 13px; font-weight: 600;
+    padding: 10px 16px; border-radius: 10px; box-shadow: 0 14px 34px -14px rgba(0,0,0,0.55);
+    max-width: 100%; pointer-events: auto; display: inline-flex; align-items: center; gap: 8px;
+    animation: toastIn .25s cubic-bezier(.16,.84,.44,1);
+  }
+  .toast .toast-dot { width: 8px; height: 8px; border-radius: 9999px; background: var(--cyan); flex: none; }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
   /* Copy command button on cards */
   .copy-cmd {
@@ -208,6 +225,7 @@
     .data-card, .stat-tile, .btn, .chip, .copy-cmd, .copy-button { transition: none !important; }
     .data-card:hover, .stat-tile:hover, .btn-primary:hover, .btn-ghost:hover, .copy-cmd:hover, .copy-button:hover { transform: none !important; }
     .skeleton { animation: none !important; }
+    .toast { animation: none !important; }
   }
 </style>
 </head>
@@ -232,11 +250,34 @@
           Org Pages
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
         </a>
-        <a href="https://github.com/cobblestonelearning" target="_blank" rel="noopener" class="btn btn-ghost inline-flex items-center gap-2 text-sm font-700 px-4 py-2.5 rounded-full">
+        <a href="https://github.com/cobblestonelearning" target="_blank" rel="noopener" class="hidden sm:inline-flex btn btn-ghost items-center gap-2 text-sm font-700 px-4 py-2.5 rounded-full">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.05.78 2.12 0 1.53-.01 2.77-.01 3.15 0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>
           <span class="hidden xs:inline">GitHub Org</span>
           <span class="xs:hidden">GitHub</span>
         </a>
+
+        <!-- ===== Auth: signed-out control ===== -->
+        <button id="auth-btn" type="button" aria-label="Sign in with GitHub to view private repositories" class="btn btn-primary inline-flex items-center gap-2 text-sm font-700 px-4 py-2.5 rounded-full">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.05.78 2.12 0 1.53-.01 2.77-.01 3.15 0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>
+          <span class="hidden xs:inline">Sign in with GitHub</span>
+          <span class="xs:hidden">Sign in</span>
+        </button>
+
+        <!-- ===== Auth: signed-in control (hidden until login) ===== -->
+        <div id="auth-user" class="hidden items-center gap-2 sm:gap-3">
+          <span id="auth-private-pill" class="hidden sm:inline-flex badge badge-private items-center" title="Private organisation repositories are now included">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Private repos included
+          </span>
+          <span class="inline-flex items-center gap-2 min-w-0">
+            <img id="auth-avatar" src="" alt="" class="w-8 h-8 rounded-full border border-cborder shrink-0 bg-lightbg" width="32" height="32" decoding="async" />
+            <span id="auth-login" class="hidden xs:inline text-sm font-700 text-dark truncate max-w-[110px]"></span>
+          </span>
+          <button id="signout-btn" type="button" aria-label="Sign out of GitHub" class="btn btn-ghost inline-flex items-center gap-1.5 text-sm font-700 px-3.5 py-2.5 rounded-full">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span class="hidden xs:inline">Sign out</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -383,6 +424,9 @@
   </div>
 </footer>
 
+<!-- ============ TOAST REGION (auth feedback) ============ -->
+<div id="toast-region" role="status" aria-live="polite" aria-atomic="true"></div>
+
 <!-- ============ MODAL ============ -->
 <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
   <div class="modal-content">
@@ -400,6 +444,33 @@
 
 <script>
 /* ============================================================
+   Auth config + authenticated fetch
+   ------------------------------------------------------------
+   These values are safe to be public. The OAuth client secret is
+   NEVER here — code exchange happens server-side at exchangeUrl.
+   ============================================================ */
+var AUTH_CONFIG = { clientId: '', exchangeUrl: '', scope: 'read:org repo', org: 'CobblestoneLearning' };
+var ghToken = null;            // IN-MEMORY ONLY. Never write the token to localStorage/sessionStorage.
+function authConfigured() { return !!(AUTH_CONFIG.clientId && AUTH_CONFIG.exchangeUrl); }
+
+/* Central authenticated fetch — all GitHub API calls go through this so the
+   bearer token (when present) is attached consistently. */
+function ghFetch(url, opts) {
+  opts = opts || {};
+  var h = Object.assign({ 'Accept': 'application/vnd.github+json' }, opts.headers || {});
+  if (ghToken) h['Authorization'] = 'Bearer ' + ghToken;
+  return fetch(url, Object.assign({}, opts, { headers: h }));
+}
+
+/* Repo list endpoint depends on auth state: signed in → org `type=all`
+   (includes private); signed out → public user repos. */
+function reposUrl() {
+  return ghToken
+    ? 'https://api.github.com/orgs/' + AUTH_CONFIG.org + '/repos?type=all&per_page=100&sort=updated'
+    : 'https://api.github.com/users/cobblestonelearning/repos?per_page=100&sort=updated';
+}
+
+/* ============================================================
    Helpers
    ============================================================ */
 function escapeHtml(str) {
@@ -407,6 +478,11 @@ function escapeHtml(str) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
+
+/* Defence-in-depth: only allow https:// URLs from GitHub-API-derived fields to
+   reach an href or fetch(); anything else (javascript:, data:, http:, etc.)
+   degrades to a harmless '#'. */
+function safeHttpUrl(u){ return (typeof u === 'string' && /^https:\/\//i.test(u)) ? u : '#'; }
 
 /* Debounced live-region announcement so rapid filtering does not flood
    the screen-reader queue while the user is still typing. */
@@ -543,24 +619,68 @@ var FILTERS = { search: '', lang: '__all', sort: 'updated', showExtra: false };
    Fetch + bootstrap
    ============================================================ */
 document.addEventListener('DOMContentLoaded', function () {
-  var repoCards = document.getElementById('repo-cards');
   var gistCards = document.getElementById('gist-cards');
-  var repoStatus = document.getElementById('repo-status');
   var gistStatus = document.getElementById('gist-status');
 
-  showRepoSkeletons(repoCards, 6);
+  showRepoSkeletons(document.getElementById('repo-cards'), 6);
   showRepoSkeletons(gistCards, 3);
 
   wireControls();
+  wireAuth();
 
-  /* ---- Repos ---- */
-  fetch('https://api.github.com/users/cobblestonelearning/repos?per_page=100&sort=updated')
+  /* ---- Repos (public-first; re-runs after sign-in / sign-out) ---- */
+  loadRepos();
+
+  /* ---- Gists ---- */
+  ghFetch('https://api.github.com/users/cobblestonelearning/gists')
     .then(function (response) {
       if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
       return response.json();
     })
     .then(function (data) {
-      document.getElementById('lang-chip-skeleton').remove();
+      if (!Array.isArray(data) || data.length === 0) {
+        emptyState(gistCards, gistStatus, 'No gists yet',
+          'This organisation has not published any public gists.', false);
+        document.getElementById('gist-count').textContent = '';
+        return;
+      }
+      renderGists(data, gistCards, gistStatus);
+    })
+    .catch(function (error) {
+      console.error('Error fetching GitHub gists:', error);
+      var rl = error && error.status === 403;
+      emptyState(gistCards, gistStatus,
+        rl ? 'GitHub rate limit reached' : 'Could not load gists',
+        rl ? 'The unauthenticated GitHub API is temporarily rate-limited. Wait a few minutes and retry.'
+           : 'We could not reach GitHub just now. Please try again in a little while.',
+        rl);
+    });
+});
+
+/* ============================================================
+   Repos loader (reusable — called on load and after sign-in/out)
+   ============================================================ */
+function loadRepos() {
+  var repoCards = document.getElementById('repo-cards');
+  var repoStatus = document.getElementById('repo-status');
+
+  repoCards.setAttribute('aria-busy', 'true');
+  showRepoSkeletons(repoCards, 6);
+  if (repoStatus) repoStatus.textContent = 'Loading repositories…';
+
+  /* Rebuild the language chips from scratch on each (re)load: remove all
+     chips except the persistent "All languages" one, restore the skeleton
+     placeholder so buildLangChips can re-render against the new repo set. */
+  resetLangChips();
+
+  ghFetch(reposUrl())
+    .then(function (response) {
+      if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
+      return response.json();
+    })
+    .then(function (data) {
+      var skel = document.getElementById('lang-chip-skeleton');
+      if (skel) skel.remove();
       if (!Array.isArray(data) || data.length === 0) {
         ALL_REPOS = [];
         computeStats([]);
@@ -586,32 +706,33 @@ document.addEventListener('DOMContentLoaded', function () {
            : 'We could not reach GitHub just now. Check your connection and try again in a little while.',
         rl);
     });
+}
 
-  /* ---- Gists ---- */
-  fetch('https://api.github.com/users/cobblestonelearning/gists')
-    .then(function (response) {
-      if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
-      return response.json();
-    })
-    .then(function (data) {
-      if (!Array.isArray(data) || data.length === 0) {
-        emptyState(gistCards, gistStatus, 'No gists yet',
-          'This organisation has not published any public gists.', false);
-        document.getElementById('gist-count').textContent = '';
-        return;
-      }
-      renderGists(data, gistCards, gistStatus);
-    })
-    .catch(function (error) {
-      console.error('Error fetching GitHub gists:', error);
-      var rl = error && error.status === 403;
-      emptyState(gistCards, gistStatus,
-        rl ? 'GitHub rate limit reached' : 'Could not load gists',
-        rl ? 'The unauthenticated GitHub API is temporarily rate-limited. Wait a few minutes and retry.'
-           : 'We could not reach GitHub just now. Please try again in a little while.',
-        rl);
-    });
-});
+/* Reset the language-filter chip row to its initial state before a reload. */
+function resetLangChips() {
+  var wrap = document.getElementById('lang-filter');
+  if (!wrap) return;
+  /* Drop every dynamically-added chip, keep the "All languages" control. */
+  wrap.querySelectorAll('.chip[data-lang]:not([data-lang="__all"])').forEach(function (c) { c.remove(); });
+  /* Reset the active filter to "all" so a stale language filter from the
+     previous repo set does not hide everything in the new set. */
+  FILTERS.lang = '__all';
+  wrap.querySelectorAll('.chip').forEach(function (c) {
+    c.setAttribute('aria-pressed', String(c.getAttribute('data-lang') === '__all'));
+  });
+  /* Restore the loading skeleton if it was removed by a prior load. */
+  if (!document.getElementById('lang-chip-skeleton')) {
+    var sk = document.createElement('span');
+    sk.id = 'lang-chip-skeleton';
+    sk.className = 'flex items-center gap-2';
+    sk.setAttribute('aria-hidden', 'true');
+    sk.innerHTML =
+      '<span class="skeleton inline-block h-8 w-20 rounded-full"></span>' +
+      '<span class="skeleton inline-block h-8 w-24 rounded-full"></span>' +
+      '<span class="skeleton inline-block h-8 w-16 rounded-full"></span>';
+    wrap.appendChild(sk);
+  }
+}
 
 /* ============================================================
    Stats
@@ -663,20 +784,25 @@ function buildLangChips(repos) {
     btn.type = 'button';
     btn.className = 'chip';
     btn.setAttribute('data-lang', lang);
-    btn.setAttribute('aria-pressed', 'false');
+    btn.setAttribute('aria-pressed', String(lang === FILTERS.lang));
     btn.innerHTML = '<span class="dot" style="background:' + langColor(lang) + '"></span>' + escapeHtml(lang) +
       ' <span class="chip-count text-greytext font-600">' + counts[lang] + '</span>';
     wrap.appendChild(btn);
   });
-  wrap.addEventListener('click', function (e) {
-    var btn = e.target.closest('.chip');
-    if (!btn) return;
-    FILTERS.lang = btn.getAttribute('data-lang');
-    wrap.querySelectorAll('.chip').forEach(function (c) {
-      c.setAttribute('aria-pressed', String(c === btn));
+  /* Attach the delegated click handler once, even though buildLangChips may
+     run again after sign-in/out (loadRepos re-renders the chip set). */
+  if (!wrap.dataset.bound) {
+    wrap.dataset.bound = '1';
+    wrap.addEventListener('click', function (e) {
+      var btn = e.target.closest('.chip');
+      if (!btn) return;
+      FILTERS.lang = btn.getAttribute('data-lang');
+      wrap.querySelectorAll('.chip').forEach(function (c) {
+        c.setAttribute('aria-pressed', String(c === btn));
+      });
+      applyFilters();
     });
-    applyFilters();
-  });
+  }
 }
 
 /* ============================================================
@@ -789,6 +915,12 @@ function buildRepoCard(repo, idx) {
   card.style.transitionDelay = (idx % 3) * 50 + 'ms';
 
   var badges = '';
+  if (repo.private === true) {
+    badges += '<span class="badge badge-private" title="Private repository — visible because you are signed in">' +
+      '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Private</span>';
+  }
+  /* Only show a "Live" badge for repos that actually publish Pages. Private
+     repos without Pages must not get one. */
   if (repo.has_pages) {
     badges += '<a href="' + escapeHtml(pagesUrl(repo)) + '" target="_blank" rel="noopener" class="badge badge-live hover:underline" title="View the live published page">' +
       '<span class="w-1.5 h-1.5 rounded-full" style="background:#2D9E5A" aria-hidden="true"></span>Live</a>';
@@ -811,12 +943,12 @@ function buildRepoCard(repo, idx) {
     ? '<span class="inline-flex items-center gap-1.5 font-600"><span class="lang-dot" style="background:' + langColor(repo.language) + '" aria-hidden="true"></span>' + escapeHtml(repo.language) + '</span>'
     : '<span class="text-greytext font-600">No primary language</span>';
 
-  var cloneCmd = 'git clone ' + (repo.clone_url || (repo.html_url + '.git'));
+  var cloneCmd = 'git clone ' + safeHttpUrl(repo.clone_url || (repo.html_url + '.git'));
 
   card.innerHTML =
     '<div class="flex items-start justify-between gap-3 mb-2">' +
       '<h3 class="text-base font-800 break-words min-w-0 leading-snug">' +
-        '<a href="' + escapeHtml(repo.html_url) + '" target="_blank" rel="noopener" class="hover:text-cblue hover:underline underline-offset-2 decoration-cyan">' + escapeHtml(repo.name) + '</a>' +
+        '<a href="' + escapeHtml(safeHttpUrl(repo.html_url)) + '" target="_blank" rel="noopener" class="hover:text-cblue hover:underline underline-offset-2 decoration-cyan">' + escapeHtml(repo.name) + '</a>' +
       '</h3>' +
       (badges ? '<div class="flex flex-wrap items-center gap-1.5 justify-end shrink-0">' + badges + '</div>' : '') +
     '</div>' +
@@ -827,7 +959,7 @@ function buildRepoCard(repo, idx) {
     '<div class="flex items-center gap-2 mt-auto pt-1">' +
       '<button class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full inline-flex items-center gap-1.5" data-repo="' + escapeHtml(repo.name) + '">' +
         '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Explore</button>' +
-      '<a href="' + escapeHtml(repo.html_url) + '" target="_blank" rel="noopener" class="btn btn-ghost text-sm font-700 px-3.5 py-2.5 rounded-full inline-flex items-center gap-1.5" aria-label="Open ' + escapeHtml(repo.name) + ' on GitHub">' +
+      '<a href="' + escapeHtml(safeHttpUrl(repo.html_url)) + '" target="_blank" rel="noopener" class="btn btn-ghost text-sm font-700 px-3.5 py-2.5 rounded-full inline-flex items-center gap-1.5" aria-label="Open ' + escapeHtml(repo.name) + ' on GitHub">' +
         '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.05.78 2.12 0 1.53-.01 2.77-.01 3.15 0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>GitHub</a>' +
       '<button class="copy-cmd ml-auto" type="button" data-clone="' + escapeHtml(cloneCmd) + '" aria-label="Copy git clone command for ' + escapeHtml(repo.name) + '">' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>' +
@@ -900,7 +1032,7 @@ function renderGists(data, container, statusEl) {
       '<div class="flex items-center gap-2 mt-auto pt-1">' +
         '<button class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full inline-flex items-center gap-1.5" data-gist="' + escapeHtml(gist.id) + '">' +
           '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View</button>' +
-        '<a href="' + escapeHtml(gist.html_url) + '" target="_blank" rel="noopener" class="btn btn-ghost text-sm font-700 px-3.5 py-2.5 rounded-full inline-flex items-center gap-1.5">Open gist' +
+        '<a href="' + escapeHtml(safeHttpUrl(gist.html_url)) + '" target="_blank" rel="noopener" class="btn btn-ghost text-sm font-700 px-3.5 py-2.5 rounded-full inline-flex items-center gap-1.5">Open gist' +
           '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>' +
       '</div>';
     card.querySelector('button[data-gist]').addEventListener('click', function () { fetchGistDetails(gist.id); });
@@ -967,14 +1099,14 @@ var modalClipboard = null;
 function fetchRepoDetails(repoName) {
   /* preserve the trigger focus across the async detail render */
   if (!modal.classList.contains('open')) lastFocused = document.activeElement;
-  fetch('https://api.github.com/repos/cobblestonelearning/' + repoName)
+  ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName)
     .then(function (response) {
       if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
       return response.json();
     })
     .then(function (repo) {
       modalTitle.textContent = repo.name;
-      var cloneCmd = 'git clone ' + (repo.clone_url || (repo.html_url + '.git'));
+      var cloneCmd = 'git clone ' + safeHttpUrl(repo.clone_url || (repo.html_url + '.git'));
 
       var metaRows = '';
       function row(label, value) {
@@ -990,6 +1122,7 @@ function fetchRepoDetails(repoName) {
       if (repo.license && repo.license.name) metaRows += row('License', escapeHtml(repo.license.name));
 
       var badges = '';
+      if (repo.private === true) badges += '<span class="badge badge-private"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Private</span>';
       if (repo.has_pages) badges += '<a href="' + escapeHtml(pagesUrl(repo)) + '" target="_blank" rel="noopener" class="badge badge-live hover:underline"><span class="w-1.5 h-1.5 rounded-full" style="background:#2D9E5A"></span>Live page</a>';
       if (repo.archived) badges += '<span class="badge badge-archived">Archived</span>';
       if (repo.fork) badges += '<span class="badge badge-fork">Fork</span>';
@@ -1064,7 +1197,7 @@ function fetchRepoDetails(repoName) {
 
       /* primary "open repo" action always present */
       var openA = document.createElement('a');
-      openA.href = repo.html_url; openA.target = '_blank'; openA.rel = 'noopener';
+      openA.href = safeHttpUrl(repo.html_url); openA.target = '_blank'; openA.rel = 'noopener';
       openA.className = 'btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2';
       openA.innerHTML = 'Open on GitHub<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
       appendAction(openA);
@@ -1081,7 +1214,7 @@ function fetchRepoDetails(repoName) {
       appendAction(actionsLoading);
 
       /* README */
-      fetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/readme')
+      ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/readme')
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (readme) {
           if (readme && readme.content) {
@@ -1107,7 +1240,7 @@ function fetchRepoDetails(repoName) {
         .then(settleAction);
 
       /* index.html preview */
-      fetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/index.html')
+      ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/index.html')
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (indexFile) {
           if (indexFile && indexFile.download_url) {
@@ -1149,7 +1282,7 @@ function makeBackButton(repoName) {
 var gistClipboard = null;
 function fetchGistDetails(gistId) {
   if (!modal.classList.contains('open')) lastFocused = document.activeElement;
-  fetch('https://api.github.com/gists/' + gistId)
+  ghFetch('https://api.github.com/gists/' + gistId)
     .then(function (response) {
       if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
       return response.json();
@@ -1178,7 +1311,7 @@ function fetchGistDetails(gistId) {
             '<span class="inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>updated ' + escapeHtml(timeAgo(gist.updated_at)) + '</span>' +
           '</p>' +
         '</div>' + files +
-        '<a href="' + escapeHtml(gist.html_url) + '" target="_blank" rel="noopener" class="btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2">Open gist on GitHub<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>';
+        '<a href="' + escapeHtml(safeHttpUrl(gist.html_url)) + '" target="_blank" rel="noopener" class="btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2">Open gist on GitHub<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>';
 
       openModal();
       if (typeof ClipboardJS !== 'undefined') {
@@ -1248,7 +1381,7 @@ function buildTreeList(repoName, contents, isRoot) {
 }
 
 function fetchFileStructure(repoName, path) {
-  fetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/' + path)
+  ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/' + path)
     .then(function (response) {
       if (!response.ok) throw new Error('GitHub API responded ' + response.status);
       return response.json();
@@ -1271,7 +1404,7 @@ function fetchFileStructure(repoName, path) {
 }
 
 function fetchFileStructureInto(repoName, path, parentLi) {
-  fetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/' + path)
+  ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/' + path)
     .then(function (response) {
       if (!response.ok) throw new Error('GitHub API responded ' + response.status);
       return response.json();
@@ -1299,7 +1432,7 @@ function fetchFileStructureInto(repoName, path, parentLi) {
    index.html live preview (sandboxed iframe)
    ============================================================ */
 function fetchIndexContent(url, repoName) {
-  fetch(url)
+  fetch(safeHttpUrl(url))
     .then(function (response) {
       if (!response.ok) throw new Error('Fetch responded ' + response.status);
       return response.text();
@@ -1319,6 +1452,7 @@ function fetchIndexContent(url, repoName) {
       iframe.className = 'rounded-xl border border-cborder max-w-full bg-white';
       iframe.title = (repoName || '') + ' index.html preview';
       iframe.setAttribute('sandbox', 'allow-scripts');
+      iframe.referrerPolicy = 'no-referrer';
       modalBody.appendChild(iframe);
       modalBody.appendChild(makeBackButton(repoName));
       focusModalStart();
@@ -1354,6 +1488,161 @@ function observeReveals(scope) {
   nodes.forEach(function (el) { revealObserver.observe(el); });
 }
 document.addEventListener('DOMContentLoaded', function () { observeReveals(document); });
+
+/* ============================================================
+   GitHub OAuth (web flow) — public-first, enhanced-on-login
+   ------------------------------------------------------------
+   The popup is opened only on a direct user click (so it is not
+   blocked). The access token lives in `ghToken` (memory) only and
+   is never persisted; the only thing we put in sessionStorage is a
+   short-lived random CSRF `state` string.
+   ============================================================ */
+var oauthPopup = null;
+
+/* Lightweight, accessible toast. */
+function showToast(message) {
+  var region = document.getElementById('toast-region');
+  if (!region) { return; }
+  var t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = '<span class="toast-dot" aria-hidden="true"></span>';
+  var span = document.createElement('span');
+  span.textContent = message;            /* textContent — never inject markup */
+  t.appendChild(span);
+  region.appendChild(t);
+  setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 4200);
+}
+
+function setSignedInUI(login, avatarUrl) {
+  var btn = document.getElementById('auth-btn');
+  var user = document.getElementById('auth-user');
+  var avatar = document.getElementById('auth-avatar');
+  var loginEl = document.getElementById('auth-login');
+  if (btn) btn.classList.add('hidden');
+  if (user) { user.classList.remove('hidden'); user.classList.add('flex'); }
+  if (avatar) {
+    /* Assign via DOM property (no innerHTML) so the URL is treated as data. */
+    avatar.src = avatarUrl || '';
+    avatar.alt = login ? (login + ' avatar') : 'GitHub avatar';
+  }
+  if (loginEl) loginEl.textContent = login || '';   /* textContent escapes */
+}
+
+function setSignedOutUI() {
+  var btn = document.getElementById('auth-btn');
+  var user = document.getElementById('auth-user');
+  var avatar = document.getElementById('auth-avatar');
+  var loginEl = document.getElementById('auth-login');
+  if (btn) btn.classList.remove('hidden');
+  if (user) { user.classList.add('hidden'); user.classList.remove('flex'); }
+  if (avatar) { avatar.src = ''; avatar.alt = ''; }
+  if (loginEl) loginEl.textContent = '';
+}
+
+function wireAuth() {
+  var btn = document.getElementById('auth-btn');
+  var out = document.getElementById('signout-btn');
+  if (btn) btn.addEventListener('click', signIn);
+  if (out) out.addEventListener('click', signOut);
+
+  /* ONE message listener for the OAuth callback popup. */
+  window.addEventListener('message', function (e) {
+    if (e.origin !== window.location.origin) return;
+    if (!e.data || e.data.source !== 'cobblestone-oauth') return;
+
+    if (e.data.error) {
+      sessionStorage.removeItem('cb_oauth_state');
+      if (oauthPopup && !oauthPopup.closed) oauthPopup.close();
+      showToast('Sign-in cancelled');
+      return;
+    }
+
+    var expected = sessionStorage.getItem('cb_oauth_state');
+    sessionStorage.removeItem('cb_oauth_state');     /* single-use */
+    if (!expected || e.data.state !== expected) {
+      if (oauthPopup && !oauthPopup.closed) oauthPopup.close();
+      showToast('Sign-in failed — security check did not match. Please try again.');
+      return;                                          /* possible CSRF — abort */
+    }
+    if (oauthPopup && !oauthPopup.closed) oauthPopup.close();
+    if (e.data.code) exchange(e.data.code);
+  });
+}
+
+function signIn() {
+  if (!authConfigured()) {
+    showToast("GitHub sign-in isn't set up yet — see docs/AUTH-SETUP.md");
+    return;
+  }
+  /* Random hex CSRF state. */
+  var buf = new Uint8Array(16);
+  crypto.getRandomValues(buf);
+  var state = Array.prototype.map.call(buf, function (b) {
+    return ('0' + b.toString(16)).slice(-2);
+  }).join('');
+  sessionStorage.setItem('cb_oauth_state', state);
+
+  var authUrl = 'https://github.com/login/oauth/authorize' +
+    '?client_id=' + encodeURIComponent(AUTH_CONFIG.clientId) +
+    '&redirect_uri=' + encodeURIComponent(location.origin + '/callback.html') +
+    '&scope=' + encodeURIComponent(AUTH_CONFIG.scope) +
+    '&state=' + encodeURIComponent(state);
+
+  /* Centered popup (must be opened in the click handler so it is not blocked). */
+  var w = 600, h = 720;
+  var dualLeft = window.screenLeft != null ? window.screenLeft : window.screenX;
+  var dualTop = window.screenTop != null ? window.screenTop : window.screenY;
+  var winW = window.innerWidth || document.documentElement.clientWidth || screen.width;
+  var winH = window.innerHeight || document.documentElement.clientHeight || screen.height;
+  var left = dualLeft + Math.max(0, (winW - w) / 2);
+  var top = dualTop + Math.max(0, (winH - h) / 2);
+  oauthPopup = window.open(authUrl, 'cobblestone-oauth',
+    'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top +
+    ',menubar=no,toolbar=no,location=no,status=no');
+  if (!oauthPopup) {
+    sessionStorage.removeItem('cb_oauth_state');
+    showToast('Pop-up blocked — please allow pop-ups and try again.');
+  }
+}
+
+function exchange(code) {
+  fetch(AUTH_CONFIG.exchangeUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: code })
+  })
+    .then(function (r) {
+      if (!r.ok) throw new Error('Exchange responded ' + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      if (!data || !data.access_token) throw new Error('No access token returned');
+      ghToken = data.access_token;                    /* memory only */
+      return ghFetch('https://api.github.com/user');
+    })
+    .then(function (r) {
+      if (!r.ok) throw new Error('User lookup responded ' + r.status);
+      return r.json();
+    })
+    .then(function (user) {
+      setSignedInUI(user.login, user.avatar_url);
+      showToast('Signed in as ' + (user.login || 'GitHub user') + ' — private repos included');
+      loadRepos();                                     /* refresh WITH private repos */
+    })
+    .catch(function (err) {
+      console.error('OAuth exchange failed:', err);
+      ghToken = null;
+      setSignedOutUI();
+      showToast('Sign-in failed — please try again.');
+    });
+}
+
+function signOut() {
+  ghToken = null;                                       /* token was memory-only */
+  setSignedOutUI();
+  showToast('Signed out');
+  loadRepos();                                          /* back to public view */
+}
 
 /* ============================================================
    Keep the sticky controls bar offset in sync with the real header

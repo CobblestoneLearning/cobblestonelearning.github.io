@@ -1,0 +1,12 @@
+name = "cobblestone-oauth"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Non-secret config. The Client ID is safe to expose; the ALLOWED_ORIGIN locks CORS
+# to the live hub so no other site can use this exchange endpoint.
+[vars]
+GITHUB_CLIENT_ID = ""                                   # <- your OAuth App Client ID
+ALLOWED_ORIGIN   = "https://cobblestonelearning.github.io"
+
+# The client SECRET is set out-of-band (never commit it):
+#   wrangler secret put GITHUB_CLIENT_SECRET
