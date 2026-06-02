@@ -1,1 +1,8 @@
 .DS_Store
+__pycache__/
+node_modules/
+
+# Cloudflare Worker local state (auth/) — never commit
+.wrangler/
+auth/.wrangler/
+.dev.vars
