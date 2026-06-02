@@ -206,6 +206,13 @@
   }
   .copy-button:hover { transform: translateY(-1px); opacity: .92; }
 
+  /* Sticky file/title header — pins the filename + Copy button while scrolling
+     long code inside the modal (the modal body is the scroll container). */
+  .file-head {
+    position: sticky; top: 0; z-index: 20;
+    background: #fff; padding: .6em;
+  }
+
   /* Skeleton loader */
   .skeleton {
     background: linear-gradient(100deg, #E8ECF0 30%, #F8F9FB 50%, #E8ECF0 70%);
@@ -1320,7 +1327,7 @@ function fetchGistDetails(gistId) {
            and content is never double-escaped. */
         return '' +
           '<div class="surface rounded-xl p-4 mb-4">' +
-            '<div class="flex justify-between items-center mb-3 gap-3">' +
+            '<div class="file-head flex justify-between items-center mb-3 gap-3">' +
               '<h3 class="text-sm font-700 break-words min-w-0 inline-flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="truncate">' + escapeHtml(file.filename) + '</span></h3>' +
               '<button class="copy-button shrink-0" data-clipboard-text="' + escapeHtml(file.content || '') + '">Copy</button>' +
             '</div>' +
