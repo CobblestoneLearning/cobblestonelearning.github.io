@@ -16,7 +16,24 @@ Browser (public hub)  ──click "Sign in"──▶  GitHub authorize (popup)
    (holds secret)
 ```
 
-You only need to do this **once**. Two manual steps (only the org owner can do them), then fill in
+## Easiest path — one command
+
+There's a self-verifying setup helper that does all of the below and **checks the credentials
+against GitHub before finishing** (so a wrong/made-up secret can't slip through). It's idempotent —
+safe to re-run; it only fixes what's missing.
+
+```bash
+python3 .github/setup-auth.py
+```
+
+You still need to (1) create the GitHub OAuth App with callback URL
+`https://cobblestonelearning.github.io/callback.html`, and (2) have a free Cloudflare account — the
+script walks you through logging in, deploying the worker, and pasting the secret at Cloudflare's
+hidden prompt. The manual steps below are the same thing done by hand.
+
+---
+
+You only need to do this **once**. Two manual steps (only the account owner can do them), then fill in
 two values.
 
 ---
