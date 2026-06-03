@@ -104,6 +104,17 @@
   .chip[aria-pressed="true"] { background: linear-gradient(135deg,#0074B4,#005C90); color: #fff; border-color: transparent; }
   .chip[aria-pressed="true"] .text-grey, .chip[aria-pressed="true"] span { color: #fff; }
   .chip .dot { width: 9px; height: 9px; border-radius: 9999px; flex: none; }
+  .chip .chip-ico { display: inline-flex; }
+
+  /* ------- View toggle (Staff / Developer segmented control) ------- */
+  .view-opt {
+    cursor: pointer; white-space: nowrap; background: transparent; border: none;
+    color: var(--greytext); border-radius: 9999px;
+    transition: background .2s ease, color .2s ease;
+  }
+  .view-opt:hover[aria-checked="false"] { color: var(--cblue); }
+  .view-opt[aria-checked="true"] { background: linear-gradient(135deg,#0074B4,#005C90); color: #fff; }
+  @media (prefers-reduced-motion: reduce) { .view-opt { transition: none !important; } }
 
   .control-field {
     background: #fff; border: 1.5px solid var(--cborder); border-radius: 12px;
@@ -347,6 +358,18 @@
 <div id="controls" class="sticky top-[var(--header-h,68px)] z-40 bg-lightbg/95 backdrop-blur border-b border-cborder">
   <div class="max-w-[1400px] mx-auto px-4 sm:px-8 py-3.5">
     <div class="flex flex-col gap-3">
+      <!-- view toggle: Staff (by purpose) vs Developer (full detail) -->
+      <div class="flex items-center gap-3 flex-wrap">
+        <div id="view-toggle" role="radiogroup" aria-label="Choose how to view projects" class="inline-flex items-center bg-white border border-cborder rounded-full p-1 gap-1">
+          <button type="button" role="radio" aria-checked="true" data-view="staff" class="view-opt text-sm font-700 px-4 py-2 inline-flex items-center gap-1.5">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Staff view
+          </button>
+          <button type="button" role="radio" aria-checked="false" data-view="dev" class="view-opt text-sm font-700 px-4 py-2 inline-flex items-center gap-1.5">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Developer view
+          </button>
+        </div>
+        <span class="hidden sm:inline text-xs text-greytext font-600" id="view-hint">Grouped by what each project does — pick a tool and open it.</span>
+      </div>
       <div class="flex flex-col sm:flex-row gap-3">
         <!-- search -->
         <div class="control-field flex items-center gap-2 px-3.5 py-2.5 flex-1 min-w-0">
@@ -359,7 +382,7 @@
         </div>
         <!-- sort + toggles -->
         <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-          <div class="control-field flex items-center gap-1.5 px-3 py-2.5">
+          <div id="sort-field" class="control-field flex items-center gap-1.5 px-3 py-2.5">
             <svg class="text-grey shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="13" y2="6"/><line x1="3" y1="12" x2="11" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/><polyline points="16 9 19 6 22 9"/><line x1="19" y1="6" x2="19" y2="18"/></svg>
             <label for="sort" class="sr-only">Sort repositories</label>
             <select id="sort" class="control-select text-sm font-600 text-dark pr-1 py-0">
@@ -374,9 +397,8 @@
           </label>
         </div>
       </div>
-      <!-- language chips -->
-      <div class="flex items-center gap-2 overflow-x-auto -mx-1 px-1 pt-1 pb-1.5" id="lang-filter" role="group" aria-label="Filter by language">
-        <button type="button" class="chip" data-lang="__all" aria-pressed="true">All languages</button>
+      <!-- filter chips: categories (Staff view) or languages (Developer view), rendered by JS -->
+      <div class="flex items-center gap-2 overflow-x-auto -mx-1 px-1 pt-1 pb-1.5" id="lang-filter" role="group" aria-label="Filter projects">
         <span id="lang-chip-skeleton" class="flex items-center gap-2" aria-hidden="true">
           <span class="skeleton inline-block h-8 w-20 rounded-full"></span>
           <span class="skeleton inline-block h-8 w-24 rounded-full"></span>
@@ -541,6 +563,104 @@ var LANG_COLORS = {
 };
 function langColor(lang) { return (lang && LANG_COLORS[lang]) || '#27AAE1'; }
 
+/* ============================================================
+   Purpose categories (Staff view)
+   ------------------------------------------------------------
+   Staff view groups repos by WHAT THEY DO, not by language.
+   Category source is hybrid: a GitHub repo topic ("cat-<id>",
+   "category-<id>" or a bare "<id>") wins when present; otherwise
+   the curated CURATED map below; otherwise the "other" bucket.
+
+   To add a new project: either set a "cat-<id>" topic on the repo
+   on GitHub, OR add one line to CURATED with its category + a
+   plain-language summary. Order of CATEGORIES is the on-page order.
+   ============================================================ */
+var CATEGORIES = [
+  { id: 'authoring',   label: 'Course Authoring & SCORM', blurb: 'Building and packaging e-learning content.',
+    icon: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>' },
+  { id: 'reporting',   label: 'Reporting & Dashboards', blurb: 'Activity reports and dashboards built on LMS data.',
+    icon: '<path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>' },
+  { id: 'translation', label: 'Translation & Subtitles', blurb: 'Translating courses, captions and content across languages.',
+    icon: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>' },
+  { id: 'tools',       label: 'Internal Tools & Scripts', blurb: 'Utilities and scripts that speed up day-to-day work.',
+    icon: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>' },
+  { id: 'web',         label: 'Websites & Landing Pages', blurb: 'Public-facing and internal web pages.',
+    icon: '<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>' },
+  { id: 'other',       label: 'Other', blurb: 'Everything not yet sorted into a category.',
+    icon: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>' }
+];
+var CATEGORY_BY_ID = CATEGORIES.reduce(function (m, c) { m[c.id] = c; return m; }, {});
+
+/* Curated repo-name (lowercased) -> { category, summary }. Summaries are plain,
+   factual, internal descriptions — not marketing copy. */
+var CURATED = {
+  'multi-lang-sco':                { category: 'authoring',   summary: 'A SCORM 1.2 package for delivering one course in several languages.', integrations: ['SCORM'] },
+  'csl-ytd-reports':               { category: 'reporting',   summary: 'A year-to-date LearnDash activity report with a branded PDF export.', integrations: ['LearnDash'] },
+  'subtitle-studio':               { category: 'translation', summary: 'A browser tool to edit and translate video subtitles (VTT / SRT).' },
+  'chrome-scripts':                { category: 'tools',        summary: 'Browser bookmarklets and scripts for everyday web tasks.' },
+  'cobblestonelearning.github.io': { category: 'web',          summary: 'This repository hub — where you are now.' },
+
+  // Course authoring & SCORM
+  'csl-gutenberg-blocks':          { category: 'authoring',   summary: 'A library of custom Gutenberg blocks for building course pages in WordPress.', integrations: ['WordPress', 'Gutenberg'] },
+  'csl-block-builder':             { category: 'authoring',   summary: 'An AI-assisted builder that generates and previews new Gutenberg blocks for WordPress.', integrations: ['WordPress', 'Gutenberg'] },
+  'learningjournal':               { category: 'authoring',   summary: 'A builder for reflective learner-journal activities, embedded into LearnDash courses.', integrations: ['LearnDash', 'DeepL'] },
+
+  // Reporting & dashboards
+  'csl-cpd-hours-dashboard':       { category: 'reporting',   summary: 'A CPD (professional development) hours dashboard built on LearnDash activity data.', integrations: ['LearnDash'] },
+  'cinematicreports':              { category: 'reporting',   summary: 'A cinematic 3D analytics dashboard for a LearnDash / BuddyBoss LMS.', integrations: ['LearnDash', 'BuddyBoss'] },
+
+  // Translation & subtitles
+  'rise-xliff-translator-v26':     { category: 'translation', summary: 'A browser tool for translating Articulate Rise courses via their XLIFF export (v26).', integrations: ['Articulate Rise'] },
+  'rise-xliff-translator-v27':     { category: 'translation', summary: 'A database-backed rebuild of the Articulate Rise course translator (v27).', integrations: ['Articulate Rise'] },
+  'deeplxliff':                    { category: 'translation', summary: 'A tool that translates Articulate Rise 360 XLIFF exports through the DeepL API.', integrations: ['Articulate Rise', 'DeepL'] },
+
+  // Internal tools & scripts
+  'quizformater':                  { category: 'tools',       summary: 'A browser tool that compares LearnDash / WpProQuiz quiz exports and formats them as PDF/DOCX.', integrations: ['LearnDash', 'WpProQuiz'] },
+  'quizxml':                       { category: 'tools',       summary: 'A quiz comparator that turns LearnDash WpProQuiz XML exports into branded PDF/DOCX documents.', integrations: ['LearnDash', 'WpProQuiz'] },
+  'tincanny_intercept':            { category: 'tools',       summary: 'A WordPress plugin that accelerates Tin Canny LearnDash Reporting’s xAPI traffic.', integrations: ['Tin Canny', 'LearnDash'] },
+  'bettersitegroundreports':       { category: 'tools',       summary: 'A browser overlay with richer CPU and usage analytics for SiteGround hosting.', integrations: ['SiteGround'] }
+};
+
+/* Hybrid category resolver: topic -> curated map -> "other". */
+function categoryForRepo(repo) {
+  var topics = (repo && repo.topics) || [];
+  for (var i = 0; i < topics.length; i++) {
+    var t = String(topics[i]).toLowerCase().replace(/^(?:cat|category)-/, '');
+    if (CATEGORY_BY_ID[t]) return t;
+  }
+  var c = CURATED[((repo && repo.name) || '').toLowerCase()];
+  if (c && CATEGORY_BY_ID[c.category]) return c.category;
+  return 'other';
+}
+
+/* Friendly summary for Staff view: curated text, else the GitHub description. */
+function summaryForRepo(repo) {
+  var c = CURATED[((repo && repo.name) || '').toLowerCase()];
+  return (c && c.summary) || (repo && repo.description) || 'No description provided.';
+}
+
+/* Plugins / services a tool works with (e.g. LearnDash, Tin Canny, Rise, DeepL).
+   Curated per repo; empty array when none. Helps non-technical staff see at a
+   glance what each tool plugs into before they open it. */
+function integrationsForRepo(repo) {
+  var c = CURATED[((repo && repo.name) || '').toLowerCase()];
+  return (c && c.integrations) || [];
+}
+
+/* "Works with" chip row for Staff view. Returns '' when there are none. */
+function integrationsRowHtml(repo) {
+  var items = integrationsForRepo(repo);
+  if (!items.length) return '';
+  var chips = items.map(function (name) {
+    return '<span class="inline-flex items-center text-[11px] font-700 px-2 py-0.5 rounded-full" ' +
+      'style="background:#EAF4FB;color:#0074B4;border:1px solid #D5E8F5;">' + escapeHtml(name) + '</span>';
+  }).join('');
+  return '<div class="mb-3">' +
+    '<span class="block text-[11px] font-700 uppercase tracking-wide text-body-muted mb-1.5">Works with</span>' +
+    '<div class="flex flex-wrap gap-1.5">' + chips + '</div>' +
+    '</div>';
+}
+
 /* Resolve a Prism grammar safely (always falls back to `markup`). */
 function prismGrammar(lang) {
   var P = (typeof Prism !== 'undefined') ? Prism : null;
@@ -622,7 +742,11 @@ function showRepoSkeletons(container, count) {
    State
    ============================================================ */
 var ALL_REPOS = [];
-var FILTERS = { search: '', lang: '__all', sort: 'updated', showExtra: false };
+var FILTERS = { search: '', lang: '__all', cat: '__all', sort: 'updated', showExtra: false };
+/* 'staff' (group by purpose, default) | 'dev' (today's full developer view). UI
+   preference only — persisted to localStorage (never the OAuth token). */
+var VIEW = 'staff';
+try { var _savedView = localStorage.getItem('cb_view'); if (_savedView === 'staff' || _savedView === 'dev') VIEW = _savedView; } catch (e) {}
 
 /* ============================================================
    Fetch + bootstrap
@@ -674,13 +798,13 @@ function loadRepos() {
   var repoStatus = document.getElementById('repo-status');
 
   repoCards.setAttribute('aria-busy', 'true');
+  repoCards.className = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5';
   showRepoSkeletons(repoCards, 6);
   if (repoStatus) repoStatus.textContent = 'Loading repositories…';
 
-  /* Rebuild the language chips from scratch on each (re)load: remove all
-     chips except the persistent "All languages" one, restore the skeleton
-     placeholder so buildLangChips can re-render against the new repo set. */
-  resetLangChips();
+  /* Show the chip skeleton while loading; renderChips() rebuilds the row
+     (categories in Staff view, languages in Developer view) once data lands. */
+  showChipSkeleton();
 
   function okJson(response) {
     if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
@@ -715,14 +839,14 @@ function loadRepos() {
       if (data.length === 0) {
         ALL_REPOS = [];
         computeStats([]);
-        buildLangChips([]);
+        renderChips();
         emptyState(repoCards, repoStatus, 'No repositories found',
           'No repositories were returned. If this is unexpected, the unauthenticated GitHub API may be temporarily rate-limited.', false);
         return;
       }
       ALL_REPOS = data;
       computeStats(data);
-      buildLangChips(data);
+      renderChips();
       applyFilters();
     })
     .catch(function (error) {
@@ -739,30 +863,19 @@ function loadRepos() {
     });
 }
 
-/* Reset the language-filter chip row to its initial state before a reload. */
-function resetLangChips() {
+/* Show the chip-row loading skeleton and reset both filters to "all" before a
+   (re)load, so a stale filter from the previous repo set can't hide everything. */
+function showChipSkeleton() {
   var wrap = document.getElementById('lang-filter');
   if (!wrap) return;
-  /* Drop every dynamically-added chip, keep the "All languages" control. */
-  wrap.querySelectorAll('.chip[data-lang]:not([data-lang="__all"])').forEach(function (c) { c.remove(); });
-  /* Reset the active filter to "all" so a stale language filter from the
-     previous repo set does not hide everything in the new set. */
   FILTERS.lang = '__all';
-  wrap.querySelectorAll('.chip').forEach(function (c) {
-    c.setAttribute('aria-pressed', String(c.getAttribute('data-lang') === '__all'));
-  });
-  /* Restore the loading skeleton if it was removed by a prior load. */
-  if (!document.getElementById('lang-chip-skeleton')) {
-    var sk = document.createElement('span');
-    sk.id = 'lang-chip-skeleton';
-    sk.className = 'flex items-center gap-2';
-    sk.setAttribute('aria-hidden', 'true');
-    sk.innerHTML =
+  FILTERS.cat = '__all';
+  wrap.innerHTML =
+    '<span id="lang-chip-skeleton" class="flex items-center gap-2" aria-hidden="true">' +
       '<span class="skeleton inline-block h-8 w-20 rounded-full"></span>' +
       '<span class="skeleton inline-block h-8 w-24 rounded-full"></span>' +
-      '<span class="skeleton inline-block h-8 w-16 rounded-full"></span>';
-    wrap.appendChild(sk);
-  }
+      '<span class="skeleton inline-block h-8 w-16 rounded-full"></span>' +
+    '</span>';
 }
 
 /* ============================================================
@@ -801,39 +914,96 @@ function computeStats(repos) {
 }
 
 /* ============================================================
-   Language filter chips (built dynamically)
+   Filter chips — categories (Staff view) or languages (Developer view)
    ============================================================ */
+/* Render the chip row for the current VIEW from the loaded repo set. */
+function renderChips() {
+  if (VIEW === 'dev') buildLangChips(ALL_REPOS);
+  else buildCategoryChips(ALL_REPOS);
+}
+
+/* Developer view: one chip per primary language (+ an "All languages" chip). */
 function buildLangChips(repos) {
   var wrap = document.getElementById('lang-filter');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  wrap.appendChild(makeChip('lang', '__all', 'All languages', FILTERS.lang === '__all'));
   var counts = {};
   repos.forEach(function (r) { if (r.language) counts[r.language] = (counts[r.language] || 0) + 1; });
-  var langs = Object.keys(counts).sort(function (a, b) {
+  Object.keys(counts).sort(function (a, b) {
     return counts[b] - counts[a] || a.localeCompare(b);
-  });
-  langs.forEach(function (lang) {
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'chip';
-    btn.setAttribute('data-lang', lang);
-    btn.setAttribute('aria-pressed', String(lang === FILTERS.lang));
-    btn.innerHTML = '<span class="dot" style="background:' + langColor(lang) + '"></span>' + escapeHtml(lang) +
+  }).forEach(function (lang) {
+    var inner = '<span class="dot" style="background:' + langColor(lang) + '"></span>' + escapeHtml(lang) +
       ' <span class="chip-count text-greytext font-600">' + counts[lang] + '</span>';
-    wrap.appendChild(btn);
+    wrap.appendChild(makeChip('lang', lang, inner, lang === FILTERS.lang));
   });
-  /* Attach the delegated click handler once, even though buildLangChips may
-     run again after sign-in/out (loadRepos re-renders the chip set). */
-  if (!wrap.dataset.bound) {
-    wrap.dataset.bound = '1';
-    wrap.addEventListener('click', function (e) {
-      var btn = e.target.closest('.chip');
-      if (!btn) return;
-      FILTERS.lang = btn.getAttribute('data-lang');
-      wrap.querySelectorAll('.chip').forEach(function (c) {
-        c.setAttribute('aria-pressed', String(c === btn));
-      });
-      applyFilters();
+}
+
+/* Staff view: one chip per non-empty category (+ an "All projects" chip). */
+function buildCategoryChips(repos) {
+  var wrap = document.getElementById('lang-filter');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  var counts = {};
+  repos.forEach(function (r) { var c = categoryForRepo(r); counts[c] = (counts[c] || 0) + 1; });
+  wrap.appendChild(makeChip('cat', '__all', 'All projects', FILTERS.cat === '__all'));
+  CATEGORIES.forEach(function (cat) {
+    if (!counts[cat.id]) return;
+    var inner = '<span class="chip-ico" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + cat.icon + '</svg></span>' +
+      escapeHtml(cat.label) + ' <span class="chip-count text-greytext font-600">' + counts[cat.id] + '</span>';
+    wrap.appendChild(makeChip('cat', cat.id, inner, cat.id === FILTERS.cat));
+  });
+}
+
+/* Build a single chip button (inner is already-escaped/safe markup). */
+function makeChip(type, value, inner, pressed) {
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'chip';
+  btn.setAttribute('data-' + type, value);
+  btn.setAttribute('aria-pressed', String(!!pressed));
+  btn.innerHTML = inner;
+  return btn;
+}
+
+/* Delegated click handler for the chip row — bound once. Reads data-cat or
+   data-lang so the same row serves both views. */
+function wireChipRow() {
+  var wrap = document.getElementById('lang-filter');
+  if (!wrap || wrap.dataset.bound) return;
+  wrap.dataset.bound = '1';
+  wrap.addEventListener('click', function (e) {
+    var btn = e.target.closest('.chip');
+    if (!btn) return;
+    if (btn.hasAttribute('data-cat')) FILTERS.cat = btn.getAttribute('data-cat');
+    else if (btn.hasAttribute('data-lang')) FILTERS.lang = btn.getAttribute('data-lang');
+    wrap.querySelectorAll('.chip').forEach(function (c) {
+      c.setAttribute('aria-pressed', String(c === btn));
     });
-  }
+    applyFilters();
+  });
+}
+
+/* Reflect the current VIEW in the non-chip controls (sort visibility, search
+   placeholder, toggle state, hint). Chips are handled by renderChips(). */
+function applyViewUI() {
+  var sortField = document.getElementById('sort-field');
+  if (sortField) sortField.classList.toggle('hidden', VIEW !== 'dev');
+
+  var search = document.getElementById('search');
+  if (search) search.placeholder = (VIEW === 'staff')
+    ? 'Search tools by name or what they do…'
+    : 'Search repositories by name, description or topic…';
+
+  var toggle = document.getElementById('view-toggle');
+  if (toggle) toggle.querySelectorAll('.view-opt').forEach(function (b) {
+    b.setAttribute('aria-checked', String(b.getAttribute('data-view') === VIEW));
+  });
+
+  var hint = document.getElementById('view-hint');
+  if (hint) hint.textContent = (VIEW === 'staff')
+    ? 'Grouped by what each project does — pick a tool and open it.'
+    : 'Every repository with language filters, sizes and clone commands.';
 }
 
 /* ============================================================
@@ -860,6 +1030,24 @@ function wireControls() {
   });
   sort.addEventListener('change', function () { FILTERS.sort = sort.value; applyFilters(); });
   showExtra.addEventListener('change', function () { FILTERS.showExtra = showExtra.checked; applyFilters(); });
+
+  /* View toggle (Staff / Developer). Buttons are role="radio"; Enter/Space fire
+     a native click, so no extra keyboard handling is needed beyond focus. */
+  var viewToggle = document.getElementById('view-toggle');
+  if (viewToggle) viewToggle.addEventListener('click', function (e) {
+    var b = e.target.closest('.view-opt');
+    if (!b) return;
+    var v = b.getAttribute('data-view');
+    if (!v || v === VIEW) return;
+    VIEW = v;
+    try { localStorage.setItem('cb_view', VIEW); } catch (e2) {}
+    applyViewUI();
+    renderChips();
+    applyFilters();
+  });
+
+  wireChipRow();
+  applyViewUI();
 }
 
 /* ============================================================
@@ -871,23 +1059,37 @@ function applyFilters() {
   if (!FILTERS.showExtra) {
     list = list.filter(function (r) { return !r.fork && !r.archived; });
   }
-  if (FILTERS.lang !== '__all') {
-    list = list.filter(function (r) { return r.language === FILTERS.lang; });
+  /* Primary filter differs by view: category (Staff) or language (Developer). */
+  if (VIEW === 'dev') {
+    if (FILTERS.lang !== '__all') {
+      list = list.filter(function (r) { return r.language === FILTERS.lang; });
+    }
+  } else {
+    if (FILTERS.cat !== '__all') {
+      list = list.filter(function (r) { return categoryForRepo(r) === FILTERS.cat; });
+    }
   }
   if (FILTERS.search) {
     var q = FILTERS.search;
     list = list.filter(function (r) {
-      var hay = (r.name + ' ' + (r.description || '') + ' ' + ((r.topics || []).join(' '))).toLowerCase();
+      /* Staff view also searches the friendly summary so plain-language terms hit. */
+      var hay = (r.name + ' ' + (r.description || '') + ' ' + summaryForRepo(r) + ' ' + integrationsForRepo(r).join(' ') + ' ' + ((r.topics || []).join(' '))).toLowerCase();
       return hay.indexOf(q) !== -1;
     });
   }
-  list.sort(function (a, b) {
-    if (FILTERS.sort === 'name') return a.name.localeCompare(b.name);
-    if (FILTERS.sort === 'size') return (b.size || 0) - (a.size || 0);
-    return new Date(b.pushed_at || b.updated_at) - new Date(a.pushed_at || a.updated_at);
-  });
 
-  renderRepos(list);
+  if (VIEW === 'dev') {
+    list.sort(function (a, b) {
+      if (FILTERS.sort === 'name') return a.name.localeCompare(b.name);
+      if (FILTERS.sort === 'size') return (b.size || 0) - (a.size || 0);
+      return new Date(b.pushed_at || b.updated_at) - new Date(a.pushed_at || a.updated_at);
+    });
+    renderRepos(list);
+  } else {
+    /* Staff view sorts alphabetically within each category section. */
+    list.sort(function (a, b) { return a.name.localeCompare(b.name); });
+    renderStaffView(list);
+  }
 }
 
 function renderRepos(list) {
@@ -895,6 +1097,7 @@ function renderRepos(list) {
   var statusEl = document.getElementById('repo-status');
   var countEl = document.getElementById('repo-count');
   container.setAttribute('aria-busy', 'false');
+  container.className = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5';
 
   var total = ALL_REPOS.length;
   var shown = list.length;
@@ -928,16 +1131,128 @@ function renderRepos(list) {
 }
 
 function resetFilters() {
-  FILTERS = { search: '', lang: '__all', sort: 'updated', showExtra: false };
+  FILTERS = { search: '', lang: '__all', cat: '__all', sort: 'updated', showExtra: false };
   var search = document.getElementById('search');
   search.value = '';
   document.getElementById('search-clear').classList.add('hidden');
   document.getElementById('sort').value = 'updated';
   document.getElementById('show-extra').checked = false;
-  document.querySelectorAll('#lang-filter .chip').forEach(function (c) {
-    c.setAttribute('aria-pressed', String(c.getAttribute('data-lang') === '__all'));
-  });
+  renderChips();
   applyFilters();
+}
+
+/* ============================================================
+   Staff view — group by purpose, plain-language cards
+   ============================================================ */
+function renderStaffView(list) {
+  var container = document.getElementById('repo-cards');
+  var statusEl = document.getElementById('repo-status');
+  var countEl = document.getElementById('repo-count');
+  container.setAttribute('aria-busy', 'false');
+
+  var total = ALL_REPOS.length;
+  var shown = list.length;
+  countEl.textContent = shown === total ? shown + ' shown' : shown + ' of ' + total + ' shown';
+  announceStatus(statusEl, shown === 0
+    ? 'No projects match your filters.'
+    : shown + (shown === 1 ? ' project' : ' projects') + ' shown.');
+
+  if (shown === 0) {
+    container.className = '';
+    container.innerHTML =
+      '<div class="surface rounded-2xl p-9 text-center">' +
+        '<div class="w-14 h-14 mx-auto mb-4 rounded-full grid place-items-center" style="background:rgba(39,170,225,0.12);color:#0074B4;">' +
+          '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+        '</div>' +
+        '<h3 class="text-lg font-700 mb-2">No matching projects</h3>' +
+        '<p class="text-body-muted text-sm max-w-md mx-auto mb-5">Try a different search term or category, or include forks &amp; archived projects.</p>' +
+        '<button type="button" id="reset-filters" class="btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full">Reset filters</button>' +
+      '</div>';
+    var rb = document.getElementById('reset-filters');
+    if (rb) rb.addEventListener('click', resetFilters);
+    return;
+  }
+
+  /* Bucket by category, then render one section per non-empty category in
+     CATEGORIES order. */
+  var groups = {};
+  list.forEach(function (r) { var c = categoryForRepo(r); (groups[c] = groups[c] || []).push(r); });
+
+  container.className = 'space-y-10';
+  var frag = document.createDocumentFragment();
+  CATEGORIES.forEach(function (cat) {
+    var items = groups[cat.id];
+    if (!items || !items.length) return;
+    var section = document.createElement('section');
+    section.className = 'reveal';
+    section.setAttribute('aria-labelledby', 'cat-' + cat.id);
+    section.innerHTML =
+      '<div class="flex items-start gap-3 mb-4 pb-3" style="border-bottom:3px solid var(--cyan)">' +
+        '<span class="shrink-0 mt-0.5 text-cblue" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + cat.icon + '</svg></span>' +
+        '<div class="min-w-0">' +
+          '<h3 id="cat-' + cat.id + '" class="text-base sm:text-lg font-800 tracking-tight leading-snug">' + escapeHtml(cat.label) + ' <span class="text-greytext font-700">' + items.length + '</span></h3>' +
+          '<p class="text-body-muted text-sm">' + escapeHtml(cat.blurb) + '</p>' +
+        '</div>' +
+      '</div>';
+    var grid = document.createElement('div');
+    grid.className = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5';
+    items.forEach(function (repo, i) { grid.appendChild(buildStaffCard(repo, i)); });
+    section.appendChild(grid);
+    frag.appendChild(section);
+  });
+  container.innerHTML = '';
+  container.appendChild(frag);
+  observeReveals(container);
+}
+
+/* A plain-language card for non-technical staff: friendly summary + a prominent
+   "Open the tool" action. No clone command / file tree / code on the card. */
+function buildStaffCard(repo, idx) {
+  var card = document.createElement('article');
+  card.className = 'data-card reveal surface rounded-2xl p-6 flex flex-col';
+  card.style.transitionDelay = (idx % 3) * 50 + 'ms';
+
+  var live = !!repo.has_pages;
+  var titleHref = escapeHtml(safeHttpUrl(live ? pagesUrl(repo) : repo.html_url));
+
+  var badges = '';
+  if (repo.private === true) {
+    badges += '<span class="badge badge-private" title="Private — visible because you are signed in">' +
+      '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Private</span>';
+  }
+  if (live) {
+    badges += '<span class="badge badge-live"><span class="w-1.5 h-1.5 rounded-full" style="background:#2D9E5A" aria-hidden="true"></span>Live</span>';
+  }
+  if (repo.archived) badges += '<span class="badge badge-archived">Archived</span>';
+  if (repo.fork) badges += '<span class="badge badge-fork">Fork</span>';
+
+  var extLink = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
+  var infoIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+
+  /* Primary action: open the live tool when there is one; otherwise open details. */
+  var primary = live
+    ? '<a href="' + escapeHtml(pagesUrl(repo)) + '" target="_blank" rel="noopener" class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full inline-flex items-center gap-1.5" aria-label="Open ' + escapeHtml(repo.name) + '">Open the tool' + extLink + '</a>'
+    : '<button type="button" class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full inline-flex items-center gap-1.5" data-repo="' + escapeHtml(repo.name) + '">' + infoIcon + 'View details</button>';
+  var details = '<button type="button" class="btn btn-ghost text-sm font-700 px-3.5 py-2.5 rounded-full inline-flex items-center gap-1.5" data-repo="' + escapeHtml(repo.name) + '" aria-label="Details for ' + escapeHtml(repo.name) + '">' + infoIcon + 'Details</button>';
+
+  card.innerHTML =
+    '<div class="flex items-start justify-between gap-3 mb-2">' +
+      '<h3 class="text-base font-800 break-words min-w-0 leading-snug">' +
+        '<a href="' + titleHref + '" target="_blank" rel="noopener" class="hover:text-cblue hover:underline underline-offset-2 decoration-cyan">' + escapeHtml(repo.name) + '</a>' +
+      '</h3>' +
+      (badges ? '<div class="flex flex-wrap items-center gap-1.5 justify-end shrink-0">' + badges + '</div>' : '') +
+    '</div>' +
+    '<p class="text-body-muted text-sm leading-relaxed mb-3">' + escapeHtml(summaryForRepo(repo)) + '</p>' +
+    integrationsRowHtml(repo) +
+    '<div class="flex items-center gap-x-3.5 text-xs text-body-muted mb-4 mt-auto">' +
+      '<span class="inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>updated ' + escapeHtml(timeAgo(repo.pushed_at || repo.updated_at)) + '</span>' +
+    '</div>' +
+    '<div class="flex items-center gap-2 mt-auto pt-1">' + primary + details + '</div>';
+
+  card.querySelectorAll('button[data-repo]').forEach(function (b) {
+    b.addEventListener('click', function () { fetchRepoDetails(repo.name); });
+  });
+  return card;
 }
 
 function buildRepoCard(repo, idx) {
@@ -1136,6 +1451,9 @@ function fetchRepoDetails(repoName) {
       return response.json();
     })
     .then(function (repo) {
+      /* Staff view gets a lightweight info modal (no clone / file tree / code). */
+      if (VIEW === 'staff') { renderStaffRepoModal(repo); return; }
+
       modalTitle.textContent = repo.name;
       var cloneCmd = 'git clone ' + safeHttpUrl(repo.clone_url || (repo.html_url + '.git'));
 
@@ -1297,6 +1615,41 @@ function fetchRepoDetails(repoName) {
             : 'We could not load this repository right now. Please try again shortly.') + '</p>';
       openModal();
     });
+}
+
+/* Lightweight repo modal for Staff view: friendly summary + "Open the tool" +
+   "Open on GitHub". Deliberately omits clone command, file tree and code views. */
+function renderStaffRepoModal(repo) {
+  modalTitle.textContent = repo.name;
+  var live = !!repo.has_pages;
+  var summary = summaryForRepo(repo);
+
+  var badges = '';
+  if (repo.private === true) badges += '<span class="badge badge-private"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Private</span>';
+  if (live) badges += '<span class="badge badge-live"><span class="w-1.5 h-1.5 rounded-full" style="background:#2D9E5A" aria-hidden="true"></span>Live</span>';
+  if (repo.archived) badges += '<span class="badge badge-archived">Archived</span>';
+  if (repo.fork) badges += '<span class="badge badge-fork">Fork</span>';
+
+  var ext = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
+  var actions = '';
+  if (live) actions += '<a href="' + escapeHtml(pagesUrl(repo)) + '" target="_blank" rel="noopener" class="btn btn-primary font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2">Open the tool' + ext + '</a>';
+  actions += '<a href="' + escapeHtml(safeHttpUrl(repo.html_url)) + '" target="_blank" rel="noopener" class="btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2">Open on GitHub' + ext + '</a>';
+
+  /* Show the GitHub description as well only when it adds something beyond the summary. */
+  var desc = (repo.description && repo.description !== summary)
+    ? '<p class="text-body-muted text-sm leading-relaxed mb-3">' + escapeHtml(repo.description) + '</p>' : '';
+
+  modalBody.innerHTML =
+    '<div class="surface rounded-xl p-5 mb-5">' +
+      (badges ? '<div class="flex flex-wrap gap-2 mb-3">' + badges + '</div>' : '') +
+      '<p class="text-dark font-600 leading-relaxed mb-2">' + escapeHtml(summary) + '</p>' +
+      desc +
+      integrationsRowHtml(repo) +
+      '<p class="text-xs text-body-muted font-600 inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>updated ' + escapeHtml(timeAgo(repo.pushed_at || repo.updated_at)) + '</p>' +
+    '</div>' +
+    '<div class="flex flex-wrap gap-3">' + actions + '</div>';
+
+  openModal();
 }
 
 function makeBackButton(repoName) {
