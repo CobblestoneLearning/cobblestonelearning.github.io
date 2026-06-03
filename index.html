@@ -355,10 +355,11 @@
   .cin-pin{width:7px;height:7px;border-radius:2px;background:var(--ac);box-shadow:0 0 8px var(--ac)}
   .cin-graphic{height:clamp(126px,17vh,158px);margin:6px 0 4px;flex:none;display:flex;align-items:center;justify-content:center;position:relative}
   .cin-graphic svg{width:100%;height:100%;overflow:visible}
-  @keyframes cinWaveSvg{0%,100%{transform:translateY(0)}50%{transform:translateY(var(--amp,-3px))}}
-  @keyframes cinWaveEl{0%,100%{translate:0 0}50%{translate:0 var(--amp,-9px)}}
-  .cin-graphic .cin-wv{animation:cinWaveSvg var(--wdur,3.6s) ease-in-out infinite;will-change:transform}
-  #cin-g-langs>svg{animation:cinWaveSvg 4.2s ease-in-out infinite;--amp:-5px;will-change:transform}
+  /* Active wave ~3s, then rest ~5s at the initial state (8s cycle). */
+  @keyframes cinWaveSvg{0%{transform:translateY(0)}18.75%{transform:translateY(var(--amp,-3px))}37.5%,100%{transform:translateY(0)}}
+  @keyframes cinWaveEl{0%{translate:0 0}18.75%{translate:0 var(--amp,-9px)}37.5%,100%{translate:0 0}}
+  .cin-graphic .cin-wv{animation:cinWaveSvg var(--wdur,8s) ease-in-out infinite;will-change:transform}
+  #cin-g-langs>svg{animation:cinWaveSvg 8s ease-in-out infinite;--amp:-5px;will-change:transform}
   .cin-value{display:flex;align-items:baseline;gap:6px;line-height:1;flex:none}
   .cin-num{font-size:clamp(40px,5vw,60px);font-weight:800;color:var(--ac-ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
   .cin-unit{font-size:clamp(12px,1.2vw,16px);font-weight:700;color:#939393}
@@ -384,7 +385,7 @@
   .cin-ptile{position:absolute;width:108px;height:74px;border-radius:9px;overflow:hidden;text-decoration:none;
     border:1px solid #E8ECF0;background:#fff;cursor:pointer;
     transform:translateX(var(--tx,0)) translateY(var(--ty,0)) rotateY(var(--ry,0deg)) scale(var(--sc,1));
-    box-shadow:0 16px 26px -12px rgba(61,61,61,.4);animation:cinWaveEl 3.6s ease-in-out infinite;--amp:-9px;
+    box-shadow:0 16px 26px -12px rgba(61,61,61,.4);animation:cinWaveEl 8s ease-in-out infinite;--amp:-9px;
     transition:transform .2s ease,box-shadow .2s ease}
   .cin-ptile:hover{transform:translateX(var(--tx,0)) translateY(-10px) rotateY(0deg) scale(1.16)!important;z-index:40!important;box-shadow:0 26px 42px -12px rgba(45,158,90,.55)}
   .cin-ptile .cin-pchrome{height:16px;display:flex;align-items:center;gap:4px;padding:0 7px;background:#f3f6fa;border-bottom:1px solid #E8ECF0}
@@ -413,6 +414,31 @@
   @media (max-width:560px){.cin-deck{flex-direction:column}.cin-card{flex:1 1 auto;width:100%}}
   @media (prefers-reduced-motion:reduce){.cin-card{opacity:1;transform:none}.cin-tile{opacity:1}
     .cin-graphic .cin-wv,#cin-g-langs>svg,.cin-ptile{animation:none!important}}
+
+  /* Shared notes thread (inside the Staff-notes doc) */
+  .cbnotes{margin-top:10px;display:flex;flex-direction:column;gap:12px}
+  .cbnotes.cbnote-busy{opacity:.55;pointer-events:none}
+  .cbnote{display:flex;gap:10px;padding:12px 13px;border:1px solid #E8ECF0;border-radius:12px;background:#fff}
+  .cbnote.reply{margin-left:28px;background:#FBFCFE}
+  .cbnote-av{width:30px;height:30px;border-radius:50%;flex:none;background:#27AAE1;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .cbnote-av img{width:100%;height:100%;object-fit:cover;display:block}
+  .cbnote-main{flex:1;min-width:0}
+  .cbnote-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px}
+  .cbnote-name{font-weight:700;font-size:13px;color:#3D3D3D}
+  .cbnote-meta{font-size:11px;color:#939393}
+  .cbnote-body{font-size:13px;color:#3D3D3D;line-height:1.55;overflow-wrap:anywhere}
+  .cbnote-body code{background:#F1F5F9;border:1px solid #E8ECF0;border-radius:4px;padding:.05em .35em;font-size:.9em}
+  .cbnote-body a{color:#0074B4;text-decoration:underline}
+  .cbnote-actions{display:flex;gap:14px;margin-top:7px}
+  .cbnote-actions button{background:none;border:0;padding:0;cursor:pointer;font:700 11px/1 'Montserrat',Helvetica,Arial,sans-serif;color:#6B6B6B;letter-spacing:.02em}
+  .cbnote-actions button:hover{color:#0074B4}
+  .cbnote-actions button.del:hover{color:#C0392B}
+  .cbnote-composer{display:flex;flex-direction:column;gap:8px;border:1px solid #E8ECF0;border-radius:12px;padding:11px 12px;background:#F8F9FB}
+  .cbnote-composer.reply{margin:8px 0 0 28px}
+  .cbnote-composer textarea{width:100%;resize:vertical;min-height:60px;font:500 13px/1.5 'Montserrat',Helvetica,Arial,sans-serif;color:#3D3D3D;border:1px solid #E8ECF0;border-radius:8px;padding:9px 10px;background:#fff}
+  .cbnote-composer textarea:focus{outline:none;border-color:#27AAE1;box-shadow:0 0 0 3px rgba(39,170,225,.15)}
+  .cbnote-composer .row{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+  .cbnote-hint{font-size:12px;color:#6B6B6B;background:#F8F9FB;border:1px dashed #E8ECF0;border-radius:10px;padding:10px 12px}
 </style>
 </head>
 
@@ -1858,14 +1884,168 @@ function fetchRenderedCLReadme(repoName) {
     .then(function (j) {
       if (!j || !j.content) return null;
       var md = safeAtob(j.content);
-      if (!md) return null;
+      if (md == null) return null;
+      var sha = j.sha;
       return ghFetch('https://api.github.com/markdown', {
         method: 'POST',
         headers: { 'Accept': 'application/vnd.github.html', 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: md, mode: 'gfm', context: 'cobblestonelearning/' + repoName })
-      }).then(function (r) { return r.ok ? r.text() : null; });
+      }).then(function (r) { return r.ok ? r.text() : null; })
+        .then(function (html) { return { html: html || '', raw: md, sha: sha }; });
     })
     .catch(function () { return null; });
+}
+
+/* ===== Shared notes — an interactive thread stored in the CLREADME.md file =====
+   The "Shared notes" section is a list of structured markdown blocks, each with
+   its metadata in an HTML comment (invisible on GitHub, parseable here). Signed-in
+   users with write access can post / edit-own / delete-own / reply; every action
+   commits the updated file via the GitHub Contents API. */
+var CBUSER = null; /* { login, name, avatar } — set on sign-in */
+function cbNoteId(){ return 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function safeBtoa(s){ try { return btoa(unescape(encodeURIComponent(s))); } catch (e) { return null; } }
+function cbMdLite(t){
+  var s = escapeHtml(t || '');
+  s = s.replace(/`([^`]+)`/g, function (_, c){ return '<code>' + c + '</code>'; });
+  s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (_, tx, u){ return '<a href="' + u + '" target="_blank" rel="noopener">' + tx + '</a>'; });
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+  s = s.replace(/\n/g, '<br>');
+  return s;
+}
+function parseSharedNotes(raw){
+  var notes = [], re = /<!--cbnote\s+([^>]*?)-->\n([\s\S]*?)\n<!--\/cbnote-->/g, m;
+  while ((m = re.exec(raw))) {
+    var meta = {};
+    m[1].trim().split(/\s+/).forEach(function (kv){ var i = kv.indexOf('='); if (i > 0) meta[kv.slice(0, i)] = kv.slice(i + 1); });
+    notes.push({ id: meta.id || cbNoteId(), author: meta.author || '', name: meta.name ? decodeURIComponent(meta.name) : (meta.author || 'Someone'), ts: meta.ts || '', parent: meta.parent || '', body: (m[2] || '').trim() });
+  }
+  return notes;
+}
+function serializeNote(n){
+  return '<!--cbnote id=' + n.id + ' author=' + n.author + ' name=' + encodeURIComponent(n.name || n.author) + ' ts=' + n.ts + ' parent=' + (n.parent || '') + '-->\n' + (n.body || '') + '\n<!--/cbnote-->';
+}
+function replaceSharedNotes(raw, notes){
+  var section = '## Shared notes\n\n*Leave notes for each other here — tips, changes, things to watch. Sign in on the hub to post, edit your own, or reply.*\n\n' +
+    (notes.length ? notes.map(serializeNote).join('\n\n') + '\n' : '');
+  var idx = raw.search(/^#{1,6}[ \t]+Shared notes[ \t]*$/m);
+  if (idx === -1) return raw.replace(/\s*$/, '') + '\n\n' + section;
+  return raw.slice(0, idx).replace(/\s*$/, '') + '\n\n' + section;
+}
+
+/* Turn the rendered "Shared notes" heading + content into the live thread UI. */
+function enhanceSharedNotes(body, repo, data, onChange){
+  var heading = null, hs = body.querySelectorAll('h1,h2,h3,h4');
+  for (var i = 0; i < hs.length; i++){ if (hs[i].textContent.trim().toLowerCase() === 'shared notes'){ heading = hs[i]; break; } }
+  if (!heading){ heading = document.createElement('h2'); heading.textContent = 'Shared notes'; body.appendChild(heading); }
+  else { var sib = heading.nextSibling; while (sib){ var nx = sib.nextSibling; sib.parentNode.removeChild(sib); sib = nx; } }
+
+  var wrap = document.createElement('div'); wrap.className = 'cbnotes';
+  heading.parentNode.insertBefore(wrap, heading.nextSibling);
+
+  var repoName = repo.name;
+  var state = { sha: data.sha, raw: data.raw, notes: parseSharedNotes(data.raw) };
+  var canWrite = !!(CBUSER && repo.permissions && repo.permissions.push);
+
+  function avatarEl(login, name){
+    var a = document.createElement('div'); a.className = 'cbnote-av';
+    if (login){ var img = document.createElement('img'); img.src = 'https://github.com/' + encodeURIComponent(login) + '.png?size=60'; img.alt = ''; img.loading = 'lazy';
+      img.onerror = function(){ a.textContent = (name || login || '?').charAt(0).toUpperCase(); a.removeChild(img); }; a.appendChild(img); }
+    else a.textContent = (name || '?').charAt(0).toUpperCase();
+    return a;
+  }
+  function composer(parentId, onDone){
+    var box = document.createElement('div'); box.className = 'cbnote-composer' + (parentId ? ' reply' : '');
+    var ta = document.createElement('textarea'); ta.placeholder = parentId ? 'Write a reply…  (markdown ok)' : 'Add a note for the team…  (**bold**, *italic*, `code`, [links](url) ok)';
+    var row = document.createElement('div'); row.className = 'row';
+    var hint = document.createElement('span'); hint.className = 'cbnote-meta'; hint.style.marginRight = 'auto'; hint.textContent = 'Posting as ' + (CBUSER ? CBUSER.login : '');
+    var post = document.createElement('button'); post.className = 'btn btn-primary text-sm font-700 px-4 py-1.5 rounded-full'; post.textContent = parentId ? 'Reply' : 'Post note';
+    row.appendChild(hint);
+    if (parentId){ var cancel = document.createElement('button'); cancel.className = 'btn btn-ghost text-sm font-700 px-3 py-1.5 rounded-full'; cancel.textContent = 'Cancel'; cancel.onclick = function(){ if (onDone) onDone(); }; row.appendChild(cancel); }
+    row.appendChild(post);
+    box.appendChild(ta); box.appendChild(row);
+    post.onclick = function(){
+      var txt = ta.value.trim(); if (!txt) { ta.focus(); return; }
+      var note = { id: cbNoteId(), author: CBUSER.login, name: CBUSER.name || CBUSER.login, ts: new Date().toISOString(), parent: parentId || '', body: txt };
+      persist(state.notes.concat([note]), (parentId ? 'Shared notes: reply by ' : 'Shared notes: note by ') + CBUSER.login);
+    };
+    return box;
+  }
+  function noteCard(n, isReply){
+    var card = document.createElement('div'); card.className = 'cbnote' + (isReply ? ' reply' : '');
+    card.appendChild(avatarEl(n.author, n.name));
+    var main = document.createElement('div'); main.className = 'cbnote-main';
+    var head = document.createElement('div'); head.className = 'cbnote-head';
+    head.innerHTML = '<span class="cbnote-name"></span><span class="cbnote-meta"></span>';
+    head.querySelector('.cbnote-name').textContent = n.name || n.author || 'Someone';
+    head.querySelector('.cbnote-meta').textContent = (n.ts ? timeAgo(n.ts) : '') + (isReply ? ' · reply' : '');
+    var bodyEl = document.createElement('div'); bodyEl.className = 'cbnote-body'; bodyEl.innerHTML = cbMdLite(n.body);
+    main.appendChild(head); main.appendChild(bodyEl);
+    var acts = document.createElement('div'); acts.className = 'cbnote-actions';
+    var replyOpen = false;
+    if (canWrite){
+      var rb = document.createElement('button'); rb.textContent = 'Reply';
+      rb.onclick = function(){
+        if (replyOpen){ return; } replyOpen = true;
+        var c = composer(n.parent || n.id, function(){ c.remove(); replyOpen = false; });
+        main.appendChild(c); c.querySelector('textarea').focus();
+      };
+      acts.appendChild(rb);
+    }
+    if (CBUSER && n.author && CBUSER.login === n.author){
+      var eb = document.createElement('button'); eb.textContent = 'Edit';
+      eb.onclick = function(){
+        var ta = document.createElement('textarea'); ta.value = n.body; ta.className = '';
+        var ec = document.createElement('div'); ec.className = 'cbnote-composer'; ec.appendChild(ta);
+        var r = document.createElement('div'); r.className = 'row';
+        var save = document.createElement('button'); save.className = 'btn btn-primary text-sm font-700 px-4 py-1.5 rounded-full'; save.textContent = 'Save';
+        var can = document.createElement('button'); can.className = 'btn btn-ghost text-sm font-700 px-3 py-1.5 rounded-full'; can.textContent = 'Cancel';
+        r.appendChild(can); r.appendChild(save); ec.appendChild(r);
+        bodyEl.replaceWith(ec); ta.focus();
+        can.onclick = function(){ ec.replaceWith(bodyEl); };
+        save.onclick = function(){ var t = ta.value.trim(); if (!t) return; var copy = state.notes.map(function(x){ return x.id === n.id ? Object.assign({}, x, { body: t }) : x; }); persist(copy, 'Shared notes: edit by ' + CBUSER.login); };
+      };
+      var db = document.createElement('button'); db.className = 'del'; db.textContent = 'Delete';
+      db.onclick = function(){
+        if (!window.confirm('Delete this note?')) return;
+        var hasReplies = state.notes.some(function(x){ return x.parent === n.id; });
+        var copy;
+        if (hasReplies) copy = state.notes.map(function(x){ return x.id === n.id ? Object.assign({}, x, { body: '_(deleted)_' }) : x; });
+        else copy = state.notes.filter(function(x){ return x.id !== n.id; });
+        persist(copy, 'Shared notes: delete by ' + CBUSER.login);
+      };
+      acts.appendChild(eb); acts.appendChild(db);
+    }
+    if (acts.children.length) main.appendChild(acts);
+    card.appendChild(main);
+    return card;
+  }
+  function renderNotes(){
+    wrap.innerHTML = '';
+    if (canWrite) wrap.appendChild(composer(null));
+    else { var h = document.createElement('div'); h.className = 'cbnote-hint'; h.textContent = CBUSER ? 'You can read notes, but posting needs write access to this repository.' : 'Sign in (top-right) with a GitHub account that can write to this repo to post, edit and reply.'; wrap.appendChild(h); }
+    var tops = state.notes.filter(function(n){ return !n.parent; });
+    if (!tops.length){ var e = document.createElement('p'); e.className = 'cbnote-meta'; e.style.padding = '6px 2px'; e.textContent = 'No notes yet.'; wrap.appendChild(e); }
+    tops.forEach(function(n){
+      wrap.appendChild(noteCard(n, false));
+      state.notes.filter(function(r){ return r.parent === n.id; }).forEach(function(r){ wrap.appendChild(noteCard(r, true)); });
+    });
+  }
+  function persist(newNotes, msg){
+    var newRaw = replaceSharedNotes(state.raw, newNotes), content = safeBtoa(newRaw);
+    if (content == null){ showToast('Could not encode the note.'); return; }
+    wrap.classList.add('cbnote-busy');
+    ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/CLREADME.md', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, content: content, sha: state.sha, branch: repo.default_branch || 'main' })
+    }).then(function(r){ if (!r.ok){ var er = new Error('PUT ' + r.status); er.status = r.status; throw er; } return r.json(); })
+      .then(function(res){ state.sha = res.content.sha; state.raw = newRaw; state.notes = newNotes; wrap.classList.remove('cbnote-busy'); renderNotes(); showToast('Note saved'); })
+      .catch(function(err){ wrap.classList.remove('cbnote-busy');
+        if (err.status === 409){ showToast('Notes changed elsewhere — reloading.'); if (onChange) onChange(); }
+        else if (err.status === 403 || err.status === 404){ showToast('You need write access to post here.'); }
+        else { showToast('Could not save the note — please try again.'); } });
+  }
+  renderNotes();
 }
 
 /* 3D graduation-cap loader, assembled from cobblestone tiles (brand cyan +
@@ -1971,9 +2151,14 @@ function showRepoDocs(repo) {
     }
     return '<p class="text-body-muted text-sm py-4">This project doesn’t have a README yet.</p>';
   }
-  function render(which, html) {
+  function render(which, val) {
     var body = document.getElementById('doc-body'); if (!body) return;
-    body.innerHTML = html ? html : emptyState(which);
+    if (which === 'cl' && val && typeof val === 'object') {
+      body.innerHTML = val.html || '';
+      try { enhanceSharedNotes(body, repo, val, function(){ cache['cl'] = undefined; show('cl'); }); } catch (e) { console.error('shared notes', e); }
+    } else {
+      body.innerHTML = val ? val : emptyState(which);
+    }
   }
   function show(which) {
     setActive(which);
@@ -2413,6 +2598,7 @@ function setSignedInUI(login, avatarUrl) {
 }
 
 function setSignedOutUI() {
+  CBUSER = null;
   var btn = document.getElementById('auth-btn');
   var user = document.getElementById('auth-user');
   var avatar = document.getElementById('auth-avatar');
@@ -2510,6 +2696,7 @@ function exchange(code) {
       return r.json();
     })
     .then(function (user) {
+      CBUSER = { login: user.login, name: user.name || user.login, avatar: user.avatar_url || '' };
       setSignedInUI(user.login, user.avatar_url);
       showToast('Signed in as ' + (user.login || 'GitHub user') + ' — private repos included');
       loadRepos();                                     /* refresh WITH private repos */
