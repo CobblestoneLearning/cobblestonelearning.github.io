@@ -245,6 +245,36 @@
     .skeleton { animation: none !important; }
     .toast { animation: none !important; }
   }
+
+  /* Rendered Markdown (README / CLREADME) shown in the modal — Cobblestone brand. */
+  .doc-body { color: #3D3D3D; font-size: 14px; line-height: 1.65; overflow-wrap: anywhere; }
+  .doc-body > *:first-child { margin-top: 0; }
+  .doc-body h1, .doc-body h2, .doc-body h3, .doc-body h4, .doc-body h5 { font-family: 'Montserrat', sans-serif; font-weight: 800; line-height: 1.25; color: #3D3D3D; margin: 1.4em 0 .55em; }
+  .doc-body h1 { font-size: 1.5rem; padding-bottom: .3em; border-bottom: 2px solid #27AAE1; }
+  .doc-body h2 { font-size: 1.25rem; padding-bottom: .25em; border-bottom: 1px solid #E8ECF0; }
+  .doc-body h3 { font-size: 1.08rem; }
+  .doc-body h4 { font-size: .98rem; }
+  .doc-body p, .doc-body ul, .doc-body ol, .doc-body blockquote, .doc-body table, .doc-body pre { margin: 0 0 1em; }
+  .doc-body ul, .doc-body ol { padding-left: 1.4em; }
+  .doc-body li { margin: .25em 0; }
+  .doc-body li > ul, .doc-body li > ol { margin: .25em 0; }
+  .doc-body a { color: #0074B4; text-decoration: underline; text-underline-offset: 2px; }
+  .doc-body a:hover { color: #27AAE1; }
+  .doc-body code { background: #F1F5F9; border: 1px solid #E8ECF0; border-radius: 5px; padding: .12em .4em; font-size: .88em; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .doc-body pre { background: #F8F9FB; border: 1px solid #E8ECF0; border-radius: 12px; padding: 14px 16px; overflow-x: auto; }
+  .doc-body pre code { background: none; border: 0; padding: 0; font-size: .86em; }
+  .doc-body blockquote { border-left: 3px solid #FFC20E; background: #FFFBEF; padding: .5em .9em; color: #6B6B6B; border-radius: 0 8px 8px 0; }
+  .doc-body table { border-collapse: collapse; width: 100%; font-size: .9em; display: block; overflow-x: auto; }
+  .doc-body th, .doc-body td { border: 1px solid #E8ECF0; padding: .5em .7em; text-align: left; }
+  .doc-body th { background: #F8F9FB; font-weight: 700; }
+  .doc-body img { max-width: 100%; height: auto; border-radius: 8px; }
+  .doc-body hr { border: 0; border-top: 1px solid #E8ECF0; margin: 1.5em 0; }
+  .doc-body .anchor, .doc-body .octicon-link { display: none; }
+
+  /* Doc toggle (Staff notes / README) */
+  .doc-tab { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #6B6B6B; padding: 7px 16px; border-radius: 9999px; transition: all .15s; }
+  .doc-tab:hover { color: #0074B4; }
+  .doc-tab-active { background: #fff; color: #0074B4; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
 </style>
 </head>
 
@@ -405,6 +435,8 @@
           <span class="skeleton inline-block h-8 w-16 rounded-full"></span>
         </span>
       </div>
+      <!-- staff-only secondary filter: "Works with" plugins/services, rendered by JS -->
+      <div class="flex items-center gap-2 overflow-x-auto -mx-1 px-1 pb-1.5 hidden" id="integration-filter" role="group" aria-label="Filter by plugin or service"></div>
     </div>
   </div>
 </div>
@@ -742,7 +774,7 @@ function showRepoSkeletons(container, count) {
    State
    ============================================================ */
 var ALL_REPOS = [];
-var FILTERS = { search: '', lang: '__all', cat: '__all', sort: 'updated', showExtra: false };
+var FILTERS = { search: '', lang: '__all', cat: '__all', integration: '__all', sort: 'updated', showExtra: false };
 /* 'staff' (group by purpose, default) | 'dev' (today's full developer view). UI
    preference only — persisted to localStorage (never the OAuth token). */
 var VIEW = 'staff';
@@ -870,6 +902,9 @@ function showChipSkeleton() {
   if (!wrap) return;
   FILTERS.lang = '__all';
   FILTERS.cat = '__all';
+  FILTERS.integration = '__all';
+  var integ = document.getElementById('integration-filter');
+  if (integ) { integ.innerHTML = ''; integ.classList.add('hidden'); }
   wrap.innerHTML =
     '<span id="lang-chip-skeleton" class="flex items-center gap-2" aria-hidden="true">' +
       '<span class="skeleton inline-block h-8 w-20 rounded-full"></span>' +
@@ -918,8 +953,14 @@ function computeStats(repos) {
    ============================================================ */
 /* Render the chip row for the current VIEW from the loaded repo set. */
 function renderChips() {
-  if (VIEW === 'dev') buildLangChips(ALL_REPOS);
-  else buildCategoryChips(ALL_REPOS);
+  var integ = document.getElementById('integration-filter');
+  if (VIEW === 'dev') {
+    buildLangChips(ALL_REPOS);
+    if (integ) { integ.classList.add('hidden'); integ.innerHTML = ''; }
+  } else {
+    buildCategoryChips(ALL_REPOS);
+    buildIntegrationChips(ALL_REPOS);
+  }
 }
 
 /* Developer view: one chip per primary language (+ an "All languages" chip). */
@@ -955,6 +996,27 @@ function buildCategoryChips(repos) {
   });
 }
 
+/* Staff view, secondary row: one chip per plugin/service a tool "works with"
+   (LearnDash, Tin Canny, Rise, DeepL, …). Lets staff pull up every tool for a
+   given platform. Hidden when nothing in the set declares an integration. */
+function buildIntegrationChips(repos) {
+  var wrap = document.getElementById('integration-filter');
+  if (!wrap) return;
+  var counts = {};
+  repos.forEach(function (r) {
+    integrationsForRepo(r).forEach(function (name) { counts[name] = (counts[name] || 0) + 1; });
+  });
+  var names = Object.keys(counts);
+  if (!names.length) { wrap.innerHTML = ''; wrap.classList.add('hidden'); return; }
+  wrap.classList.remove('hidden');
+  wrap.innerHTML = '<span class="text-xs font-700 text-body-muted mr-1 shrink-0">Works with</span>';
+  wrap.appendChild(makeChip('integration', '__all', 'All tools', FILTERS.integration === '__all'));
+  names.sort(function (a, b) { return counts[b] - counts[a] || a.localeCompare(b); }).forEach(function (name) {
+    var inner = escapeHtml(name) + ' <span class="chip-count text-greytext font-600">' + counts[name] + '</span>';
+    wrap.appendChild(makeChip('integration', name, inner, name === FILTERS.integration));
+  });
+}
+
 /* Build a single chip button (inner is already-escaped/safe markup). */
 function makeChip(type, value, inner, pressed) {
   var btn = document.createElement('button');
@@ -969,18 +1031,21 @@ function makeChip(type, value, inner, pressed) {
 /* Delegated click handler for the chip row — bound once. Reads data-cat or
    data-lang so the same row serves both views. */
 function wireChipRow() {
-  var wrap = document.getElementById('lang-filter');
-  if (!wrap || wrap.dataset.bound) return;
-  wrap.dataset.bound = '1';
-  wrap.addEventListener('click', function (e) {
-    var btn = e.target.closest('.chip');
-    if (!btn) return;
-    if (btn.hasAttribute('data-cat')) FILTERS.cat = btn.getAttribute('data-cat');
-    else if (btn.hasAttribute('data-lang')) FILTERS.lang = btn.getAttribute('data-lang');
-    wrap.querySelectorAll('.chip').forEach(function (c) {
-      c.setAttribute('aria-pressed', String(c === btn));
+  ['lang-filter', 'integration-filter'].forEach(function (id) {
+    var wrap = document.getElementById(id);
+    if (!wrap || wrap.dataset.bound) return;
+    wrap.dataset.bound = '1';
+    wrap.addEventListener('click', function (e) {
+      var btn = e.target.closest('.chip');
+      if (!btn) return;
+      if (btn.hasAttribute('data-cat')) FILTERS.cat = btn.getAttribute('data-cat');
+      else if (btn.hasAttribute('data-lang')) FILTERS.lang = btn.getAttribute('data-lang');
+      else if (btn.hasAttribute('data-integration')) FILTERS.integration = btn.getAttribute('data-integration');
+      wrap.querySelectorAll('.chip').forEach(function (c) {
+        c.setAttribute('aria-pressed', String(c === btn));
+      });
+      applyFilters();
     });
-    applyFilters();
   });
 }
 
@@ -1068,6 +1133,9 @@ function applyFilters() {
     if (FILTERS.cat !== '__all') {
       list = list.filter(function (r) { return categoryForRepo(r) === FILTERS.cat; });
     }
+    if (FILTERS.integration !== '__all') {
+      list = list.filter(function (r) { return integrationsForRepo(r).indexOf(FILTERS.integration) !== -1; });
+    }
   }
   if (FILTERS.search) {
     var q = FILTERS.search;
@@ -1131,7 +1199,7 @@ function renderRepos(list) {
 }
 
 function resetFilters() {
-  FILTERS = { search: '', lang: '__all', cat: '__all', sort: 'updated', showExtra: false };
+  FILTERS = { search: '', lang: '__all', cat: '__all', integration: '__all', sort: 'updated', showExtra: false };
   var search = document.getElementById('search');
   search.value = '';
   document.getElementById('search-clear').classList.add('hidden');
@@ -1233,7 +1301,7 @@ function buildStaffCard(repo, idx) {
   var primary = live
     ? '<a href="' + escapeHtml(pagesUrl(repo)) + '" target="_blank" rel="noopener" class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full inline-flex items-center gap-1.5" aria-label="Open ' + escapeHtml(repo.name) + '">Open the tool' + extLink + '</a>'
     : '<button type="button" class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full inline-flex items-center gap-1.5" data-repo="' + escapeHtml(repo.name) + '">' + infoIcon + 'View details</button>';
-  var details = '<button type="button" class="btn btn-ghost text-sm font-700 px-3.5 py-2.5 rounded-full inline-flex items-center gap-1.5" data-repo="' + escapeHtml(repo.name) + '" aria-label="Details for ' + escapeHtml(repo.name) + '">' + infoIcon + 'Details</button>';
+  var githubLink = '<a href="' + escapeHtml(safeHttpUrl(repo.html_url)) + '" target="_blank" rel="noopener" class="btn btn-ghost text-sm font-700 px-3.5 py-2.5 rounded-full inline-flex items-center gap-1.5" aria-label="Open ' + escapeHtml(repo.name) + ' on GitHub">Open on GitHub' + extLink + '</a>';
 
   card.innerHTML =
     '<div class="flex items-start justify-between gap-3 mb-2">' +
@@ -1247,7 +1315,7 @@ function buildStaffCard(repo, idx) {
     '<div class="flex items-center gap-x-3.5 text-xs text-body-muted mb-4 mt-auto">' +
       '<span class="inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>updated ' + escapeHtml(timeAgo(repo.pushed_at || repo.updated_at)) + '</span>' +
     '</div>' +
-    '<div class="flex items-center gap-2 mt-auto pt-1">' + primary + details + '</div>';
+    '<div class="flex items-center gap-2 mt-auto pt-1">' + primary + githubLink + '</div>';
 
   card.querySelectorAll('button[data-repo]').forEach(function (b) {
     b.addEventListener('click', function () { fetchRepoDetails(repo.name); });
@@ -1450,10 +1518,136 @@ function fetchRepoDetails(repoName) {
       if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
       return response.json();
     })
-    .then(function (repo) {
-      /* Staff view gets a lightweight info modal (no clone / file tree / code). */
-      if (VIEW === 'staff') { renderStaffRepoModal(repo); return; }
+    .then(function (repo) { showRepoDocs(repo); })
+    .catch(function (error) {
+      console.error('Error fetching repo details:', error);
+      var rl = error && error.status === 403;
+      modalTitle.textContent = 'Unavailable';
+      modalBody.innerHTML = '<p class="text-body-muted leading-relaxed">' +
+        (rl ? 'The GitHub API is temporarily rate-limited. Please wait a few minutes and try again.'
+            : 'We could not load this repository right now. Please try again shortly.') + '</p>';
+      openModal();
+    });
+}
 
+/* Fetch GitHub-rendered (sanitized) HTML for the two docs. README uses the html
+   media type; CLREADME is fetched raw then rendered via the /markdown endpoint. */
+function fetchRenderedReadme(repoName) {
+  return ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/readme',
+                 { headers: { 'Accept': 'application/vnd.github.html' } })
+    .then(function (r) { return r.ok ? r.text() : null; })
+    .catch(function () { return null; });
+}
+function fetchRenderedCLReadme(repoName) {
+  return ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/CLREADME.md')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) {
+      if (!j || !j.content) return null;
+      var md = safeAtob(j.content);
+      if (!md) return null;
+      return ghFetch('https://api.github.com/markdown', {
+        method: 'POST',
+        headers: { 'Accept': 'application/vnd.github.html', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: md, mode: 'gfm', context: 'cobblestonelearning/' + repoName })
+      }).then(function (r) { return r.ok ? r.text() : null; });
+    })
+    .catch(function () { return null; });
+}
+
+function docSkeleton() {
+  return '<div class="space-y-3" aria-hidden="true">' +
+    '<span class="skeleton block h-5 rounded" style="width:38%"></span>' +
+    '<span class="skeleton block h-3 rounded" style="width:100%"></span>' +
+    '<span class="skeleton block h-3 rounded" style="width:88%"></span>' +
+    '<span class="skeleton block h-3 rounded" style="width:64%"></span>' +
+  '</div>';
+}
+
+/* Unified document modal. CLREADME (staff-facing notes) is the default in Staff
+   view; README is the default in Developer view; a toggle on both views switches
+   between them. Developer view also exposes the code explorer via "Code & files". */
+function showRepoDocs(repo) {
+  var repoName = repo.name;
+  var live = !!repo.has_pages;
+  var isDev = (VIEW === 'dev');
+  modalTitle.textContent = repo.name;
+
+  var ext = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
+
+  var badges = '';
+  if (repo.private === true) badges += '<span class="badge badge-private"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Private</span>';
+  if (live) badges += '<a href="' + escapeHtml(pagesUrl(repo)) + '" target="_blank" rel="noopener" class="badge badge-live hover:underline"><span class="w-1.5 h-1.5 rounded-full" style="background:#2D9E5A"></span>Live page</a>';
+  if (repo.archived) badges += '<span class="badge badge-archived">Archived</span>';
+  if (repo.fork) badges += '<span class="badge badge-fork">Fork</span>';
+
+  var actions = '';
+  if (live) actions += '<a href="' + escapeHtml(pagesUrl(repo)) + '" target="_blank" rel="noopener" class="btn btn-primary font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2">Open the tool' + ext + '</a>';
+  actions += '<a href="' + escapeHtml(safeHttpUrl(repo.html_url)) + '" target="_blank" rel="noopener" class="btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2">Open on GitHub' + ext + '</a>';
+  if (isDev) actions += '<button type="button" id="doc-code-btn" class="btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Code &amp; files</button>';
+
+  var clIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+  var toggle =
+    '<div class="inline-flex p-1 rounded-full bg-lightbg border border-cborder mb-4" role="tablist" aria-label="Choose document">' +
+      '<button type="button" id="doc-tab-cl" role="tab" class="doc-tab">' + clIcon + 'Staff notes</button>' +
+      '<button type="button" id="doc-tab-readme" role="tab" class="doc-tab">README</button>' +
+    '</div>';
+
+  modalBody.innerHTML =
+    (badges ? '<div class="flex flex-wrap gap-2 mb-3">' + badges + '</div>' : '') +
+    '<div class="flex flex-wrap gap-3 mb-5">' + actions + '</div>' +
+    toggle +
+    '<div id="doc-body" class="doc-body surface rounded-xl p-5">' + docSkeleton() + '</div>';
+
+  openModal();
+
+  if (isDev) {
+    var codeBtn = document.getElementById('doc-code-btn');
+    if (codeBtn) codeBtn.onclick = function () { showRepoExplore(repo); };
+  }
+
+  var cache = {};
+  var tabCl = document.getElementById('doc-tab-cl');
+  var tabRe = document.getElementById('doc-tab-readme');
+  function setActive(which) {
+    if (tabCl) { tabCl.setAttribute('aria-selected', String(which === 'cl')); tabCl.classList.toggle('doc-tab-active', which === 'cl'); }
+    if (tabRe) { tabRe.setAttribute('aria-selected', String(which === 'readme')); tabRe.classList.toggle('doc-tab-active', which === 'readme'); }
+  }
+  function emptyState(which) {
+    if (which === 'cl') {
+      var newUrl = escapeHtml(safeHttpUrl(repo.html_url)) + '/new/' + escapeHtml(repo.default_branch || 'main') + '?filename=CLREADME.md';
+      return '<div class="text-center py-6">' +
+        '<p class="font-800 text-dark mb-1">No staff notes yet</p>' +
+        '<p class="text-body-muted text-sm max-w-md mx-auto mb-4">Add a <code>CLREADME.md</code> to this repository to leave notes for the team — what it’s for, how to use it, and anything to watch out for.</p>' +
+        '<a href="' + newUrl + '" target="_blank" rel="noopener" class="btn btn-ghost font-700 text-sm px-4 py-2 rounded-full inline-flex items-center gap-2">Add staff notes on GitHub' + ext + '</a>' +
+      '</div>';
+    }
+    return '<p class="text-body-muted text-sm py-4">This project doesn’t have a README yet.</p>';
+  }
+  function render(which, html) {
+    var body = document.getElementById('doc-body'); if (!body) return;
+    body.innerHTML = html ? html : emptyState(which);
+  }
+  function show(which) {
+    setActive(which);
+    var body = document.getElementById('doc-body'); if (!body) return;
+    if (cache[which] !== undefined) { render(which, cache[which]); return; }
+    body.innerHTML = docSkeleton();
+    var p = (which === 'cl') ? fetchRenderedCLReadme(repoName) : fetchRenderedReadme(repoName);
+    p.then(function (html) {
+      cache[which] = html || null;
+      var active = (tabCl && tabCl.getAttribute('aria-selected') === 'true') ? 'cl' : 'readme';
+      if (active === which) render(which, cache[which]);
+    });
+  }
+  if (tabCl) tabCl.onclick = function () { show('cl'); };
+  if (tabRe) tabRe.onclick = function () { show('readme'); };
+  show(isDev ? 'readme' : 'cl');
+}
+
+/* Developer "Code & files" explorer: repo meta, clone command, file tree and an
+   index.html preview. Reached from showRepoDocs in Developer view. */
+function showRepoExplore(repo) {
+      var repoName = repo.name;
       modalTitle.textContent = repo.name;
       var cloneCmd = 'git clone ' + safeHttpUrl(repo.clone_url || (repo.html_url + '.git'));
 
@@ -1478,6 +1672,7 @@ function fetchRepoDetails(repoName) {
       var topics = (repo.topics || []).map(function (t) { return '<span class="topic-pill">' + escapeHtml(t) + '</span>'; }).join('');
 
       modalBody.innerHTML =
+        '<div class="mb-4"><button type="button" id="explore-back" class="btn btn-ghost font-700 text-sm px-4 py-2 rounded-full inline-flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back to overview</button></div>' +
         '<div class="surface rounded-xl p-5 mb-5">' +
           (badges ? '<div class="flex flex-wrap gap-2 mb-3">' + badges + '</div>' : '') +
           '<p class="text-dark leading-relaxed mb-4">' + escapeHtml(repo.description || 'No description provided.') + '</p>' +
@@ -1514,6 +1709,8 @@ function fetchRepoDetails(repoName) {
         });
       }
 
+      var backBtn = document.getElementById('explore-back');
+      if (backBtn) backBtn.onclick = function () { showRepoDocs(repo); };
       var actions = document.getElementById('repo-actions');
       fetchFileStructure(repoName, '');
 
@@ -1569,10 +1766,10 @@ function fetchRepoDetails(repoName) {
           if (readme && readme.content) {
             var readmeButton = document.createElement('button');
             readmeButton.className = 'btn btn-primary font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2';
-            readmeButton.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>View README';
+            readmeButton.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>View README source';
             readmeButton.onclick = function () {
               if (modalClipboard) { modalClipboard.destroy(); modalClipboard = null; }
-              modalTitle.textContent = repoName + ' — README';
+              modalTitle.textContent = repoName + ' — README source';
               var token = prismGrammar('markdown').token;
               /* Inject escaped raw source only; let Prism (and the line-numbers
                  plugin) perform a single highlight pass to avoid double-escaping. */
@@ -1605,51 +1802,6 @@ function fetchRepoDetails(repoName) {
         .then(settleAction);
 
       openModal();
-    })
-    .catch(function (error) {
-      console.error('Error fetching repo details:', error);
-      var rl = error && error.status === 403;
-      modalTitle.textContent = 'Unavailable';
-      modalBody.innerHTML = '<p class="text-body-muted leading-relaxed">' +
-        (rl ? 'The GitHub API is temporarily rate-limited. Please wait a few minutes and try again.'
-            : 'We could not load this repository right now. Please try again shortly.') + '</p>';
-      openModal();
-    });
-}
-
-/* Lightweight repo modal for Staff view: friendly summary + "Open the tool" +
-   "Open on GitHub". Deliberately omits clone command, file tree and code views. */
-function renderStaffRepoModal(repo) {
-  modalTitle.textContent = repo.name;
-  var live = !!repo.has_pages;
-  var summary = summaryForRepo(repo);
-
-  var badges = '';
-  if (repo.private === true) badges += '<span class="badge badge-private"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Private</span>';
-  if (live) badges += '<span class="badge badge-live"><span class="w-1.5 h-1.5 rounded-full" style="background:#2D9E5A" aria-hidden="true"></span>Live</span>';
-  if (repo.archived) badges += '<span class="badge badge-archived">Archived</span>';
-  if (repo.fork) badges += '<span class="badge badge-fork">Fork</span>';
-
-  var ext = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
-  var actions = '';
-  if (live) actions += '<a href="' + escapeHtml(pagesUrl(repo)) + '" target="_blank" rel="noopener" class="btn btn-primary font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2">Open the tool' + ext + '</a>';
-  actions += '<a href="' + escapeHtml(safeHttpUrl(repo.html_url)) + '" target="_blank" rel="noopener" class="btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2">Open on GitHub' + ext + '</a>';
-
-  /* Show the GitHub description as well only when it adds something beyond the summary. */
-  var desc = (repo.description && repo.description !== summary)
-    ? '<p class="text-body-muted text-sm leading-relaxed mb-3">' + escapeHtml(repo.description) + '</p>' : '';
-
-  modalBody.innerHTML =
-    '<div class="surface rounded-xl p-5 mb-5">' +
-      (badges ? '<div class="flex flex-wrap gap-2 mb-3">' + badges + '</div>' : '') +
-      '<p class="text-dark font-600 leading-relaxed mb-2">' + escapeHtml(summary) + '</p>' +
-      desc +
-      integrationsRowHtml(repo) +
-      '<p class="text-xs text-body-muted font-600 inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>updated ' + escapeHtml(timeAgo(repo.pushed_at || repo.updated_at)) + '</p>' +
-    '</div>' +
-    '<div class="flex flex-wrap gap-3">' + actions + '</div>';
-
-  openModal();
 }
 
 function makeBackButton(repoName) {
