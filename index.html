@@ -104,6 +104,7 @@
   .chip[aria-pressed="true"] { background: linear-gradient(135deg,#0074B4,#005C90); color: #fff; border-color: transparent; }
   .chip[aria-pressed="true"] .text-grey, .chip[aria-pressed="true"] span { color: #fff; }
   .chip .dot { width: 9px; height: 9px; border-radius: 9999px; flex: none; }
+  .chip:disabled, .chip[disabled] { opacity: .34; cursor: not-allowed; pointer-events: none; border-style: dashed; background: #fff; color: var(--greytext); }
   .chip .chip-ico { display: inline-flex; }
 
   /* ------- View toggle (Staff / Developer segmented control) ------- */
@@ -960,6 +961,7 @@ function renderChips() {
   } else {
     buildCategoryChips(ALL_REPOS);
     buildIntegrationChips(ALL_REPOS);
+    updateChipStates();
   }
 }
 
@@ -987,7 +989,7 @@ function buildCategoryChips(repos) {
   wrap.innerHTML = '';
   var counts = {};
   repos.forEach(function (r) { var c = categoryForRepo(r); counts[c] = (counts[c] || 0) + 1; });
-  wrap.appendChild(makeChip('cat', '__all', 'All projects', FILTERS.cat === '__all'));
+  wrap.appendChild(makeChip('cat', '__all', 'All projects <span class="chip-count text-greytext font-600"></span>', FILTERS.cat === '__all'));
   CATEGORIES.forEach(function (cat) {
     if (!counts[cat.id]) return;
     var inner = '<span class="chip-ico" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + cat.icon + '</svg></span>' +
@@ -1010,7 +1012,7 @@ function buildIntegrationChips(repos) {
   if (!names.length) { wrap.innerHTML = ''; wrap.classList.add('hidden'); return; }
   wrap.classList.remove('hidden');
   wrap.innerHTML = '<span class="text-xs font-700 text-body-muted mr-1 shrink-0">Works with</span>';
-  wrap.appendChild(makeChip('integration', '__all', 'All tools', FILTERS.integration === '__all'));
+  wrap.appendChild(makeChip('integration', '__all', 'All tools <span class="chip-count text-greytext font-600"></span>', FILTERS.integration === '__all'));
   names.sort(function (a, b) { return counts[b] - counts[a] || a.localeCompare(b); }).forEach(function (name) {
     var inner = escapeHtml(name) + ' <span class="chip-count text-greytext font-600">' + counts[name] + '</span>';
     wrap.appendChild(makeChip('integration', name, inner, name === FILTERS.integration));
@@ -1118,6 +1120,49 @@ function wireControls() {
 /* ============================================================
    Filter + sort + render
    ============================================================ */
+/* Does a repo match the current free-text search? (shared by list + chip counts) */
+function repoMatchesSearch(r) {
+  if (!FILTERS.search) return true;
+  var hay = (r.name + ' ' + (r.description || '') + ' ' + summaryForRepo(r) + ' ' + integrationsForRepo(r).join(' ') + ' ' + ((r.topics || []).join(' '))).toLowerCase();
+  return hay.indexOf(FILTERS.search) !== -1;
+}
+
+/* The staff project list under a hypothetical {category, integration} selection.
+   The other live filters (search + forks/archived) still apply. Used both to
+   render the list and to decide which chips would still yield projects. */
+function staffListFor(catVal, integVal) {
+  return ALL_REPOS.filter(function (r) {
+    if (!FILTERS.showExtra && (r.fork || r.archived)) return false;
+    if (catVal !== '__all' && categoryForRepo(r) !== catVal) return false;
+    if (integVal !== '__all' && integrationsForRepo(r).indexOf(integVal) === -1) return false;
+    return repoMatchesSearch(r);
+  });
+}
+
+/* Cross-filter the two staff chip rows: disable any category / "Works with" chip
+   that would yield zero projects given the *other* active selection, and keep
+   every chip's count live. The selected chip and the "All" chips are never
+   disabled (so you can always widen again). */
+function updateChipStates() {
+  if (VIEW !== 'staff') return;
+  [['cat', 'lang-filter', FILTERS.cat], ['integration', 'integration-filter', FILTERS.integration]].forEach(function (spec) {
+    var type = spec[0], wrap = document.getElementById(spec[1]), selected = spec[2];
+    if (!wrap) return;
+    wrap.querySelectorAll('.chip').forEach(function (chip) {
+      var val = chip.getAttribute('data-' + type);
+      if (val === null) return;
+      var count = (type === 'cat')
+        ? staffListFor(val, FILTERS.integration).length
+        : staffListFor(FILTERS.cat, val).length;
+      var isSel = (selected === val);
+      chip.disabled = (val !== '__all' && count === 0 && !isSel);
+      chip.setAttribute('aria-pressed', String(isSel));
+      var cb = chip.querySelector('.chip-count');
+      if (cb) cb.textContent = count;
+    });
+  });
+}
+
 function applyFilters() {
   var list = ALL_REPOS.slice();
 
@@ -1157,6 +1202,7 @@ function applyFilters() {
     /* Staff view sorts alphabetically within each category section. */
     list.sort(function (a, b) { return a.name.localeCompare(b.name); });
     renderStaffView(list);
+    updateChipStates();
   }
 }
 
