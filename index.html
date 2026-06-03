@@ -355,11 +355,19 @@
   .cin-pin{width:7px;height:7px;border-radius:2px;background:var(--ac);box-shadow:0 0 8px var(--ac)}
   .cin-graphic{height:clamp(126px,17vh,158px);margin:6px 0 4px;flex:none;display:flex;align-items:center;justify-content:center;position:relative}
   .cin-graphic svg{width:100%;height:100%;overflow:visible}
-  /* Active wave ~3s, then rest ~5s at the initial state (8s cycle). */
-  @keyframes cinWaveSvg{0%{transform:translateY(0)}18.75%{transform:translateY(var(--amp,-3px))}37.5%,100%{transform:translateY(0)}}
-  @keyframes cinWaveEl{0%{translate:0 0}18.75%{translate:0 var(--amp,-9px)}37.5%,100%{translate:0 0}}
-  .cin-graphic .cin-wv{animation:cinWaveSvg var(--wdur,8s) ease-in-out infinite;will-change:transform}
-  #cin-g-langs>svg{animation:cinWaveSvg 8s ease-in-out infinite;--amp:-5px;will-change:transform}
+  /* Continuous gentle loops (no rest). */
+  @keyframes cinWaveSvg{0%,100%{transform:translateY(0)}50%{transform:translateY(var(--amp,-3px))}}
+  @keyframes cinWaveEl{0%,100%{translate:0 0}50%{translate:0 var(--amp,-9px)}}
+  @keyframes cinTwinkle{0%,100%{transform:translateY(0)}50%{transform:translateY(var(--ty,-3px))}}
+  @keyframes cinSpin{to{transform:rotateX(56deg) rotateZ(360deg)}}
+  .cin-graphic .cin-wv{animation:cinWaveSvg var(--wdur,3.6s) ease-in-out infinite;will-change:transform}
+  /* Composition: 3D tilted, slowly-spinning donut with an extruded edge; number stays put. */
+  .cin-donut{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+  .cin-donut-stage{position:relative;width:clamp(118px,16vh,148px);height:clamp(118px,16vh,148px);perspective:620px}
+  .cin-donut-disc{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(56deg);animation:cinSpin 20s linear infinite;filter:drop-shadow(0 9px 6px rgba(61,61,61,.18))}
+  .cin-donut-disc svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .cin-donut-edge{transform:translateZ(-9px)}
+  .cin-donut-num{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-weight:800;font-size:clamp(30px,3.6vw,40px);color:#3D3D3D;font-variant-numeric:tabular-nums;pointer-events:none;line-height:1}
   .cin-value{display:flex;align-items:baseline;gap:6px;line-height:1;flex:none}
   .cin-num{font-size:clamp(40px,5vw,60px);font-weight:800;color:var(--ac-ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
   .cin-unit{font-size:clamp(12px,1.2vw,16px);font-weight:700;color:#939393}
@@ -385,7 +393,7 @@
   .cin-ptile{position:absolute;width:108px;height:74px;border-radius:9px;overflow:hidden;text-decoration:none;
     border:1px solid #E8ECF0;background:#fff;cursor:pointer;
     transform:translateX(var(--tx,0)) translateY(var(--ty,0)) rotateY(var(--ry,0deg)) scale(var(--sc,1));
-    box-shadow:0 16px 26px -12px rgba(61,61,61,.4);animation:cinWaveEl 8s ease-in-out infinite;--amp:-9px;
+    box-shadow:0 16px 26px -12px rgba(61,61,61,.4);animation:cinWaveEl 3.6s ease-in-out infinite;--amp:-9px;
     transition:transform .2s ease,box-shadow .2s ease}
   .cin-ptile:hover{transform:translateX(var(--tx,0)) translateY(-10px) rotateY(0deg) scale(1.16)!important;z-index:40!important;box-shadow:0 26px 42px -12px rgba(45,158,90,.55)}
   .cin-ptile .cin-pchrome{height:16px;display:flex;align-items:center;gap:4px;padding:0 7px;background:#f3f6fa;border-bottom:1px solid #E8ECF0}
@@ -413,7 +421,8 @@
     .cin-card{flex:1 1 calc(50% - 14px);max-width:none}}
   @media (max-width:560px){.cin-deck{flex-direction:column}.cin-card{flex:1 1 auto;width:100%}}
   @media (prefers-reduced-motion:reduce){.cin-card{opacity:1;transform:none}.cin-tile{opacity:1}
-    .cin-graphic .cin-wv,#cin-g-langs>svg,.cin-ptile{animation:none!important}}
+    .cin-graphic .cin-wv,.cin-ptile,#cin-g-activity rect{animation:none!important}
+    .cin-donut-disc{animation:none!important;transform:rotateX(56deg)}}
 
   /* Shared notes thread (inside the Staff-notes doc) */
   .cbnotes{margin-top:10px;display:flex;flex-direction:column;gap:12px}
@@ -435,8 +444,25 @@
   .cbnote-actions button.del:hover{color:#C0392B}
   .cbnote-composer{display:flex;flex-direction:column;gap:8px;border:1px solid #E8ECF0;border-radius:12px;padding:11px 12px;background:#F8F9FB}
   .cbnote-composer.reply{margin:8px 0 0 28px}
-  .cbnote-composer textarea{width:100%;resize:vertical;min-height:60px;font:500 13px/1.5 'Montserrat',Helvetica,Arial,sans-serif;color:#3D3D3D;border:1px solid #E8ECF0;border-radius:8px;padding:9px 10px;background:#fff}
-  .cbnote-composer textarea:focus{outline:none;border-color:#27AAE1;box-shadow:0 0 0 3px rgba(39,170,225,.15)}
+  /* Markdown editor (toolbar + Write/Preview) */
+  .cbmd{display:flex;flex-direction:column;border:1px solid #E8ECF0;border-radius:10px;overflow:hidden;background:#fff}
+  .cbmd:focus-within{border-color:#27AAE1;box-shadow:0 0 0 3px rgba(39,170,225,.15)}
+  .cbmd-bar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:6px 7px;background:#F8F9FB;border-bottom:1px solid #E8ECF0}
+  .cbmd-btn{background:#fff;border:1px solid #E8ECF0;border-radius:6px;padding:3px 8px;font:700 11px/1 'Montserrat',Helvetica,Arial,sans-serif;color:#3D3D3D;cursor:pointer}
+  .cbmd-btn:hover{border-color:#27AAE1;color:#0074B4}
+  .cbmd-btn i,.cbmd-btn b{font-style:normal;font-weight:inherit}.cbmd-btn i{font-style:italic}
+  .cbmd-tab{background:none;border:0;color:#6B6B6B}
+  .cbmd-tab.on{background:#fff;border:1px solid #E8ECF0;color:#0074B4}
+  .cbmd-ta{width:100%;resize:vertical;min-height:78px;border:0;outline:none;padding:10px 11px;font:500 13px/1.5 'Montserrat',Helvetica,Arial,sans-serif;color:#3D3D3D;background:#fff}
+  .cbmd-prev{padding:10px 11px;min-height:78px}
+  .cbnote-body h1,.cbnote-body h2,.cbnote-body h3,.cbnote-body h4{font-weight:800;margin:.5em 0 .3em;line-height:1.25;color:#3D3D3D}
+  .cbnote-body h1{font-size:1.15em}.cbnote-body h2{font-size:1.08em}.cbnote-body h3{font-size:1em}
+  .cbnote-body p{margin:.4em 0}.cbnote-body p:first-child{margin-top:0}
+  .cbnote-body ul,.cbnote-body ol{padding-left:1.35em;margin:.4em 0}
+  .cbnote-body li{margin:.15em 0}
+  .cbnote-body blockquote{border-left:3px solid #FFC20E;background:#FFFBEF;margin:.4em 0;padding:.3em .7em;border-radius:0 6px 6px 0}
+  .cbnote-body pre{background:#F8F9FB;border:1px solid #E8ECF0;border-radius:8px;padding:9px 11px;overflow-x:auto;margin:.4em 0}
+  .cbnote-body pre code{background:none;border:0;padding:0;font-size:.9em}
   .cbnote-composer .row{display:flex;align-items:center;gap:10px;justify-content:flex-end}
   .cbnote-hint{font-size:12px;color:#6B6B6B;background:#F8F9FB;border:1px dashed #E8ECF0;border-radius:10px;padding:10px 12px}
 </style>
@@ -1167,15 +1193,26 @@ function computeStats(repos) {
     var h=el('cin-g-langs'); if(!h)return; h.innerHTML='';
     var palette=['#27AAE1','#0074B4','#3D3D3D','#FFC20E','#2D9E5A','#1582AB','#8A6500'];
     var items=(lang.items&&lang.items.length)?lang.items.slice():[]; if(!items.length){ for(var i=0;i<(lang.count||0);i++) items.push({name:'Lang '+(i+1),pct:100/(lang.count||1),color:palette[i%palette.length]}); }
-    var total=items.reduce(function(s,it){return s+(+it.pct||0);},0)||1, cx=80,cy=80,rr=58,sw=20,C=2*Math.PI*rr;
-    var svg=SS('svg',{viewBox:'0 0 160 160',role:'img','aria-label':(lang.count||0)+' languages'});
-    svg.appendChild(SS('circle',{cx:cx,cy:cy,r:rr,fill:'none',stroke:'#EEF1F6','stroke-width':sw}));
-    var acc=0;
-    items.forEach(function(it,idx){ var len=C*((+it.pct||0)/total), seg=SS('circle',{cx:cx,cy:cy,r:rr,fill:'none',stroke:it.color||palette[idx%palette.length],'stroke-width':sw,'stroke-dasharray':len+' '+C,'stroke-dashoffset':len,transform:'rotate('+(-90+acc/C*360)+' '+cx+' '+cy+')'});
-      svg.appendChild(seg);
-      if(!reduceM&&seg.animate) seg.animate([{strokeDashoffset:len},{strokeDashoffset:0}],{duration:850,delay:600+idx*150,easing:'cubic-bezier(.16,1,.3,1)',fill:'both'}); else seg.setAttribute('stroke-dashoffset','0');
-      acc+=len; });
-    var tx=SS('text',{x:cx,y:cy+1,'text-anchor':'middle','dominant-baseline':'central','font-family':'Montserrat','font-weight':'800','font-size':'40',fill:'#3D3D3D'}); tx.textContent=lang.count||0; svg.appendChild(tx); h.appendChild(svg);
+    var total=items.reduce(function(s,it){return s+(+it.pct||0);},0)||1, cx=80,cy=80,rr=58,sw=22,C=2*Math.PI*rr;
+    function ring(opts){
+      var svg=SS('svg',{viewBox:'0 0 160 160'}); if(opts.cls) svg.setAttribute('class',opts.cls);
+      if(opts.base) svg.appendChild(SS('circle',{cx:cx,cy:cy,r:rr,fill:'none',stroke:opts.base,'stroke-width':sw}));
+      var acc=0;
+      items.forEach(function(it,idx){ var len=C*((+it.pct||0)/total), color=opts.solid||it.color||palette[idx%palette.length];
+        var seg=SS('circle',{cx:cx,cy:cy,r:rr,fill:'none',stroke:color,'stroke-width':sw,'stroke-dasharray':len+' '+C,'stroke-dashoffset':opts.animate?len:0,transform:'rotate('+(-90+acc/C*360)+' '+cx+' '+cy+')'});
+        svg.appendChild(seg);
+        if(opts.animate&&!reduceM&&seg.animate) seg.animate([{strokeDashoffset:len},{strokeDashoffset:0}],{duration:850,delay:600+idx*150,easing:'cubic-bezier(.16,1,.3,1)',fill:'both'});
+        acc+=len; });
+      return svg;
+    }
+    var stage=document.createElement('div'); stage.className='cin-donut-stage';
+    var disc=document.createElement('div'); disc.className='cin-donut-disc';
+    disc.appendChild(ring({cls:'cin-donut-edge',solid:'#9aa6b6'}));            /* extruded dark side wall, sits behind */
+    disc.appendChild(ring({cls:'cin-donut-face',base:'#EEF1F6',animate:true})); /* colour segments on top */
+    stage.appendChild(disc);
+    var num=document.createElement('div'); num.className='cin-donut-num'; num.textContent=lang.count||0;
+    var donut=document.createElement('div'); donut.className='cin-donut'; donut.setAttribute('role','img'); donut.setAttribute('aria-label',(lang.count||0)+' languages'); donut.appendChild(stage); donut.appendChild(num);
+    h.appendChild(donut);
     var f=el('cin-f-langs'); if(!f)return; f.innerHTML='';
     items.forEach(function(it,idx){ var row=document.createElement('div'); row.className='cin-chip';
       row.innerHTML='<span class="cin-dot" style="background:'+(it.color||palette[idx%palette.length])+'"></span><span class="cin-nm">'+esc(it.name)+'</span>'+(it.pct!=null?'<span class="cin-pc">'+Math.round(it.pct)+'%</span>':''); f.appendChild(row); });
@@ -1188,9 +1225,12 @@ function computeStats(repos) {
     var max=Math.max.apply(null,[1].concat(series)), W=weeks*(cell+gap), Hh=7*(cell+gap), svg=SS('svg',{viewBox:'-1 -1 '+(W+2)+' '+(Hh+2),role:'img','aria-label':'commit activity'});
     series.forEach(function(v,i){ var wk=Math.floor(i/7), dy=i%7, t=v/max, last=(i===series.length-1), fill='#EBEEF3';
       if(v>0){ var a=t>0.66?0.95:t>0.33?0.62:0.34; fill='rgba(255,194,14,'+a+')'; }
-      var rc=SS('rect',{x:wk*(cell+gap),y:dy*(cell+gap),width:cell,height:cell,rx:'2.4',fill:last?'#27AAE1':fill,opacity:'0',class:'cin-wv'});
-      rc.style.animationDelay=(-(wk*0.18+dy*0.06)).toFixed(2)+'s';
-      if(last){ rc.setAttribute('stroke','#1582AB'); rc.setAttribute('stroke-width','1.4'); }
+      var rc=SS('rect',{x:wk*(cell+gap),y:dy*(cell+gap),width:cell,height:cell,rx:'2.4',fill:last?'#27AAE1':fill,opacity:'0'});
+      /* individualistic rhythm — each tile bobs on its own duration / phase / height */
+      var r1=((i*2654435761>>>0)%1000)/1000, r2=(((i*40503+97)>>>0)%1000)/1000, r3=((i*2246822519>>>0)%1000)/1000;
+      rc.style.setProperty('--ty',(-(1.4+r3*4.2)).toFixed(1)+'px');
+      rc.style.animation='cinTwinkle '+(2.2+r1*2.8).toFixed(2)+'s ease-in-out '+(r2*3.6).toFixed(2)+'s infinite';
+      if(last){ rc.setAttribute('stroke','#1582AB'); rc.setAttribute('stroke-width','1.4'); rc.style.setProperty('--ty','-6px'); rc.style.animation='cinTwinkle 1.6s ease-in-out infinite'; }
       svg.appendChild(rc);
       if(!reduceM&&rc.animate) rc.animate([{opacity:0},{opacity:1}],{duration:360,delay:500+wk*26+dy*7,easing:'ease-out',fill:'both'}); else rc.setAttribute('opacity','1'); });
     h.appendChild(svg);
@@ -1904,14 +1944,58 @@ function fetchRenderedCLReadme(repoName) {
 var CBUSER = null; /* { login, name, avatar } — set on sign-in */
 function cbNoteId(){ return 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 function safeBtoa(s){ try { return btoa(unescape(encodeURIComponent(s))); } catch (e) { return null; } }
-function cbMdLite(t){
-  var s = escapeHtml(t || '');
-  s = s.replace(/`([^`]+)`/g, function (_, c){ return '<code>' + c + '</code>'; });
-  s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (_, tx, u){ return '<a href="' + u + '" target="_blank" rel="noopener">' + tx + '</a>'; });
+function cbInline(s){
+  s = escapeHtml(s);
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+  s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
-  s = s.replace(/\n/g, '<br>');
   return s;
+}
+/* Small but real markdown renderer: headings, bold/italic/code, links, bulleted &
+   numbered lists, blockquotes, fenced code. Used for notes + the editor preview. */
+function cbMd(src){
+  var lines = String(src || '').replace(/\r\n?/g, '\n').split('\n'), out = [], i = 0;
+  while (i < lines.length) {
+    var line = lines[i];
+    if (/^```/.test(line)) { var code = []; i++; while (i < lines.length && !/^```/.test(lines[i])) { code.push(lines[i]); i++; } i++; out.push('<pre><code>' + escapeHtml(code.join('\n')) + '</code></pre>'); continue; }
+    var hm = line.match(/^(#{1,6})\s+(.*)$/); if (hm) { var lvl = Math.min(6, hm[1].length); out.push('<h' + lvl + '>' + cbInline(hm[2]) + '</h' + lvl + '>'); i++; continue; }
+    if (/^>\s?/.test(line)) { var q = []; while (i < lines.length && /^>\s?/.test(lines[i])) { q.push(lines[i].replace(/^>\s?/, '')); i++; } out.push('<blockquote>' + cbMd(q.join('\n')) + '</blockquote>'); continue; }
+    if (/^[-*]\s+/.test(line)) { var ul = []; while (i < lines.length && /^[-*]\s+/.test(lines[i])) { ul.push('<li>' + cbInline(lines[i].replace(/^[-*]\s+/, '')) + '</li>'); i++; } out.push('<ul>' + ul.join('') + '</ul>'); continue; }
+    if (/^\d+\.\s+/.test(line)) { var ol = []; while (i < lines.length && /^\d+\.\s+/.test(lines[i])) { ol.push('<li>' + cbInline(lines[i].replace(/^\d+\.\s+/, '')) + '</li>'); i++; } out.push('<ol>' + ol.join('') + '</ol>'); continue; }
+    if (/^\s*$/.test(line)) { i++; continue; }
+    var buf = []; while (i < lines.length && !/^\s*$/.test(lines[i]) && !/^(#{1,6}\s|>\s?|[-*]\s+|\d+\.\s+|```)/.test(lines[i])) { buf.push(lines[i]); i++; }
+    out.push('<p>' + buf.map(cbInline).join('<br>') + '</p>');
+  }
+  return out.join('\n');
+}
+
+/* GitHub-style markdown editor: formatting toolbar + Write/Preview tabs. Returns
+   { el, value(), focus() }. The underlying value is always markdown. */
+function makeMarkdownEditor(initial, placeholder){
+  var wrap = document.createElement('div'); wrap.className = 'cbmd';
+  var bar = document.createElement('div'); bar.className = 'cbmd-bar';
+  var ta = document.createElement('textarea'); ta.className = 'cbmd-ta'; ta.value = initial || ''; ta.placeholder = placeholder || 'Write a note…';
+  var prev = document.createElement('div'); prev.className = 'cbnote-body cbmd-prev'; prev.style.display = 'none';
+  function btn(html, title, fn){ var b = document.createElement('button'); b.type = 'button'; b.className = 'cbmd-btn'; b.title = title; b.innerHTML = html; b.tabIndex = -1; b.onmousedown = function(e){ e.preventDefault(); }; b.onclick = fn; return b; }
+  function surround(token, end){ end = (end == null) ? token : end; var s = ta.selectionStart, e = ta.selectionEnd, v = ta.value, sel = v.slice(s, e); ta.value = v.slice(0, s) + token + sel + end + v.slice(e); ta.focus(); ta.setSelectionRange(s + token.length, s + token.length + sel.length); }
+  function prefix(fn){ var s = ta.selectionStart, e = ta.selectionEnd, v = ta.value, ls = v.lastIndexOf('\n', s - 1) + 1, le = v.indexOf('\n', e); if (le < 0) le = v.length; var block = v.slice(ls, le).split('\n').map(function(l, i){ return fn(i) + l; }).join('\n'); ta.value = v.slice(0, ls) + block + v.slice(le); ta.focus(); }
+  function link(){ var s = ta.selectionStart, e = ta.selectionEnd, v = ta.value, sel = v.slice(s, e) || 'text', url = window.prompt('Link URL', 'https://'); if (!url) return; ta.value = v.slice(0, s) + '[' + sel + '](' + url + ')' + v.slice(e); ta.focus(); }
+  bar.appendChild(btn('<b>B</b>', 'Bold', function(){ surround('**'); }));
+  bar.appendChild(btn('<i>I</i>', 'Italic', function(){ surround('*'); }));
+  bar.appendChild(btn('&lt;/&gt;', 'Inline code', function(){ surround('`'); }));
+  bar.appendChild(btn('Link', 'Insert link', link));
+  bar.appendChild(btn('• List', 'Bulleted list', function(){ prefix(function(){ return '- '; }); }));
+  bar.appendChild(btn('1. List', 'Numbered list', function(){ prefix(function(i){ return (i + 1) + '. '; }); }));
+  bar.appendChild(btn('Quote', 'Blockquote', function(){ prefix(function(){ return '> '; }); }));
+  var sp = document.createElement('span'); sp.style.flex = '1'; bar.appendChild(sp);
+  var tW = btn('Write', 'Write', null), tP = btn('Preview', 'Preview', null);
+  tW.classList.add('cbmd-tab', 'on'); tP.classList.add('cbmd-tab');
+  tW.onclick = function(){ ta.style.display = ''; prev.style.display = 'none'; tW.classList.add('on'); tP.classList.remove('on'); ta.focus(); };
+  tP.onclick = function(){ prev.innerHTML = ta.value.trim() ? cbMd(ta.value) : '<p class="cbnote-meta">Nothing to preview.</p>'; prev.style.display = ''; ta.style.display = 'none'; tP.classList.add('on'); tW.classList.remove('on'); };
+  bar.appendChild(tW); bar.appendChild(tP);
+  wrap.appendChild(bar); wrap.appendChild(ta); wrap.appendChild(prev);
+  return { el: wrap, value: function(){ return ta.value; }, focus: function(){ ta.focus(); } };
 }
 function parseSharedNotes(raw){
   var notes = [], re = /<!--cbnote\s+([^>]*?)-->\n([\s\S]*?)\n<!--\/cbnote-->/g, m;
@@ -1956,16 +2040,16 @@ function enhanceSharedNotes(body, repo, data, onChange){
   }
   function composer(parentId, onDone){
     var box = document.createElement('div'); box.className = 'cbnote-composer' + (parentId ? ' reply' : '');
-    var ta = document.createElement('textarea'); ta.placeholder = parentId ? 'Write a reply…  (markdown ok)' : 'Add a note for the team…  (**bold**, *italic*, `code`, [links](url) ok)';
+    var ed = makeMarkdownEditor('', parentId ? 'Write a reply…  (markdown supported)' : 'Add a note for the team…  (markdown supported)');
     var row = document.createElement('div'); row.className = 'row';
     var hint = document.createElement('span'); hint.className = 'cbnote-meta'; hint.style.marginRight = 'auto'; hint.textContent = 'Posting as ' + (CBUSER ? CBUSER.login : '');
     var post = document.createElement('button'); post.className = 'btn btn-primary text-sm font-700 px-4 py-1.5 rounded-full'; post.textContent = parentId ? 'Reply' : 'Post note';
     row.appendChild(hint);
     if (parentId){ var cancel = document.createElement('button'); cancel.className = 'btn btn-ghost text-sm font-700 px-3 py-1.5 rounded-full'; cancel.textContent = 'Cancel'; cancel.onclick = function(){ if (onDone) onDone(); }; row.appendChild(cancel); }
     row.appendChild(post);
-    box.appendChild(ta); box.appendChild(row);
+    box.appendChild(ed.el); box.appendChild(row);
     post.onclick = function(){
-      var txt = ta.value.trim(); if (!txt) { ta.focus(); return; }
+      var txt = ed.value().trim(); if (!txt) { ed.focus(); return; }
       var note = { id: cbNoteId(), author: CBUSER.login, name: CBUSER.name || CBUSER.login, ts: new Date().toISOString(), parent: parentId || '', body: txt };
       persist(state.notes.concat([note]), (parentId ? 'Shared notes: reply by ' : 'Shared notes: note by ') + CBUSER.login);
     };
@@ -1979,7 +2063,7 @@ function enhanceSharedNotes(body, repo, data, onChange){
     head.innerHTML = '<span class="cbnote-name"></span><span class="cbnote-meta"></span>';
     head.querySelector('.cbnote-name').textContent = n.name || n.author || 'Someone';
     head.querySelector('.cbnote-meta').textContent = (n.ts ? timeAgo(n.ts) : '') + (isReply ? ' · reply' : '');
-    var bodyEl = document.createElement('div'); bodyEl.className = 'cbnote-body'; bodyEl.innerHTML = cbMdLite(n.body);
+    var bodyEl = document.createElement('div'); bodyEl.className = 'cbnote-body'; bodyEl.innerHTML = cbMd(n.body);
     main.appendChild(head); main.appendChild(bodyEl);
     var acts = document.createElement('div'); acts.className = 'cbnote-actions';
     var replyOpen = false;
@@ -1995,15 +2079,15 @@ function enhanceSharedNotes(body, repo, data, onChange){
     if (CBUSER && n.author && CBUSER.login === n.author){
       var eb = document.createElement('button'); eb.textContent = 'Edit';
       eb.onclick = function(){
-        var ta = document.createElement('textarea'); ta.value = n.body; ta.className = '';
-        var ec = document.createElement('div'); ec.className = 'cbnote-composer'; ec.appendChild(ta);
+        var ed = makeMarkdownEditor(n.body, 'Edit your note…');
+        var ec = document.createElement('div'); ec.className = 'cbnote-composer'; ec.appendChild(ed.el);
         var r = document.createElement('div'); r.className = 'row';
         var save = document.createElement('button'); save.className = 'btn btn-primary text-sm font-700 px-4 py-1.5 rounded-full'; save.textContent = 'Save';
         var can = document.createElement('button'); can.className = 'btn btn-ghost text-sm font-700 px-3 py-1.5 rounded-full'; can.textContent = 'Cancel';
         r.appendChild(can); r.appendChild(save); ec.appendChild(r);
-        bodyEl.replaceWith(ec); ta.focus();
+        bodyEl.replaceWith(ec); ed.focus();
         can.onclick = function(){ ec.replaceWith(bodyEl); };
-        save.onclick = function(){ var t = ta.value.trim(); if (!t) return; var copy = state.notes.map(function(x){ return x.id === n.id ? Object.assign({}, x, { body: t }) : x; }); persist(copy, 'Shared notes: edit by ' + CBUSER.login); };
+        save.onclick = function(){ var t = ed.value().trim(); if (!t) return; var copy = state.notes.map(function(x){ return x.id === n.id ? Object.assign({}, x, { body: t }) : x; }); persist(copy, 'Shared notes: edit by ' + CBUSER.login); };
       };
       var db = document.createElement('button'); db.className = 'del'; db.textContent = 'Delete';
       db.onclick = function(){
