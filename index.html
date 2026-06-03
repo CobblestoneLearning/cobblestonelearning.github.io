@@ -276,6 +276,37 @@
   .doc-tab { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #6B6B6B; padding: 7px 16px; border-radius: 9999px; transition: all .15s; }
   .doc-tab:hover { color: #0074B4; }
   .doc-tab-active { background: #fff; color: #0074B4; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+  /* 3D graduation-cap loader — a mortarboard assembled from cobblestone tiles. */
+  .gcap-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .gcap-scene { position: relative; width: calc(var(--cap-size) * 2.0); height: calc(var(--cap-size) * 1.85); perspective: 480px; display: flex; align-items: center; justify-content: center; }
+  .gcap { position: relative; transform-style: preserve-3d; animation: gcap-bob 3.2s ease-in-out infinite; }
+  .gcap-board { position: relative; width: var(--cap-size); height: var(--cap-size); display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); gap: calc(var(--cap-size) * 0.05); transform: rotateX(60deg) rotateZ(45deg); transform-style: preserve-3d; }
+  .gt { background: #3D3D3D; border-radius: 2px; transform-style: preserve-3d; animation: gt-rise 1.8s ease-in-out infinite; }
+  .gt-cy { background: #27AAE1; }
+  .gcap-base { position: absolute; left: 50%; top: 54%; width: calc(var(--cap-size) * 0.40); height: calc(var(--cap-size) * 0.40); background: linear-gradient(#cfd6de, #9aa4af); transform: translate(-50%, -50%) rotateX(60deg) rotateZ(45deg) translateZ(calc(var(--cap-size) * -0.42)); border-radius: 3px; }
+  .gcap-tassel { position: absolute; left: 21%; top: 46%; width: 2px; transform-origin: top center; animation: gcap-sway 3.2s ease-in-out infinite; }
+  .gcap-cord { display: block; width: 3px; height: calc(var(--cap-size) * 0.6); background: #3D3D3D; margin: 0 auto; border-radius: 2px; }
+  .gcap-knot { display: block; width: 9px; height: 9px; border-radius: 50%; background: #3D3D3D; margin: -1px auto 0; }
+  .gcap-fall { display: block; width: 0; height: 0; margin: 1px auto 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 13px solid #FFC20E; }
+  .gcap-label { font: 700 13px/1.4 'Montserrat', sans-serif; color: #6B6B6B; margin: 0; letter-spacing: .2px; }
+  .gcap-on-dark .gt:not(.gt-cy) { background: #586475; }
+  .gcap-on-dark .gcap-cord, .gcap-on-dark .gcap-knot { background: #9aa6b6; }
+  .gcap-on-dark .gcap-label { color: #cfd8e3; }
+  @keyframes gcap-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7%); } }
+  @keyframes gcap-sway { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+  @keyframes gt-rise { 0%, 100% { opacity: .28; transform: translateZ(0); } 50% { opacity: 1; transform: translateZ(calc(var(--cap-size) * 0.18)); } }
+
+  /* Fullscreen loader overlay (sign-in / page refresh) */
+  .gcap-overlay { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; background: rgba(17, 24, 33, .92); backdrop-filter: blur(3px); animation: gcap-fade .25s ease; }
+  @keyframes gcap-fade { from { opacity: 0; } to { opacity: 1; } }
+  .gcap-overlay.closing { opacity: 0; transition: opacity .25s ease; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gcap, .gt, .gcap-tassel { animation: none !important; }
+    .gt { opacity: 1 !important; }
+    .gcap-overlay { animation: none !important; }
+  }
 </style>
 </head>
 
@@ -854,6 +885,7 @@ function loadRepos() {
 
   Promise.all([publicReq, privateReq])
     .then(function (parts) {
+      hideFullscreenLoader();
       var skel = document.getElementById('lang-chip-skeleton');
       if (skel) skel.remove();
       var seen = {}, data = [];
@@ -884,6 +916,7 @@ function loadRepos() {
     })
     .catch(function (error) {
       console.error('Error fetching GitHub repos:', error);
+      hideFullscreenLoader();
       var skel = document.getElementById('lang-chip-skeleton');
       if (skel) skel.remove();
       computeStats([]);
@@ -1600,13 +1633,47 @@ function fetchRenderedCLReadme(repoName) {
     .catch(function () { return null; });
 }
 
+/* 3D graduation-cap loader, assembled from cobblestone tiles (brand cyan +
+   charcoal) with a swaying tassel. Returns markup; `dark:true` for dark backdrops. */
+function capLoaderHTML(opts) {
+  opts = opts || {};
+  var size = opts.size || 96, label = opts.label || '', dark = opts.dark ? ' gcap-on-dark' : '';
+  var PAT = [[0,0,1,0,0],[0,1,1,1,0],[1,1,0,1,1],[0,1,1,1,0],[0,0,1,0,0]];
+  var tiles = '';
+  for (var r = 0; r < 5; r++) {
+    for (var c = 0; c < 5; c++) {
+      var cy = PAT[r][c] ? ' gt-cy' : '';
+      var delay = ((r + c) * 0.11).toFixed(2);
+      tiles += '<span class="gt' + cy + '" style="animation-delay:' + delay + 's"></span>';
+    }
+  }
+  return '<div class="gcap-wrap' + dark + '" style="--cap-size:' + size + 'px" role="status" aria-label="' + escapeHtml(label || 'Loading') + '">' +
+    '<div class="gcap-scene"><div class="gcap"><div class="gcap-base"></div>' +
+    '<div class="gcap-board">' + tiles + '</div></div>' +
+    '<div class="gcap-tassel"><span class="gcap-cord"></span><span class="gcap-knot"></span><span class="gcap-fall"></span></div>' +
+    '</div>' + (label ? '<p class="gcap-label">' + escapeHtml(label) + '</p>' : '') + '</div>';
+}
+
+/* Fullscreen cap loader for waits that replace the whole screen (sign-in / refresh). */
+function showFullscreenLoader(label) {
+  hideFullscreenLoader(true);
+  var ov = document.createElement('div');
+  ov.className = 'gcap-overlay';
+  ov.id = 'gcap-overlay';
+  ov.innerHTML = capLoaderHTML({ size: 112, label: label || 'Loading…', dark: true });
+  document.body.appendChild(ov);
+}
+function hideFullscreenLoader(immediate) {
+  var ov = document.getElementById('gcap-overlay');
+  if (!ov) return;
+  if (immediate) { ov.remove(); return; }
+  ov.classList.add('closing');
+  setTimeout(function () { if (ov && ov.parentNode) ov.parentNode.removeChild(ov); }, 260);
+}
+
+/* Small centered cap loader used inside the document modal while a doc loads. */
 function docSkeleton() {
-  return '<div class="space-y-3" aria-hidden="true">' +
-    '<span class="skeleton block h-5 rounded" style="width:38%"></span>' +
-    '<span class="skeleton block h-3 rounded" style="width:100%"></span>' +
-    '<span class="skeleton block h-3 rounded" style="width:88%"></span>' +
-    '<span class="skeleton block h-3 rounded" style="width:64%"></span>' +
-  '</div>';
+  return '<div class="py-5 flex justify-center">' + capLoaderHTML({ size: 70, label: 'Loading…' }) + '</div>';
 }
 
 /* Unified document modal. CLREADME (staff-facing notes) is the default in Staff
@@ -2188,6 +2255,7 @@ function signIn() {
 }
 
 function exchange(code) {
+  showFullscreenLoader('Signing you in…');
   fetch(AUTH_CONFIG.exchangeUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -2215,6 +2283,7 @@ function exchange(code) {
       console.error('OAuth exchange failed:', err);
       ghToken = null;
       setSignedOutUI();
+      hideFullscreenLoader();
       showToast('Sign-in failed — please try again.');
     });
 }
