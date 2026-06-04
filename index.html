@@ -2257,10 +2257,15 @@ function openDemo(repo){
   document.addEventListener('keydown', onKey);
   ov.querySelector('.demo-close').onclick = close;
   var apiPath = path.split('/').map(encodeURIComponent).join('/');
-  /* raw media type returns the full file (the base64 contents JSON is capped at 1MB,
-     which silently breaks the larger demos like the quiz comparator + journal builder). */
-  ghFetch('https://api.github.com/repos/cobblestonelearning/' + repo.name + '/contents/' + apiPath, { headers: { 'Accept': 'application/vnd.github.raw' } })
-    .then(function (r){ if (!r.ok){ var e = new Error('demo ' + r.status); e.status = r.status; throw e; } return r.text(); })
+  /* Fetch the file via its download_url: it's pre-signed for private repos, CORS-open,
+     and has no 1MB cap (the base64 contents JSON caps at 1MB and the raw media type can
+     get served stale from the browser cache as the JSON). */
+  ghFetch('https://api.github.com/repos/cobblestonelearning/' + repo.name + '/contents/' + apiPath)
+    .then(function (r){ if (!r.ok){ var e = new Error('demo ' + r.status); e.status = r.status; throw e; } return r.json(); })
+    .then(function (j){
+      var url = j && j.download_url; if (!url) throw new Error('no download url');
+      return fetch(url).then(function (rr){ if (!rr.ok){ var e2 = new Error('raw ' + rr.status); e2.status = rr.status; throw e2; } return rr.text(); });
+    })
     .then(function (html){
       if (!html) throw new Error('empty');
       var frame = document.createElement('iframe');
