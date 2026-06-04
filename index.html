@@ -1738,9 +1738,9 @@ function buildStaffCard(repo, idx) {
   var demo = demoForRepo(repo);
   var playIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
   var btnRow =
-    '<button type="button" class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full inline-flex items-center gap-1.5" data-repo="' + escapeHtml(repo.name) + '">' + infoIcon + 'View details</button>' +
-    '<a href="' + escapeHtml(safeHttpUrl(repo.html_url)) + '" target="_blank" rel="noopener" class="btn btn-ghost text-sm font-700 px-3.5 py-2.5 rounded-full inline-flex items-center gap-1.5" aria-label="Open ' + escapeHtml(repo.name) + ' on GitHub">Open on GitHub' + extLink + '</a>' +
-    (demo ? '<button type="button" class="btn btn-ghost text-sm font-700 px-3.5 py-2.5 rounded-full inline-flex items-center gap-1.5" data-demo="1" aria-label="Open ' + escapeHtml(repo.name) + ' demo">' + playIcon + 'Open demo</button>' : '');
+    '<button type="button" class="btn btn-primary text-xs font-700 px-3 py-2 rounded-full inline-flex items-center gap-1" data-repo="' + escapeHtml(repo.name) + '" aria-label="Details for ' + escapeHtml(repo.name) + '">' + infoIcon + 'Details</button>' +
+    '<a href="' + escapeHtml(safeHttpUrl(repo.html_url)) + '" target="_blank" rel="noopener" class="btn btn-ghost text-xs font-700 px-3 py-2 rounded-full inline-flex items-center gap-1" aria-label="' + escapeHtml(repo.name) + ' on GitHub">GitHub' + extLink + '</a>' +
+    (demo ? '<button type="button" class="btn btn-ghost text-xs font-700 px-3 py-2 rounded-full inline-flex items-center gap-1" data-demo="1" aria-label="Open ' + escapeHtml(repo.name) + ' demo">' + playIcon + 'Demo</button>' : '');
 
   card.innerHTML =
     '<div class="flex items-start justify-between gap-3 mb-2">' +
@@ -1754,7 +1754,7 @@ function buildStaffCard(repo, idx) {
     '<div class="flex items-center gap-x-3.5 text-xs text-body-muted mb-4 mt-auto">' +
       '<span class="inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>updated ' + escapeHtml(timeAgo(repo.pushed_at || repo.updated_at)) + '</span>' +
     '</div>' +
-    '<div class="flex flex-wrap items-center gap-2 mt-auto pt-1">' + btnRow + '</div>';
+    '<div class="flex items-center gap-1.5 mt-auto pt-1">' + btnRow + '</div>';
 
   card.querySelectorAll('button[data-repo]').forEach(function (b) {
     b.addEventListener('click', function () { fetchRepoDetails(repo.name); });
@@ -2257,11 +2257,12 @@ function openDemo(repo){
   document.addEventListener('keydown', onKey);
   ov.querySelector('.demo-close').onclick = close;
   var apiPath = path.split('/').map(encodeURIComponent).join('/');
-  ghFetch('https://api.github.com/repos/cobblestonelearning/' + repo.name + '/contents/' + apiPath)
-    .then(function (r){ if (!r.ok){ var e = new Error('demo ' + r.status); e.status = r.status; throw e; } return r.json(); })
-    .then(function (j){
-      var html = (j && j.content) ? safeAtob(j.content) : null;
-      if (html == null) throw new Error('empty');
+  /* raw media type returns the full file (the base64 contents JSON is capped at 1MB,
+     which silently breaks the larger demos like the quiz comparator + journal builder). */
+  ghFetch('https://api.github.com/repos/cobblestonelearning/' + repo.name + '/contents/' + apiPath, { headers: { 'Accept': 'application/vnd.github.raw' } })
+    .then(function (r){ if (!r.ok){ var e = new Error('demo ' + r.status); e.status = r.status; throw e; } return r.text(); })
+    .then(function (html){
+      if (!html) throw new Error('empty');
       var frame = document.createElement('iframe');
       frame.className = 'demo-frame';
       frame.setAttribute('title', repo.name + ' demo');
