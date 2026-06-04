@@ -211,17 +211,19 @@
   .act-foot small{font-size:9px;font-weight:700;color:var(--grey);letter-spacing:.06em;margin-top:4px;text-transform:uppercase}
 
   /* ---------- REACH: floating preview tiles ---------- */
-  .reach-stage{position:relative;width:100%;height:100%;perspective:760px;display:flex;align-items:center;justify-content:center}
-  .ptile{position:absolute;width:116px;height:80px;border-radius:9px;overflow:hidden;text-decoration:none;
-    border:1px solid var(--border);background:#fff;cursor:pointer;
-    transform:translateX(var(--tx,0)) translateY(var(--ty,0)) rotateY(var(--ry,0deg)) scale(var(--sc,1));
+  .reach-stage{position:relative;width:100%;height:100%;perspective:900px;display:flex;align-items:center;justify-content:safe center;gap:0;overflow-x:auto;overflow-y:hidden;padding:8px 26px;scrollbar-width:thin}
+  .reach-stage::-webkit-scrollbar{height:6px}.reach-stage::-webkit-scrollbar-thumb{background:#cdd5e0;border-radius:9px}.reach-stage::-webkit-scrollbar-track{background:transparent}
+  .ptile{position:relative;flex:none;width:116px;height:80px;margin-left:-36px;border-radius:9px;overflow:hidden;text-decoration:none;
+    border:1px solid var(--border);background:#fff;cursor:pointer;transform-origin:center;
+    transform:rotateY(var(--ry,-15deg)) scale(.93);
     box-shadow:0 16px 26px -12px rgba(61,61,61,.4);
-    /* wave uses the independent `translate` property so it composes with the fan transform */
+    /* wave uses the independent `translate` property so it composes with the lean */
     animation:waveEl 3.6s ease-in-out infinite;--amp:-9px;
     transition:transform .2s var(--ease),box-shadow .2s var(--ease)}
-  /* .2s hover brings the demo to the front, flat and lifted */
-  .ptile:hover{transform:translateX(var(--tx,0)) translateY(-10px) rotateY(0deg) scale(1.16) !important;
-    z-index:40 !important;box-shadow:0 26px 42px -12px rgba(45,158,90,.55)}
+  .ptile:first-child{margin-left:0}
+  /* hover brings the demo to the front, flat and lifted */
+  .ptile:hover{transform:rotateY(0deg) translateY(-10px) scale(1.12) !important;
+    z-index:60 !important;animation:none;box-shadow:0 26px 42px -12px rgba(45,158,90,.55)}
   .ptile .pchrome{height:17px;display:flex;align-items:center;gap:4px;padding:0 7px;background:#f3f6fa;border-bottom:1px solid var(--border)}
   .ptile .pchrome b{width:4px;height:4px;border-radius:50%;background:#cfd6e0;display:block}
   .ptile .pdom{margin-left:4px;font-size:7px;color:var(--grey);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -410,7 +412,7 @@ const DATA = {
 
   // commit activity aggregated across ALL repositories → drives the heatmap.
   // `daily` = commit counts per day, oldest→newest (≈13 weeks). Omit to auto-generate.
-  activity: { daily: null, activeRepos: 9 },
+  activity: { daily: null, active7: 9, active30: 24 },
 
   liveDemos: {
     count: 2,
@@ -513,8 +515,9 @@ function darken(hex,f){ const m=/^#?([0-9a-f]{6})$/i.exec(hex||""); if(!m)return
 function buildLangs(lang){
   const host=$("#g-langs"); host.innerHTML="";
   const palette=["#27AAE1","#0074B4","#3D3D3D","#FFC20E","#2D9E5A","#1582AB","#8A6500"];
-  const items=(lang.items&&lang.items.length)?lang.items.slice()
+  let items=(lang.items&&lang.items.length)?lang.items.slice()
     :Array.from({length:lang.count},(_,i)=>({name:"Lang "+(i+1),pct:100/lang.count,color:palette[i%palette.length]}));
+  const MAX=7; if(items.length>MAX){ const keep=items.slice(0,MAX-1), rest=items.slice(MAX-1).reduce((s,it)=>s+(+it.pct||0),0); keep.push({name:`Other (${items.length-(MAX-1)})`,pct:rest,color:"#aab3bd"}); items=keep; }
   const total=items.reduce((s,i)=>s+(+i.pct||0),0)||1;
   const cx=80,cy=80,r=56,sw=22,C=2*Math.PI*r;
   const svg=S("svg",{viewBox:"0 0 160 160"});
@@ -613,13 +616,8 @@ function buildLive(live){
   tiles.forEach((d,i)=>{
     const a=document.createElement("a");
     a.className="ptile"; a.href=d.url||"#"; if(d.url){a.target="_blank"; a.rel="noopener";}
-    const off=i-(N-1)/2;
-    a.style.setProperty("--tx",(off*step).toFixed(1)+"px");
-    a.style.setProperty("--ty",(Math.abs(off)*5).toFixed(1)+"px");
-    a.style.setProperty("--ry",(-off*14).toFixed(1)+"deg");
-    a.style.setProperty("--sc",(1-Math.abs(off)*0.05).toFixed(3));
-    a.style.animationDelay=(-(i*0.32)).toFixed(2)+"s";   // tiles bob in sequence
-    a.style.zIndex=String(20-Math.round(Math.abs(off)*2));
+    a.style.animationDelay=(-(i*0.3)).toFixed(2)+"s";   // tiles bob in sequence
+    a.style.zIndex=String(i+1);
     const [v1,v2]=tileTint(d.name||d.url); a.style.setProperty("--pv1",v1); a.style.setProperty("--pv2",v2);
     const dom=hostname(d.url||d.name);
     a.innerHTML=(d.embed&&d.url)
@@ -676,10 +674,10 @@ function render(d){
   // activity headline (auto unit) + project-integrated summary
   const age=fmtAge(d.lastUpdateMins);
   $("#u-update").textContent=age.unit;
-  const weekCommits=daily.slice(-7).reduce((s,x)=>s+(+x||0),0);
-  const activeRepos=act.activeRepos!=null?act.activeRepos:Math.max(1,Math.round(d.repositories*0.55));
-  $("#f-act").innerHTML=`<span><b class="up">▲&nbsp;${weekCommits}</b><small>commits · 7 days</small></span>`+
-    `<span><b>${activeRepos}/${d.repositories}</b><small>active repos</small></span>`;
+  const a7=act.active7!=null?act.active7:daily.slice(-7).reduce((s,x)=>s+(+x||0),0);
+  const a30=act.active30!=null?act.active30:daily.slice(-30).reduce((s,x)=>s+(+x||0),0);
+  $("#f-act").innerHTML=`<span><b class="up">${a7}</b><small>updated · 7 days</small></span>`+
+    `<span><b>${a30}</b><small>updated · 30 days</small></span>`;
   $("#syncVal").textContent=relTime(d.lastUpdateMins);
 
   const nums=document.querySelectorAll(".value .num");
@@ -719,19 +717,22 @@ function loadLive(token){
       const lc={}; repos.forEach(r=>{ if(r.language) lc[r.language]=(lc[r.language]||0)+1; });
       const names=Object.keys(lc).sort((a,b)=>lc[b]-lc[a]);
       const tot=names.reduce((s,k)=>s+lc[k],0)||1;
-      const items=names.slice(0,6).map((n,i)=>({name:n,pct:Math.round(lc[n]/tot*100),color:GH_PALETTE[i%GH_PALETTE.length]}));
-      // last update + active repos (pushed in last 7 days)
-      let latest=0; repos.forEach(r=>{const t=new Date(r.pushed_at||r.updated_at).getTime(); if(!isNaN(t)&&t>latest)latest=t;});
-      const mins=latest?Math.max(0,Math.round((Date.now()-latest)/60000)):0;
-      const weekAgo=Date.now()-7*864e5;
-      const activeRepos=repos.filter(r=>new Date(r.pushed_at||r.updated_at).getTime()>weekAgo).length;
+      const items=names.map(n=>({name:n,pct:lc[n]/tot*100}));
+      // last update + real activity heatmap (repos pushed per day over 13 weeks) + active windows
+      let latest=0, active7=0, active30=0; const DAYS=91, daily=Array(DAYS).fill(0);
+      const mid=new Date(); mid.setHours(0,0,0,0); const todayMs=mid.getTime(), now=Date.now();
+      repos.forEach(r=>{ const t=new Date(r.pushed_at||r.updated_at).getTime(); if(isNaN(t))return;
+        if(t>latest)latest=t; if(t>now-7*864e5)active7++; if(t>now-30*864e5)active30++;
+        const dm=new Date(t); dm.setHours(0,0,0,0); const age=Math.round((todayMs-dm.getTime())/864e5);
+        if(age>=0&&age<DAYS) daily[DAYS-1-age]+=1; });
+      const mins=latest?Math.max(0,Math.round((now-latest)/60000)):0;
       // live demos = repos publishing a GitHub Pages site
       const demos=repos.filter(r=>r.has_pages).map(r=>({name:r.name,url:ghPagesUrl(r)}));
       window.setDashboardData({
         repositories: repos.length,
         languages: { count: names.length, items: items },
         lastUpdateMins: mins,
-        activity: { daily: null, activeRepos: activeRepos },
+        activity: { daily: daily, active7: active7, active30: active30 },
         liveDemos: { count: demos.length, items: demos }
       });
     })
@@ -824,7 +825,7 @@ const DEMOS={
       {name:"TypeScript",pct:38,color:"#27AAE1"},{name:"PHP",pct:24,color:"#0074B4"},
       {name:"Python",pct:18,color:"#3D3D3D"},{name:"JavaScript",pct:12,color:"#FFC20E"},
       {name:"CSS",pct:8,color:"#2D9E5A"}]},
-    lastUpdateMins:14, activity:{daily:null,activeRepos:19},
+    lastUpdateMins:14, activity:{daily:null,active7:9,active30:24},
     liveDemos:{count:4,items:[
       {name:"Quiz Comparator",url:"https://quiz.cobblestonelearning.com"},
       {name:"LCT Demo",url:"https://demo.cobblestonelearning.com"},
@@ -836,7 +837,7 @@ const DEMOS={
       {name:"PHP",pct:15,color:"#3D3D3D"},{name:"Go",pct:11,color:"#FFC20E"},
       {name:"JavaScript",pct:9,color:"#2D9E5A"},{name:"Rust",pct:6,color:"#1582AB"},
       {name:"CSS",pct:4,color:"#8A6500"},{name:"Shell",pct:3,color:"#939393"}]},
-    lastUpdateMins:3, activity:{daily:null,activeRepos:142},
+    lastUpdateMins:3, activity:{daily:null,active7:48,active30:142},
     liveDemos:{count:12,items:[
       {name:"Quiz Comparator",url:"https://cobblestonelearning.com"},{name:"LCT Demo",url:"https://cobblestonelearning.com"},
       {name:"Subtitle Studio",url:"https://cobblestonelearning.com"},{name:"CPD Dashboard",url:"https://cobblestonelearning.com"},
@@ -858,7 +859,7 @@ function wireDemoBar(){
   const form=$("#dsCustom");
   if(form) form.addEventListener("submit",e=>{ e.preventDefault();
     const repos=+$("#cRepos").value||0, langs=Math.max(0,Math.min(7,+$("#cLangs").value||0)), mins=+$("#cMins").value||0, live=+$("#cLive").value||0;
-    setDashboardData({ repositories:repos, languages:{count:langs}, lastUpdateMins:mins, activity:{daily:null,activeRepos:Math.round(repos*0.5)}, liveDemos:{count:live} });
+    setDashboardData({ repositories:repos, languages:{count:langs}, lastUpdateMins:mins, activity:{daily:null,active7:Math.round(repos*0.3),active30:Math.round(repos*0.6)}, liveDemos:{count:live} });
     document.querySelectorAll(".ds-btn").forEach(b=>b.classList.toggle("on", b.dataset.ds==="custom"));
   });
 }
