@@ -160,7 +160,23 @@
   .graphic .wv{animation:waveSvg var(--wdur,3.6s) ease-in-out infinite;will-change:transform}
   #g-repos    .wv{--amp:-3.4px}
   #g-activity .wv{--amp:-2px;--wdur:3.2s}
-  #g-langs>svg{animation:waveSvg 4.2s ease-in-out infinite;--amp:-5px;will-change:transform}
+  /* Composition: 3D circle graph — extruded segments waving up/down; number stays put */
+  .donut{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+  .donut>svg{width:clamp(124px,17vh,152px);height:clamp(124px,17vh,152px);overflow:visible;filter:drop-shadow(0 7px 6px rgba(61,61,61,.14))}
+  .seg{will-change:transform;animation:segWave 3s ease-in-out infinite}
+  .donut-num{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-weight:800;font-size:clamp(30px,3.6vw,42px);color:var(--dark);font-variant-numeric:tabular-nums;pointer-events:none;line-height:1}
+  @keyframes segWave{0%,100%{transform:translateY(0)}50%{transform:translateY(var(--amp,-5px))}}
+  /* data-source switcher (demo presets + custom) */
+  .dsbar{position:fixed;left:clamp(16px,3vw,40px);bottom:52px;z-index:30;display:flex;align-items:center;gap:6px;flex-wrap:wrap;max-width:min(92vw,560px);background:rgba(255,255,255,.88);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:13px;padding:7px 10px;box-shadow:0 14px 32px -18px rgba(61,61,61,.45)}
+  .dsbar-label{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--grey);margin-right:2px}
+  .ds-btn{font:700 11px/1 var(--font);color:var(--blue);background:#fff;border:1px solid var(--border);border-radius:9999px;padding:5px 11px;cursor:pointer;transition:.18s var(--ease)}
+  .ds-btn:hover{border-color:var(--cyan)}
+  .ds-btn.on{background:linear-gradient(135deg,#0074B4,#005C90);color:#fff;border-color:transparent}
+  .ds-custom{display:flex;align-items:center;gap:9px;flex-wrap:wrap;width:100%;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)}
+  .ds-custom label{font-size:10px;font-weight:700;color:var(--dark);display:flex;align-items:center;gap:5px}
+  .ds-custom input{width:62px;font:600 12px var(--font);color:var(--dark);border:1px solid var(--border);border-radius:7px;padding:4px 7px}
+  .ds-apply{font:700 11px var(--font);color:#fff;background:var(--green);border:0;border-radius:9999px;padding:6px 14px;cursor:pointer}
+  @media (max-width:600px){.dsbar{display:none}}
 
   .value{display:flex;align-items:baseline;gap:6px;line-height:1;flex:none}
   .value .num{font-size:clamp(40px,5.2vw,64px);font-weight:800;color:var(--ac-ink);
@@ -352,6 +368,21 @@
       <span class="sync">Last sync · <b id="syncVal">moments ago</b></span>
     </footer>
 
+    <div class="dsbar" id="dsbar">
+      <span class="dsbar-label">Data</span>
+      <button type="button" class="ds-btn on" data-ds="live">Live</button>
+      <button type="button" class="ds-btn" data-ds="demo">Demo</button>
+      <button type="button" class="ds-btn" data-ds="big">Big&nbsp;demo</button>
+      <button type="button" class="ds-btn" data-ds="custom">Custom</button>
+      <form class="ds-custom" id="dsCustom" hidden>
+        <label>Repos <input type="number" id="cRepos" min="0" value="120"></label>
+        <label>Langs <input type="number" id="cLangs" min="0" max="7" value="6"></label>
+        <label>Updated&nbsp;min <input type="number" id="cMins" min="0" value="8"></label>
+        <label>Demos <input type="number" id="cLive" min="0" value="7"></label>
+        <button type="submit" class="ds-apply">Apply</button>
+      </form>
+    </div>
+
   </div>
 
 <script>
@@ -478,30 +509,36 @@ function buildRepos(n){
 }
 
 /* =================== 2 · LANGUAGES — N-segment donut =================== */
+function darken(hex,f){ const m=/^#?([0-9a-f]{6})$/i.exec(hex||""); if(!m)return hex; const n=parseInt(m[1],16); return `rgb(${Math.round(((n>>16)&255)*f)},${Math.round(((n>>8)&255)*f)},${Math.round((n&255)*f)})`; }
 function buildLangs(lang){
   const host=$("#g-langs"); host.innerHTML="";
   const palette=["#27AAE1","#0074B4","#3D3D3D","#FFC20E","#2D9E5A","#1582AB","#8A6500"];
   const items=(lang.items&&lang.items.length)?lang.items.slice()
     :Array.from({length:lang.count},(_,i)=>({name:"Lang "+(i+1),pct:100/lang.count,color:palette[i%palette.length]}));
   const total=items.reduce((s,i)=>s+(+i.pct||0),0)||1;
-  const cx=80,cy=80,r=58,sw=20,C=2*Math.PI*r;
-  const svg=S("svg",{viewBox:"0 0 160 160",role:"img","aria-label":lang.count+" languages"});
+  const cx=80,cy=80,r=56,sw=22,C=2*Math.PI*r;
+  const svg=S("svg",{viewBox:"0 0 160 160"});
   svg.appendChild(S("circle",{cx,cy,r,fill:"none",stroke:"#EEF1F6","stroke-width":sw}));
   let acc=0;
   items.forEach((it,idx)=>{
-    const len=C*((+it.pct||0)/total);
-    const seg=S("circle",{cx,cy,r,fill:"none",stroke:it.color||palette[idx%palette.length],"stroke-width":sw,
-      "stroke-dasharray":`${len} ${C}`,"stroke-dashoffset":len,transform:`rotate(${-90+acc/C*360} ${cx} ${cy})`});
-    svg.appendChild(seg);
-    if(!reduce) seg.animate([{strokeDashoffset:len},{strokeDashoffset:0}],
-      {duration:850,delay:900+idx*150,easing:"cubic-bezier(.16,1,.3,1)",fill:"both"});
-    else seg.setAttribute("stroke-dashoffset","0");
+    const len=C*((+it.pct||0)/total), color=it.color||palette[idx%palette.length], rot=`rotate(${-90+acc/C*360} ${cx} ${cy})`;
+    const g=S("g",{class:"seg"});
+    /* 3D extrusion: darker copy offset straight down = the segment's side */
+    g.appendChild(S("circle",{cx,cy,r,fill:"none",stroke:darken(color,0.62),"stroke-width":sw,"stroke-dasharray":`${len} ${C}`,"stroke-dashoffset":"0",transform:`translate(0 5) ${rot}`}));
+    const top=S("circle",{cx,cy,r,fill:"none",stroke:color,"stroke-width":sw,"stroke-dasharray":`${len} ${C}`,"stroke-dashoffset":reduce?"0":len,transform:rot});
+    g.appendChild(top);
+    /* each segment waves up and down on its own rhythm */
+    g.style.setProperty("--amp",`${(-(4+(idx%3)*1.6)).toFixed(1)}px`);
+    g.style.animationDuration=`${(2.6+(idx%4)*0.4).toFixed(2)}s`;
+    g.style.animationDelay=`${(-(idx*0.5)).toFixed(2)}s`;
+    svg.appendChild(g);
+    if(!reduce) top.animate([{strokeDashoffset:len},{strokeDashoffset:0}],{duration:850,delay:800+idx*150,easing:"cubic-bezier(.16,1,.3,1)",fill:"both"});
     acc+=len;
   });
-  const tx=S("text",{x:cx,y:cy+1,"text-anchor":"middle","dominant-baseline":"central",
-    "font-family":"Montserrat","font-weight":"800","font-size":"40",fill:"#3D3D3D"});
-  tx.textContent=lang.count; svg.appendChild(tx);
-  host.appendChild(svg);
+  const donut=document.createElement("div"); donut.className="donut"; donut.setAttribute("role","img"); donut.setAttribute("aria-label",lang.count+" languages");
+  donut.appendChild(svg);
+  const num=document.createElement("div"); num.className="donut-num"; num.textContent=lang.count; donut.appendChild(num);
+  host.appendChild(donut);
   const f=$("#f-langs"); f.innerHTML="";
   items.forEach((it,idx)=>{
     const row=document.createElement("div"); row.className="chip";
@@ -780,12 +817,58 @@ window.addEventListener("message",function(e){
 });
 $("#authBtn").addEventListener("click",function(){ this.dataset.signed?signOut():signIn(); });
 
+/* =================== demo data models =================== */
+const DEMOS={
+  demo:{ repositories:42,
+    languages:{count:5,items:[
+      {name:"TypeScript",pct:38,color:"#27AAE1"},{name:"PHP",pct:24,color:"#0074B4"},
+      {name:"Python",pct:18,color:"#3D3D3D"},{name:"JavaScript",pct:12,color:"#FFC20E"},
+      {name:"CSS",pct:8,color:"#2D9E5A"}]},
+    lastUpdateMins:14, activity:{daily:null,activeRepos:19},
+    liveDemos:{count:4,items:[
+      {name:"Quiz Comparator",url:"https://quiz.cobblestonelearning.com"},
+      {name:"LCT Demo",url:"https://demo.cobblestonelearning.com"},
+      {name:"Subtitle Studio",url:"https://cobblestonelearning.github.io/subtitle-studio/"},
+      {name:"CPD Dashboard",url:"https://cobblestonelearning.github.io/dashboard/"}]} },
+  big:{ repositories:268,
+    languages:{count:8,items:[
+      {name:"TypeScript",pct:31,color:"#27AAE1"},{name:"Python",pct:21,color:"#0074B4"},
+      {name:"PHP",pct:15,color:"#3D3D3D"},{name:"Go",pct:11,color:"#FFC20E"},
+      {name:"JavaScript",pct:9,color:"#2D9E5A"},{name:"Rust",pct:6,color:"#1582AB"},
+      {name:"CSS",pct:4,color:"#8A6500"},{name:"Shell",pct:3,color:"#939393"}]},
+    lastUpdateMins:3, activity:{daily:null,activeRepos:142},
+    liveDemos:{count:12,items:[
+      {name:"Quiz Comparator",url:"https://cobblestonelearning.com"},{name:"LCT Demo",url:"https://cobblestonelearning.com"},
+      {name:"Subtitle Studio",url:"https://cobblestonelearning.com"},{name:"CPD Dashboard",url:"https://cobblestonelearning.com"},
+      {name:"Block Builder",url:"https://cobblestonelearning.com"},{name:"Rise Translator",url:"https://cobblestonelearning.com"},
+      {name:"Learning Journal",url:"https://cobblestonelearning.com"},{name:"LMS Observatory",url:"https://cobblestonelearning.com"},
+      {name:"SiteGround Reports",url:"https://cobblestonelearning.com"},{name:"TinCanny Accelerator",url:"https://cobblestonelearning.com"},
+      {name:"Course Builder",url:"https://cobblestonelearning.com"},{name:"Gutenberg Blocks",url:"https://cobblestonelearning.com"}]} }
+};
+function dsActive(btn){ document.querySelectorAll(".ds-btn").forEach(b=>b.classList.toggle("on", b===btn)); }
+function wireDemoBar(){
+  document.querySelectorAll(".ds-btn[data-ds]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const k=btn.dataset.ds;
+      if(k==="custom"){ const c=$("#dsCustom"); c.hidden=!c.hidden; return; }
+      const cf=$("#dsCustom"); if(cf) cf.hidden=true; dsActive(btn);
+      if(k==="live") loadLive(ghToken); else setDashboardData(DEMOS[k]);
+    });
+  });
+  const form=$("#dsCustom");
+  if(form) form.addEventListener("submit",e=>{ e.preventDefault();
+    const repos=+$("#cRepos").value||0, langs=Math.max(0,Math.min(7,+$("#cLangs").value||0)), mins=+$("#cMins").value||0, live=+$("#cLive").value||0;
+    setDashboardData({ repositories:repos, languages:{count:langs}, lastUpdateMins:mins, activity:{daily:null,activeRepos:Math.round(repos*0.5)}, liveDemos:{count:live} });
+    document.querySelectorAll(".ds-btn").forEach(b=>b.classList.toggle("on", b.dataset.ds==="custom"));
+  });
+}
+
 /* =================== init =================== */
 buildFloor();
 render(DATA);
-loadLive(ghToken);   // public numbers now; sign in to include private repos
+loadLive(ghToken);   // live GitHub data; use the "Data" switcher for demo models
 tickClock(); setInterval(tickClock,1000);
-initParallax();
+wireDemoBar();
 requestAnimationFrame(()=>requestAnimationFrame(()=>$("#app").classList.add("staged")));
 </script>
 </body>
