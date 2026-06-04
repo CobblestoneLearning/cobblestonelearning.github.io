@@ -1194,22 +1194,36 @@ function computeStats(repos) {
     svg.appendChild(SS('polygon',{points:right,fill:col.r}));
     svg.appendChild(SS('polygon',{points:top,fill:col.t,stroke:col.e,'stroke-width':'1','stroke-linejoin':'round'}));
   }
+  function rhash(i,s){ var x=((i+1)*2654435761 ^ (s||0)*40503)>>>0; return (x%1000)/1000; }
   function buildRepos(n){
     var h=el('cin-g-repos'); if(!h)return; h.innerHTML=''; n=Math.max(0,n|0);
     var svg=SS('svg',{role:'img','aria-label':n+' repositories'});
     if(!n){ h.appendChild(svg); return; }
-    var H100=Math.floor(n/100), F50=Math.floor((n%100)/50), U=n%50, uw=13, ud=6.5, uh=9, minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;
+    var H100=Math.floor(n/100), F50=Math.floor((n%100)/50), U=n%50, uw=13, ud=6.5, minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9, groups=[];
     function track(x,W,yTop,D,Hh){ minX=Math.min(minX,x-W);maxX=Math.max(maxX,x+W);minY=Math.min(minY,yTop-D);maxY=Math.max(maxY,yTop+D+Hh); }
     var cols=Math.max(1,Math.ceil(Math.sqrt(U||1))), rows=Math.ceil((U||0)/cols), fc=[], idx=0, fMinX=1e9,fMaxX=-1e9,fMinY=1e9;
-    for(var r=0;r<rows;r++)for(var c=0;c<cols;c++){ if(idx>=U)break; var x=(c-r)*uw, y=(c+r)*ud; fc.push({c:c,r:r,x:x,y:y}); idx++; fMinX=Math.min(fMinX,x);fMaxX=Math.max(fMaxX,x);fMinY=Math.min(fMinY,y); }
+    for(var r=0;r<rows;r++)for(var c=0;c<cols;c++){ if(idx>=U)break; var x=(c-r)*uw, y=(c+r)*ud; fc.push({c:c,r:r,x:x,y:y,k:idx}); idx++; fMinX=Math.min(fMinX,x);fMaxX=Math.max(fMaxX,x);fMinY=Math.min(fMinY,y); }
     fc.sort(function(a,b){return (a.y-b.y)||(a.x-b.x);});
-    fc.forEach(function(f){ var raised=(f.c%2===1&&f.r%2===1), lift=raised?uh:0, g=SS('g',{class:'cin-wv'}); g.style.animationDelay=(-(f.c+f.r)*0.16).toFixed(2)+'s';
-      if(raised) cube(g,f.x,f.y,uw,ud,uh,false,true); cube(g,f.x,f.y-lift,uw,ud,uh,raised); svg.appendChild(g); track(f.x,uw,f.y-lift,ud,uh); });
-    var bigs=[], b; for(b=0;b<H100;b++) bigs.push({w:31,d:15.5,h:23}); for(b=0;b<F50;b++) bigs.push({w:21,d:10.5,h:15});
-    if(bigs.length){ var tx=fc.length?(fMinX+fMaxX)/2:0, yc=fc.length?(fMinY-bigs[0].h*0.7):0, g2=SS('g',{class:'cin-wv'}); g2.style.animationDelay='-0.6s';
-      bigs.forEach(function(bb){ cube(g2,tx,yc,bb.w,bb.d,bb.h,true); track(tx,bb.w,yc,bb.d,bb.h); yc-=bb.h; }); svg.appendChild(g2); }
+    fc.forEach(function(f){                                  /* (1) varied skyline + individual float */
+      var bh=Math.round(6+rhash(f.k,1)*11), cyan=rhash(f.k,2)<0.16, g=SS('g',{class:'cin-wv'});
+      g.style.animationDelay=(-(f.c+f.r)*0.16 - rhash(f.k,3)).toFixed(2)+'s';
+      g.style.setProperty('--amp',(-(2.2+rhash(f.k,4)*2.8)).toFixed(1)+'px');
+      cube(g,f.x,f.y,uw,ud,bh,cyan); svg.appendChild(g); groups.push(g); track(f.x,uw,f.y,ud,bh);
+    });
+    var bigs=[], b; for(b=0;b<H100;b++) bigs.push({w:31,d:15.5,h:23,label:'×100'}); for(b=0;b<F50;b++) bigs.push({w:21,d:10.5,h:15,label:'×50'});
+    if(bigs.length){                                          /* (2) bold glowing milestone tower with labels */
+      var tx=fc.length?(fMinX+fMaxX)/2:0, yc=fc.length?(fMinY-bigs[0].h*0.7):0, g2=SS('g',{class:'cin-wv'}); g2.style.animationDelay='-0.6s';
+      g2.style.filter='drop-shadow(0 0 7px rgba(39,170,225,.65))';
+      bigs.forEach(function(bb){
+        cube(g2,tx,yc,bb.w,bb.d,bb.h,true);
+        var lbl=SS('text',{x:tx+bb.w+5,y:yc+bb.h*0.6,'font-family':'Montserrat','font-weight':'800','font-size':'9.5',fill:'#1582AB'}); lbl.textContent=bb.label; g2.appendChild(lbl);
+        track(tx,bb.w+24,yc,bb.d,bb.h); yc-=bb.h;
+      });
+      svg.appendChild(g2); groups.push(g2);
+    }
     var pad=12; svg.setAttribute('viewBox',(minX-pad).toFixed(1)+' '+(minY-pad).toFixed(1)+' '+(maxX-minX+2*pad).toFixed(1)+' '+(maxY-minY+2*pad).toFixed(1));
     h.appendChild(svg);
+    if(!reduceM){ groups.forEach(function(g,i){ try{ g.animate([{opacity:0,translate:'0 16px'},{opacity:1,translate:'0 0'}],{duration:460,delay:Math.min(i*22,1400),easing:'cubic-bezier(.16,1,.3,1)',fill:'both'}); }catch(e){} }); }  /* (3) fly-in on every (re)build */
   }
   function cinDarken(hex,f){ var m=/^#?([0-9a-f]{6})$/i.exec(hex||''); if(!m)return hex; var n=parseInt(m[1],16); return 'rgb('+Math.round(((n>>16)&255)*f)+','+Math.round(((n>>8)&255)*f)+','+Math.round((n&255)*f)+')'; }
   function buildLangs(lang){
