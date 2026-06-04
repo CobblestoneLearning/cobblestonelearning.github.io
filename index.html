@@ -461,6 +461,20 @@
   .cbnote-body pre code{background:none;border:0;padding:0;font-size:.9em}
   .cbnote-composer .row{display:flex;align-items:center;gap:10px;justify-content:flex-end}
   .cbnote-hint{font-size:12px;color:#6B6B6B;background:#F8F9FB;border:1px dashed #E8ECF0;border-radius:10px;padding:10px 12px}
+
+  /* Demo viewer overlay (authenticated, private-safe) */
+  .demo-overlay{position:fixed;inset:0;z-index:130;display:flex;flex-direction:column;background:#0f1721;animation:gcap-fade .2s ease}
+  .demo-bar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#142031;color:#fff;flex:none}
+  .demo-nm{font-weight:800;font-size:14px}
+  .demo-badge{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8fd0ff;border:1px solid rgba(143,208,255,.4);border-radius:9999px;padding:2px 9px}
+  .demo-sp{flex:1}
+  .demo-gh{color:#cfe0f0;font:700 12px 'Montserrat',Helvetica,Arial,sans-serif;text-decoration:none;opacity:.85}
+  .demo-gh:hover{opacity:1;text-decoration:underline}
+  .demo-close{background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:8px;padding:7px 14px;font:700 12px 'Montserrat',Helvetica,Arial,sans-serif;cursor:pointer}
+  .demo-close:hover{background:rgba(255,255,255,.22)}
+  .demo-stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;background:#0f1721}
+  .demo-frame{flex:1;width:100%;height:100%;border:0;background:#fff}
+  .demo-msg{color:#cfe0f0;text-align:center;max-width:360px;padding:24px;font:600 14px/1.55 'Montserrat',Helvetica,Arial,sans-serif}
 </style>
 </head>
 
@@ -822,18 +836,18 @@ var CATEGORY_BY_ID = CATEGORIES.reduce(function (m, c) { m[c.id] = c; return m; 
 var CURATED = {
   'multi-lang-sco':                { category: 'authoring',   summary: 'A SCORM 1.2 package for delivering one course in several languages.', integrations: ['SCORM'] },
   'csl-ytd-reports':               { category: 'reporting',   summary: 'A year-to-date LearnDash activity report with a branded PDF export.', integrations: ['LearnDash'] },
-  'subtitle-studio':               { category: 'translation', summary: 'A browser tool to edit and translate video subtitles (VTT / SRT).' },
+  'subtitle-studio':               { category: 'translation', summary: 'A browser tool to edit and translate video subtitles (VTT / SRT).', demo: 'index.html' },
   'chrome-scripts':                { category: 'tools',        summary: 'Browser bookmarklets and scripts for everyday web tasks.' },
   'cobblestonelearning.github.io': { category: 'web',          summary: 'This repository hub — where you are now.' },
 
   // Course authoring & SCORM
   'csl-gutenberg-blocks':          { category: 'authoring',   summary: 'A library of custom Gutenberg blocks for building course pages in WordPress.', integrations: ['WordPress', 'Gutenberg'] },
   'csl-block-builder':             { category: 'authoring',   summary: 'An AI-assisted builder that generates and previews new Gutenberg blocks for WordPress.', integrations: ['WordPress', 'Gutenberg'] },
-  'learningjournal':               { category: 'authoring',   summary: 'A builder for reflective learner-journal activities, embedded into LearnDash courses.', integrations: ['LearnDash', 'DeepL'] },
+  'learningjournal':               { category: 'authoring',   summary: 'A builder for reflective learner-journal activities, embedded into LearnDash courses.', integrations: ['LearnDash', 'DeepL'], demo: 'learner-journal-builder_9.html' },
 
   // Reporting & dashboards
   'csl-cpd-hours-dashboard':       { category: 'reporting',   summary: 'A CPD (professional development) hours dashboard built on LearnDash activity data.', integrations: ['LearnDash'] },
-  'cinematicreports':              { category: 'reporting',   summary: 'A cinematic 3D analytics dashboard for a LearnDash / BuddyBoss LMS.', integrations: ['LearnDash', 'BuddyBoss'] },
+  'cinematicreports':              { category: 'reporting',   summary: 'A cinematic 3D analytics dashboard for a LearnDash / BuddyBoss LMS.', integrations: ['LearnDash', 'BuddyBoss'], demo: 'lms-observatory/observatory.html' },
 
   // Translation & subtitles
   'rise-xliff-translator-v26':     { category: 'translation', summary: 'A browser tool for translating Articulate Rise courses via their XLIFF export (v26).', integrations: ['Articulate Rise'] },
@@ -841,8 +855,8 @@ var CURATED = {
   'deeplxliff':                    { category: 'translation', summary: 'A tool that translates Articulate Rise 360 XLIFF exports through the DeepL API.', integrations: ['Articulate Rise', 'DeepL'] },
 
   // Internal tools & scripts
-  'quizformater':                  { category: 'tools',       summary: 'A browser tool that compares LearnDash / WpProQuiz quiz exports and formats them as PDF/DOCX.', integrations: ['LearnDash', 'WpProQuiz'] },
-  'quizxml':                       { category: 'tools',       summary: 'A quiz comparator that turns LearnDash WpProQuiz XML exports into branded PDF/DOCX documents.', integrations: ['LearnDash', 'WpProQuiz'] },
+  'quizformater':                  { category: 'tools',       summary: 'A browser tool that compares LearnDash / WpProQuiz quiz exports and formats them as PDF/DOCX.', integrations: ['LearnDash', 'WpProQuiz'], demo: 'cobblestone_quiz_comparator.html' },
+  'quizxml':                       { category: 'tools',       summary: 'A quiz comparator that turns LearnDash WpProQuiz XML exports into branded PDF/DOCX documents.', integrations: ['LearnDash', 'WpProQuiz'], demo: 'cobblestone_quiz_comparator.html' },
   'tincanny_intercept':            { category: 'tools',       summary: 'A WordPress plugin that accelerates Tin Canny LearnDash Reporting’s xAPI traffic.', integrations: ['Tin Canny', 'LearnDash'] },
   'bettersitegroundreports':       { category: 'tools',       summary: 'A browser overlay with richer CPU and usage analytics for SiteGround hosting.', integrations: ['SiteGround'] }
 };
@@ -1666,11 +1680,20 @@ function buildStaffCard(repo, idx) {
   var extLink = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
   var infoIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
 
-  /* Primary action: open the live tool when there is one; otherwise open details. */
-  var primary = live
-    ? '<a href="' + escapeHtml(pagesUrl(repo)) + '" target="_blank" rel="noopener" class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full inline-flex items-center gap-1.5" aria-label="Open ' + escapeHtml(repo.name) + '">Open the tool' + extLink + '</a>'
-    : '<button type="button" class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full inline-flex items-center gap-1.5" data-repo="' + escapeHtml(repo.name) + '">' + infoIcon + 'View details</button>';
-  var githubLink = '<a href="' + escapeHtml(safeHttpUrl(repo.html_url)) + '" target="_blank" rel="noopener" class="btn btn-ghost text-sm font-700 px-3.5 py-2.5 rounded-full inline-flex items-center gap-1.5" aria-label="Open ' + escapeHtml(repo.name) + ' on GitHub">Open on GitHub' + extLink + '</a>';
+  /* Demo repos lead with "Open demo" (privacy-safe in-hub viewer) + Details;
+     otherwise the live tool / details, then a GitHub link. */
+  var demo = demoForRepo(repo);
+  var playIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+  var primary, secondary;
+  if (demo) {
+    primary = '<button type="button" class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full inline-flex items-center gap-1.5" data-demo="1" aria-label="Open ' + escapeHtml(repo.name) + ' demo">' + playIcon + 'Open demo</button>';
+    secondary = '<button type="button" class="btn btn-ghost text-sm font-700 px-3.5 py-2.5 rounded-full inline-flex items-center gap-1.5" data-repo="' + escapeHtml(repo.name) + '">' + infoIcon + 'Details</button>';
+  } else {
+    primary = live
+      ? '<a href="' + escapeHtml(pagesUrl(repo)) + '" target="_blank" rel="noopener" class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full inline-flex items-center gap-1.5" aria-label="Open ' + escapeHtml(repo.name) + '">Open the tool' + extLink + '</a>'
+      : '<button type="button" class="btn btn-primary text-sm font-700 px-4 py-2.5 rounded-full inline-flex items-center gap-1.5" data-repo="' + escapeHtml(repo.name) + '">' + infoIcon + 'View details</button>';
+    secondary = '<a href="' + escapeHtml(safeHttpUrl(repo.html_url)) + '" target="_blank" rel="noopener" class="btn btn-ghost text-sm font-700 px-3.5 py-2.5 rounded-full inline-flex items-center gap-1.5" aria-label="Open ' + escapeHtml(repo.name) + ' on GitHub">Open on GitHub' + extLink + '</a>';
+  }
 
   card.innerHTML =
     '<div class="flex items-start justify-between gap-3 mb-2">' +
@@ -1684,10 +1707,13 @@ function buildStaffCard(repo, idx) {
     '<div class="flex items-center gap-x-3.5 text-xs text-body-muted mb-4 mt-auto">' +
       '<span class="inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>updated ' + escapeHtml(timeAgo(repo.pushed_at || repo.updated_at)) + '</span>' +
     '</div>' +
-    '<div class="flex items-center gap-2 mt-auto pt-1">' + primary + githubLink + '</div>';
+    '<div class="flex items-center gap-2 mt-auto pt-1">' + primary + secondary + '</div>';
 
   card.querySelectorAll('button[data-repo]').forEach(function (b) {
     b.addEventListener('click', function () { fetchRepoDetails(repo.name); });
+  });
+  card.querySelectorAll('[data-demo]').forEach(function (b) {
+    b.addEventListener('click', function () { openDemo(repo); });
   });
   return card;
 }
@@ -2164,6 +2190,47 @@ function docSkeleton() {
   return '<div class="py-5 flex justify-center">' + capLoaderHTML({ size: 70, label: 'Loading…' }) + '</div>';
 }
 
+/* Demo viewer — fetch a project's self-contained HTML through the AUTHENTICATED
+   GitHub API and render it in a sandboxed iframe. A private demo only loads for a
+   signed-in user with repo access (404 otherwise); nothing is exposed publicly. */
+function demoForRepo(repo){ var c = CURATED[((repo && repo.name) || '').toLowerCase()]; return (c && c.demo) || null; }
+function openDemo(repo){
+  var path = demoForRepo(repo); if (!path || !repo) return;
+  var ov = document.createElement('div'); ov.className = 'demo-overlay'; ov.id = 'demo-overlay';
+  ov.innerHTML =
+    '<div class="demo-bar"><span class="demo-nm"></span><span class="demo-badge">Live demo</span><span class="demo-sp"></span>' +
+    '<a class="demo-gh" target="_blank" rel="noopener">Open on GitHub</a>' +
+    '<button type="button" class="demo-close" aria-label="Close demo">Close ✕</button></div>' +
+    '<div class="demo-stage">' + capLoaderHTML({ size: 96, label: 'Loading demo…', dark: true }) + '</div>';
+  ov.querySelector('.demo-nm').textContent = repo.name;
+  ov.querySelector('.demo-gh').href = safeHttpUrl(repo.html_url);
+  document.body.appendChild(ov);
+  function close(){ if (ov.parentNode) ov.parentNode.removeChild(ov); document.removeEventListener('keydown', onKey); }
+  function onKey(e){ if (e.key === 'Escape') close(); }
+  document.addEventListener('keydown', onKey);
+  ov.querySelector('.demo-close').onclick = close;
+  var apiPath = path.split('/').map(encodeURIComponent).join('/');
+  ghFetch('https://api.github.com/repos/cobblestonelearning/' + repo.name + '/contents/' + apiPath)
+    .then(function (r){ if (!r.ok){ var e = new Error('demo ' + r.status); e.status = r.status; throw e; } return r.json(); })
+    .then(function (j){
+      var html = (j && j.content) ? safeAtob(j.content) : null;
+      if (html == null) throw new Error('empty');
+      var frame = document.createElement('iframe');
+      frame.className = 'demo-frame';
+      frame.setAttribute('title', repo.name + ' demo');
+      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-downloads allow-popups allow-modals allow-forms');
+      frame.srcdoc = html;
+      var stage = ov.querySelector('.demo-stage'); if (stage){ stage.innerHTML = ''; stage.appendChild(frame); }
+    })
+    .catch(function (err){
+      var stage = ov.querySelector('.demo-stage'); if (!stage) return;
+      var msg = (err.status === 404 || err.status === 403 || err.status === 401)
+        ? (CBUSER ? 'You don’t have access to this private demo.' : 'This is a private demo. Sign in (top-right) with a GitHub account that has access to view it.')
+        : 'Could not load this demo right now. Please try again shortly.';
+      stage.innerHTML = '<div class="demo-msg">' + escapeHtml(msg) + '</div>';
+    });
+}
+
 /* Unified document modal. CLREADME (staff-facing notes) is the default in Staff
    view; README is the default in Developer view; a toggle on both views switches
    between them. Developer view also exposes the code explorer via "Code & files". */
@@ -2181,8 +2248,10 @@ function showRepoDocs(repo) {
   if (repo.archived) badges += '<span class="badge badge-archived">Archived</span>';
   if (repo.fork) badges += '<span class="badge badge-fork">Fork</span>';
 
+  var demoPath = demoForRepo(repo);
   var actions = '';
-  if (live) actions += '<a href="' + escapeHtml(pagesUrl(repo)) + '" target="_blank" rel="noopener" class="btn btn-primary font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2">Open the tool' + ext + '</a>';
+  if (demoPath) actions += '<button type="button" id="doc-demo-btn" class="btn btn-primary font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Open demo</button>';
+  if (live) actions += '<a href="' + escapeHtml(pagesUrl(repo)) + '" target="_blank" rel="noopener" class="btn ' + (demoPath ? 'btn-ghost' : 'btn-primary') + ' font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2">Open the tool' + ext + '</a>';
   actions += '<a href="' + escapeHtml(safeHttpUrl(repo.html_url)) + '" target="_blank" rel="noopener" class="btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2">Open on GitHub' + ext + '</a>';
   if (isDev) actions += '<button type="button" id="doc-code-btn" class="btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full inline-flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Code &amp; files</button>';
 
@@ -2200,6 +2269,9 @@ function showRepoDocs(repo) {
     '<div id="doc-body" class="doc-body surface rounded-xl p-5">' + docSkeleton() + '</div>';
 
   openModal();
+
+  var demoBtn = document.getElementById('doc-demo-btn');
+  if (demoBtn) demoBtn.onclick = function () { openDemo(repo); };
 
   if (isDev) {
     var codeBtn = document.getElementById('doc-code-btn');
