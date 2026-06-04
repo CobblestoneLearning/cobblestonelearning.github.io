@@ -1001,8 +1001,8 @@ document.addEventListener('DOMContentLoaded', function () {
   wireControls();
   wireAuth();
 
-  /* ---- Repos (public-first; re-runs after sign-in / sign-out) ---- */
-  loadRepos();
+  /* ---- Repos: restore a persisted GitHub session if present, else public-first ---- */
+  restoreSessionThenLoad();
 
   /* ---- Gists ---- */
   ghFetch('https://api.github.com/users/cobblestonelearning/gists')
@@ -2839,7 +2839,8 @@ function exchange(code) {
     })
     .then(function (data) {
       if (!data || !data.access_token) throw new Error('No access token returned');
-      ghToken = data.access_token;                    /* memory only */
+      ghToken = data.access_token;
+      try { localStorage.setItem('cb_gh_token', ghToken); } catch (e) {}  /* persist so a refresh doesn't force re-auth/2FA */
       return ghFetch('https://api.github.com/user');
     })
     .then(function (r) {
@@ -2855,6 +2856,7 @@ function exchange(code) {
     .catch(function (err) {
       console.error('OAuth exchange failed:', err);
       ghToken = null;
+      try { localStorage.removeItem('cb_gh_token'); } catch (e) {}
       setSignedOutUI();
       hideFullscreenLoader();
       showToast('Sign-in failed — please try again.');
@@ -2862,10 +2864,34 @@ function exchange(code) {
 }
 
 function signOut() {
-  ghToken = null;                                       /* token was memory-only */
+  ghToken = null;
+  try { localStorage.removeItem('cb_gh_token'); } catch (e) {}
   setSignedOutUI();
   showToast('Signed out');
   loadRepos();                                          /* back to public view */
+}
+
+/* Restore a previously persisted sign-in so a refresh doesn't force a fresh OAuth
+   round-trip (which GitHub challenges with a 2FA re-verification). The stored token
+   is validated via /user before we trust it; an invalid/revoked token is cleared. */
+function restoreSessionThenLoad() {
+  var stored = null;
+  try { stored = localStorage.getItem('cb_gh_token'); } catch (e) {}
+  if (!stored) { loadRepos(); return; }
+  ghToken = stored;
+  ghFetch('https://api.github.com/user')
+    .then(function (r) { if (!r.ok) { var e = new Error('user ' + r.status); e.status = r.status; throw e; } return r.json(); })
+    .then(function (user) {
+      CBUSER = { login: user.login, name: user.name || user.login, avatar: user.avatar_url || '' };
+      setSignedInUI(user.login, user.avatar_url);
+      loadRepos();                                       /* signed-in: includes private repos */
+    })
+    .catch(function () {
+      ghToken = null;
+      try { localStorage.removeItem('cb_gh_token'); } catch (e) {}
+      setSignedOutUI();
+      loadRepos();                                       /* fall back to public */
+    });
 }
 
 /* ============================================================
