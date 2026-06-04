@@ -2257,14 +2257,18 @@ function openDemo(repo){
   document.addEventListener('keydown', onKey);
   ov.querySelector('.demo-close').onclick = close;
   var apiPath = path.split('/').map(encodeURIComponent).join('/');
-  /* Fetch the file via its download_url: it's pre-signed for private repos, CORS-open,
-     and has no 1MB cap (the base64 contents JSON caps at 1MB and the raw media type can
-     get served stale from the browser cache as the JSON). */
-  ghFetch('https://api.github.com/repos/cobblestonelearning/' + repo.name + '/contents/' + apiPath)
-    .then(function (r){ if (!r.ok){ var e = new Error('demo ' + r.status); e.status = r.status; throw e; } return r.json(); })
-    .then(function (j){
-      var url = j && j.download_url; if (!url) throw new Error('no download url');
-      return fetch(url).then(function (rr){ if (!rr.ok){ var e2 = new Error('raw ' + rr.status); e2.status = rr.status; throw e2; } return rr.text(); });
+  var base = 'https://api.github.com/repos/cobblestonelearning/' + repo.name + '/contents/' + apiPath;
+  /* One authenticated request with the raw media type + cache:no-store (defeats the
+     stale-JSON cache). If it still comes back as JSON, decode the base64 content
+     (≤1MB) or fall back to the pre-signed download_url (larger files). */
+  ghFetch(base, { headers: { 'Accept': 'application/vnd.github.raw' }, cache: 'no-store' })
+    .then(function (r){ if (!r.ok){ var e = new Error('demo ' + r.status); e.status = r.status; throw e; } return r.text(); })
+    .then(function (t){
+      if (t && t.charAt(0) !== '{') return t;                                  /* raw HTML */
+      var j = null; try { j = JSON.parse(t); } catch (e) {}
+      if (j && j.content) return safeAtob(j.content);                          /* ≤1MB base64 */
+      if (j && j.download_url) return fetch(j.download_url, { cache: 'no-store' }).then(function (rr){ if (!rr.ok){ var e2 = new Error('raw ' + rr.status); e2.status = rr.status; throw e2; } return rr.text(); });
+      throw new Error('empty');
     })
     .then(function (html){
       if (!html) throw new Error('empty');
