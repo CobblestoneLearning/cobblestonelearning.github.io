@@ -357,13 +357,11 @@
   .cin-graphic svg{width:100%;height:100%;overflow:visible}
   /* Activity: count-up binary clock since last update (waving brand-colour columns) */
   @keyframes cinClkWave{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-  .cin-clock{display:flex;align-items:flex-end;justify-content:center;gap:clamp(4px,0.9vw,9px);height:100%;padding-top:2px}
-  .cin-clk-col{display:flex;flex-direction:column;align-items:center;gap:5px}
-  .cin-bits{display:flex;flex-direction:column;gap:3px;animation:cinClkWave 3s ease-in-out infinite;will-change:transform}
-  .cin-bit{width:9px;height:9px;border-radius:2.5px;background:#E8ECF0;background:color-mix(in srgb,var(--bc,#27AAE1) 17%,#eef2f7);transition:background .25s ease,box-shadow .25s ease,transform .25s ease}
-  .cin-bit.on{background:var(--bc,#27AAE1);box-shadow:0 0 7px var(--bc,#27AAE1);transform:scale(1.08)}
-  .cin-clk-cap{font:800 8px 'Montserrat',Helvetica,Arial,sans-serif;color:#939393;display:flex;flex-direction:column;align-items:center;line-height:1.2;letter-spacing:.02em;margin-top:1px}
-  .cin-clk-cap b{font-size:10.5px;color:#3D3D3D;font-variant-numeric:tabular-nums;font-weight:800}
+  .cin-clock{display:flex;align-items:center;justify-content:center;gap:clamp(6px,1.2vw,13px);height:100%}
+  .cin-clk-col{display:flex;flex-direction:column;align-items:center}
+  .cin-bits{display:flex;flex-direction:column;gap:5px;animation:cinClkWave 3s ease-in-out infinite;will-change:transform}
+  .cin-bit{width:13px;height:13px;border-radius:3.5px;background:#E8ECF0;background:color-mix(in srgb,var(--bc,#27AAE1) 18%,#eef2f7);transition:background .25s ease,box-shadow .25s ease,transform .25s ease}
+  .cin-bit.on{background:var(--bc,#27AAE1);box-shadow:0 0 9px var(--bc,#27AAE1);transform:scale(1.08)}
   /* Continuous gentle loops (no rest). */
   @keyframes cinWaveSvg{0%,100%{transform:translateY(0)}50%{transform:translateY(var(--amp,-3px))}}
   @keyframes cinWaveEl{0%,100%{translate:0 0}50%{translate:0 var(--amp,-9px)}}
@@ -395,10 +393,9 @@
   .cin-actfoot b{font-size:15px;font-weight:800;color:#3D3D3D;font-variant-numeric:tabular-nums}
   .cin-actfoot b.up{color:#8A6500}
   .cin-actfoot small{font-size:8.5px;font-weight:700;color:#939393;letter-spacing:.06em;margin-top:4px;text-transform:uppercase}
-  .cin-reach{position:relative;width:100%;height:100%;display:flex;align-items:center;overflow:hidden;perspective:900px}
-  .cin-reach-track{display:flex;align-items:center;padding:8px 0;animation:cinMarquee linear infinite;will-change:transform}
-  .cin-reach:hover .cin-reach-track{animation-play-state:paused}
-  @keyframes cinMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .cin-reach{position:relative;width:100%;height:100%;display:flex;align-items:center;overflow-x:auto;overflow-y:hidden;perspective:900px;scrollbar-width:thin}
+  .cin-reach::-webkit-scrollbar{height:6px}.cin-reach::-webkit-scrollbar-thumb{background:#cdd5e0;border-radius:9px}.cin-reach::-webkit-scrollbar-track{background:transparent}
+  .cin-reach-track{display:flex;align-items:center;padding:8px 0}
   .cin-ptile{position:relative;flex:none;width:108px;height:74px;margin-left:-30px;border-radius:9px;overflow:hidden;text-decoration:none;
     border:1px solid #E8ECF0;background:#fff;cursor:pointer;transform-origin:center;
     transform:rotateY(var(--ry,-15deg)) scale(.93);
@@ -1186,7 +1183,7 @@ function computeStats(repos) {
   function host(u){ try{ return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return (u||'').replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0]; } }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];}); }
 
-  var floorBuilt=false, cinClockTimer=null;
+  var floorBuilt=false, cinClockTimer=null, cinReachTimer=null;
   function buildFloor(){
     var floor=el('cin-floor'); if(!floor)return; floor.innerHTML='';
     var cols=18, rows=11, total=cols*rows, cyan={}, dark={};
@@ -1273,19 +1270,18 @@ function computeStats(repos) {
     var host=el('cin-g-activity'); if(!host)return;
     if(cinClockTimer){ clearInterval(cinClockTimer); cinClockTimer=null; }
     var lastTime=Date.now()-(lastUpdateMins|0)*60000;
-    var cols=[{label:'Yr',bits:6,color:'#8A6500'},{label:'Mo',bits:4,color:'#3D3D3D'},{label:'Wk',bits:3,color:'#1582AB'},{label:'Dy',bits:3,color:'#0074B4'},{label:'Hr',bits:5,color:'#27AAE1'},{label:'Mn',bits:6,color:'#2D9E5A'},{label:'Sc',bits:6,color:'#FFC20E'},{label:'Ms',bits:6,color:'#46b9e8'}];
-    host.innerHTML='<div class="cin-clock" role="img" aria-label="time since last update">'+cols.map(function(c,ci){
-      var bits=''; for(var b=0;b<c.bits;b++) bits+='<span class="cin-bit"></span>';
-      return '<div class="cin-clk-col" style="--bc:'+c.color+'"><div class="cin-bits" style="animation-delay:'+(ci*0.14).toFixed(2)+'s">'+bits+'</div><div class="cin-clk-cap"><b>0</b>'+c.label+'</div></div>';
+    var colors=['#8A6500','#3D3D3D','#1582AB','#0074B4','#27AAE1','#2D9E5A','#FFC20E','#46b9e8'];  /* Yr Mo Wk Dy Hr Mn Sc Ms — read by colour + lit bits, no digits */
+    host.innerHTML='<div class="cin-clock" role="img" aria-label="time since last update">'+colors.map(function(col,ci){
+      var bits=''; for(var b=0;b<6;b++) bits+='<span class="cin-bit"></span>';
+      return '<div class="cin-clk-col" style="--bc:'+col+'"><div class="cin-bits" style="animation-delay:'+(ci*0.14).toFixed(2)+'s">'+bits+'</div></div>';
     }).join('')+'</div>';
-    var colEls=host.querySelectorAll('.cin-clk-col');
+    var colEls=host.querySelectorAll('.cin-bits');
     function tick(){
       var elap=Math.max(0,Date.now()-lastTime), ms=elap%1000, ts=Math.floor(elap/1000), s=ts%60, tm=Math.floor(ts/60), m=tm%60, th=Math.floor(tm/60), hh=th%24, td=Math.floor(th/24);
       var yr=Math.floor(td/365), rd=td%365, mo=Math.floor(rd/30), rd2=rd%30, wk=Math.floor(rd2/7), dy=rd2%7;
       var vals=[Math.min(63,yr),mo,wk,dy,hh,m,s,Math.floor(ms/16)], ci, b;
       for(ci=0;ci<colEls.length;ci++){ var v=vals[ci], bitEls=colEls[ci].querySelectorAll('.cin-bit'), nb=bitEls.length;
-        for(b=0;b<nb;b++){ if((v>>(nb-1-b))&1) bitEls[b].classList.add('on'); else bitEls[b].classList.remove('on'); }
-        colEls[ci].querySelector('.cin-clk-cap b').textContent=v; }
+        for(b=0;b<nb;b++){ if((v>>(nb-1-b))&1) bitEls[b].classList.add('on'); else bitEls[b].classList.remove('on'); } }
     }
     tick(); if(!reduceM) cinClockTimer=setInterval(tick,90);
   }
@@ -1304,10 +1300,15 @@ function computeStats(repos) {
       return a;
     }
     var track=document.createElement('div'); track.className='cin-reach-track';
-    track.style.animationDuration=Math.max(10,tiles.length*4).toFixed(0)+'s';
-    if(reduceM) track.style.animation='none';
-    var pass; for(pass=0;pass<2;pass++){ tiles.forEach(function(d,i){ track.appendChild(makeTile(d,i)); }); }  /* duplicate for a seamless loop */
+    tiles.forEach(function(d,i){ track.appendChild(makeTile(d,i)); });   /* one set */
     stage.appendChild(track);
+    var setW=track.scrollWidth, copies=Math.max(2,Math.ceil((stage.clientWidth||320)/Math.max(1,setW))+1), cpi;
+    for(cpi=1;cpi<copies;cpi++){ tiles.forEach(function(d,i){ track.appendChild(makeTile(d,i)); }); }   /* enough copies so the wrap is seamless */
+    if(cinReachTimer){ clearInterval(cinReachTimer); cinReachTimer=null; }
+    if(!reduceM && setW>0){ var rpaused=false;
+      stage.onpointerenter=function(){ rpaused=true; }; stage.onpointerleave=function(){ rpaused=false; };  /* auto-scroll, but you can also drag/scroll manually */
+      cinReachTimer=setInterval(function(){ if(rpaused||!stage.isConnected)return; stage.scrollLeft+=0.45; if(stage.scrollLeft>=setW) stage.scrollLeft-=setW; },30);
+    }
     var list=el('cin-f-live'); if(!list)return; list.innerHTML='';
     tiles.forEach(function(d){ var row=document.createElement('div'); row.className='cin-demorow';
       var dom=d.demoRepo?d.name:host(d.url||''), safe=(d.url&&/^https?:/i.test(d.url))?esc(d.url):'#';
