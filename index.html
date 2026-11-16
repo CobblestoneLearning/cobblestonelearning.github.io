@@ -740,7 +740,9 @@ function ghFetch(url, opts) {
   return fetch(url, Object.assign({}, opts, { headers: h }));
 }
 
-/* cobblestonelearning is a personal USER account (not an org), so /orgs/... 404s.
+/* cobblestonelearning has been an ORGANISATION since 2026-11-16. /users/... still lists its
+   public repos (that endpoint works for organisations too), and staff see private repos via
+   affiliation=organization_member.
    Public repos always come from the user endpoint; when signed in we ALSO pull the
    private repos the viewer can access via /user/repos and merge them in. */
 function publicReposUrl() {
