@@ -1,47 +1,56 @@
-# Cobblestone Learning — Repository Hub
+# Cobblestone Learning: Repository Hub
 
-An internal hub for the Cobblestone Learning team to **organise, showcase, and explore the
-[`cobblestonelearning`](https://github.com/cobblestonelearning) GitHub account** — find a
-repo, read its code, preview its live page, and copy a clone command in one click.
+An internal hub for the Cobblestone Learning team to **find, read and reuse the projects in the
+[`CobblestoneLearning`](https://github.com/CobblestoneLearning) GitHub organisation**: find a
+repo, read its staff notes or README, open its demo, browse its code, and copy a clone command.
 
-🌐 **Live:** https://cobblestonelearning.github.io/
+**Live:** https://cobblestonelearning.github.io/
 
-## What it does
+## What is in this repo
 
-A single, self-contained `index.html` deployed via **GitHub Pages** (serves `main` at the repo
-root — every push redeploys automatically). No build step or dependencies.
+| File | What it is |
+|---|---|
+| `index.html` | The hub. Self-contained: vanilla JS, Tailwind, Prism.js and clipboard.js from CDNs (the pinned libraries carry SRI hashes). No build step. |
+| `manage.html` | **Manage**: a page for organisation owners and managers (people, teams, access to each repo, recent activity and metrics). |
+| `dashboard/index.html` | A copy of the single-screen visual dashboard ([`cobblestone-gh-dashboard`](https://github.com/CobblestoneLearning/cobblestone-gh-dashboard)). |
+| `callback.html` | The sign-in popup's landing page; it hands the login code back to the page that opened it. |
+| `auth/` | The Cloudflare Worker that swaps the login code for a token (it holds the OAuth client secret). |
+| `docs/AUTH-SETUP.md`, `.github/setup-auth.py` | One-time sign-in setup. |
+| `CLREADME.md` | Plain-language staff notes for this repo. |
 
-- **Live account overview** — a stat bar (repository count, languages, last update, published
-  Pages) computed from the GitHub API.
-- **Search, filter & sort** — instant search across name/description/topics, dynamic
-  language-filter chips, sort by recently-updated / name / size, and a forks-&-archived toggle.
-- **Rich repo cards** — description, language, "updated X ago", size, topic pills, a **Live**
-  badge for Pages-enabled repos, and a one-click **copy `git clone …`** button.
-- **Explore modal** — read the README (rendered), browse a keyboard-operable file tree, preview a
-  repo's `index.html`, and grab the clone command without leaving the page.
-- **Gists** — the org's gists with syntax-highlighted file previews and copy-to-clipboard.
-- **Sign in with GitHub** *(optional)* — public by default; signing in additionally shows the
-  **private** repos your account can access, via a per-user OAuth flow (no shared secret). See
-  setup below.
-- **Resilient** — skeleton loaders and a clear fallback if the unauthenticated GitHub API is
-  rate-limited (60 requests/hour per visitor IP).
+GitHub Pages serves `main` from the repo root, so every push to `main` redeploys.
 
-Built with vanilla JS + Tailwind, Prism.js, and clipboard.js (all via CDN; the pinned libraries
-carry Subresource Integrity hashes). Cobblestone-branded (Montserrat, the cyan/blue palette, and
-the logo), responsive 360 px → 1440 px+, and accessible (keyboard, ARIA, reduced-motion).
+## What the hub does
 
-## Setup: "Sign in with GitHub"
+- **Staff view** (the default): projects grouped by purpose (authoring, reporting, translation,
+  tools, web, other) from each repo's `cat-*` topic, with plain-language summaries, "Works with"
+  filters and an **Open demo** button where a project has one. **Details** opens the repo's
+  `CLREADME.md` (staff notes) and its `README.md`.
+- **Developer view**: a flat grid with language filters, sort, and **Code & files** (file tree,
+  README source, `index.html` preview, clone command).
+- **Sign in with GitHub** (optional). Signed out, only the organisation's public repos show.
+  Signed in, the hub shows every repo your account can see in the organisation (all members can
+  read all of them), and adds:
+  - an **Organisation / Mine** switch: *Mine* is your own repos plus organisation repos you have
+    pushed to recently;
+  - an access badge on each card (Admin, Maintain, Write, Triage or Read);
+  - your own gists (organisations cannot own gists; the old shared ones are in the private repo
+    `csl-gists`);
+  - a **Manage** link, for organisation owners and members of the `managers` team.
+- Every repo list is fetched page by page (the organisation has more than 100 repos).
+- Skeleton loaders, and a clear message if the GitHub API rate limit is hit (60 requests an hour
+  per visitor when signed out).
 
-Sign-in is optional and needs a one-time setup (a GitHub OAuth App + a tiny Cloudflare Worker that
-holds the secret — a static public site can't). There's a **self-verifying one-command helper**:
+Cobblestone-branded (Montserrat, the cyan and blue palette, the logo), responsive and accessible
+(keyboard, ARIA, reduced motion).
 
-```bash
-python3 .github/setup-auth.py
-```
+## Sign-in
 
-It's idempotent (safe to re-run) and verifies the credentials against GitHub before finishing.
-Full details — including forking this for your own account — are in
-[`docs/AUTH-SETUP.md`](docs/AUTH-SETUP.md).
+The sign-in OAuth app ("Cobblestone Repository Hub") is **owned by the organisation**. That matters:
+the organisation restricts third-party apps, and only apps it owns get through. On the hub the
+token is kept in `sessionStorage` for that tab only; on `manage.html` it is kept in memory only.
+It is never committed. Setup and security notes are in [`docs/AUTH-SETUP.md`](docs/AUTH-SETUP.md);
+the one-command helper is `python3 .github/setup-auth.py`.
 
 ## Local preview
 
@@ -50,5 +59,7 @@ Open `index.html` in a browser, or serve the folder:
 ```bash
 python3 -m http.server
 ```
+
+Sign-in only works from `https://cobblestonelearning.github.io` (the worker accepts that origin only).
 
 *Learning. Creativity. Trust.*

@@ -724,8 +724,14 @@ function ghPagesUrl(repo){
 function loadLive(token){
   const headers={Accept:"application/vnd.github+json"};
   if(token) headers.Authorization="Bearer "+token;
-  fetch("https://api.github.com/users/"+GH_USER+"/repos?per_page=100&sort=updated",{headers})
-    .then(r=>r.ok?r.json():Promise.reject(new Error("GitHub "+r.status)))
+  // The organisation's repos, every page (there are more than 100). Signed out: public only.
+  // (/users/<org>/repos returns public repos only, even with a token, so it is not used.)
+  const fetchAll=(url,acc=[],n=0)=>fetch(url,{headers})
+    .then(r=>{ if(!r.ok) return Promise.reject(new Error("GitHub "+r.status));
+      const next=(/<([^>]+)>;\s*rel="next"/.exec(r.headers.get("Link")||"")||[])[1];
+      return r.json().then(rows=>{ acc=acc.concat(Array.isArray(rows)?rows:[]);
+        return next&&n<19?fetchAll(next,acc,n+1):acc; }); });
+  fetchAll("https://api.github.com/orgs/"+GH_USER+"/repos?per_page=100&sort=updated&type="+(token?"all":"public"))
     .then(all=>{
       const repos=(Array.isArray(all)?all:[]).filter(r=>r&&!r.fork&&!r.archived);
       if(!repos.length) return;

@@ -12,11 +12,11 @@ An **internal GitHub repository hub** for the Cobblestone Learning team — it o
 
 - **Deploy:** commit to `main` and push. GitHub Pages serves `main` automatically — there is no build or CI stage to wait on.
 - **Preview locally:** open `index.html` directly in a browser, or serve the folder (e.g. `python3 -m http.server`). It also resolves under the MAMP root at `http://localhost:8888/cobblestonelearning.github.io/`.
-- All commits to date are "Update index.html" — keep edits scoped to that file unless adding genuinely new assets.
+- Keep each commit scoped and describe what changed (e.g. "Hub: ..."). Commits are signed (see `Cobblestone/.gitidentity`).
 
 ## Architecture
 
-The hub is `index.html` (one self-contained file). Alongside it the repo holds `cobblestone-logo.png` (brand mark, referenced as `src="cobblestone-logo.png"`), `callback.html` (OAuth popup callback), `auth/` (a Cloudflare Worker for the OAuth token exchange), and `docs/AUTH-SETUP.md` (sign-in setup). See **Authentication** below.
+The hub is `index.html` (one self-contained file). Alongside it the repo holds `manage.html` (the owners' and managers' page: people, teams, per-repo access, activity; its admin token stays in memory only), `dashboard/index.html` (a copy of the `cobblestone-gh-dashboard` repo's page: change both together), `cobblestone-logo.png` (brand mark, referenced as `src="cobblestone-logo.png"`), `callback.html` (OAuth popup callback), `auth/` (a Cloudflare Worker for the OAuth token exchange), and `docs/AUTH-SETUP.md` + `.github/setup-auth.py` (sign-in setup). See **Authentication** below.
 
 - **Styling:** Tailwind via CDN (`cdn.tailwindcss.com`) configured inline with the **Cobblestone brand palette** (cyan `#27AAE1`, blue `#0074B4`, yellow `#FFC20E`, dark `#3D3D3D`, grey, light `#F8F9FB`, border `#E8ECF0`). Note: for white-on-gradient buttons/chips the gradient is darkened to `#0074B4→#005C90` for AA contrast, and load-bearing muted text uses `#6B6B6B` (not `#939393`) to pass AA. A `<style>` block holds CSS variables (`:root`), card/hover styles, language-dot colours, skeleton loaders, and the modal. Montserrat from Google Fonts.
 - **Layout:** white sticky header (logo on white so the dark wordmark stays legible) + org link; a live **stat bar** (repo count, languages, last-updated, published Pages — computed from the API, no vanity zeros); a sticky **controls bar** (a **Staff / Developer view toggle**, live search, dynamic filter chips, sort, forks/archived toggle) offset to the JS-measured `--header-h`; the **repo area** (`#repo-cards`); a **gists** section; and a minimal footer (`Internal repository hub · © 2026 Cobblestone Learning`, with the "Learning. Creativity. Trust." signature once).
@@ -32,7 +32,8 @@ The hub is `index.html` (one self-contained file). Alongside it the repo holds `
 - **Third-party libs (all CDN, pinned versions carry SRI `integrity` hashes):** Prism.js 1.27.0 (core + per-language components + line-numbers) and clipboard.js 2.0.10. Tailwind's CDN endpoint is dynamic/unversioned, so it intentionally has **no** SRI hash.
 
 Notes that matter when editing:
-- API calls are **unauthenticated** (GitHub's 60 req/hour-per-IP limit). The code shows a branded empty/fallback state when rate-limited rather than leaving the sections blank.
+- Signed out, API calls are **unauthenticated** (GitHub's 60 req/hour-per-IP limit); signed in they use the viewer's token (5,000/hour). The code shows a branded empty/fallback state when rate-limited rather than leaving the sections blank.
+- **Never list the organisation's repos with `/users/cobblestonelearning/repos`**: for an organisation it returns public repos only, even with a token. Use `/orgs/CobblestoneLearning/repos?type=all` (signed in) through `ghFetchAll`.
 - If you swap a pinned CDN URL, **recompute its SRI hash** (`curl -s URL | openssl dgst -sha512 -binary | openssl base64 -A`) or the browser will block the resource.
 - Modal content is injected via `innerHTML` from GitHub API responses; be mindful when touching the rendering code.
 - Headless Chrome enforces a ~500 px minimum top-level viewport, so naive `--window-size=390` screenshots crop a 500 px layout and look like overflow. Test true mobile via device emulation or an iframe-constrained width.

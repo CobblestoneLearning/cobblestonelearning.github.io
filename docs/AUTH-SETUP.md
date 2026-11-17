@@ -99,9 +99,13 @@ stays in public-only mode.
 - The **client secret** lives only as a Cloudflare secret in the worker — never in the repo or the
   page. (If a secret is ever committed to this public repo, GitHub will auto-revoke it; rotate it.)
 - The worker only answers `POST` from `ALLOWED_ORIGIN`; all other origins/methods are rejected.
-- The user's access token is held **in memory only** (a JS variable). It is not written to
-  `localStorage`/`sessionStorage`, so it's gone on reload/tab-close — a reload simply re-runs the
-  (near-instant) popup since GitHub remembers the authorization.
-- Sign-out clears the in-memory token and returns the hub to the public view.
+- On the hub (`index.html`) the user's access token is kept in **`sessionStorage`** (`cb_gh_token`),
+  so a page refresh does not force a new sign-in (GitHub asks for two-factor again on each fresh
+  OAuth round trip). It is checked against `/user` on load and is cleared when the tab closes, on
+  sign-out, or if GitHub rejects it. It is never written to `localStorage`. `manage.html` keeps its
+  broader admin token **in memory only**, so it is gone on reload.
+- Sign-out clears the token and returns the hub to the public view.
+- The OAuth app is **owned by the CobblestoneLearning organisation** (moved there on 2026-11-17).
+  The organisation restricts third-party apps, and only apps it owns get through, so keep it there.
 - A random `state` value is generated per login and verified on return (CSRF protection), and the
   `postMessage` handshake checks the message origin.
