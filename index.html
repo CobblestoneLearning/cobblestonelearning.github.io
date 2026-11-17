@@ -141,6 +141,9 @@
   .badge-fork { background: #FFF8E1; color: #8A6500; }
   /* Private repo / "private repos included" pill — amber, distinct from Live */
   .badge-private { background: #FFF8E1; color: #8A6500; border: 1px solid #F0E0A8; }
+  .badge-access { background: #E8F4FC; color: #0074B4; border: 1px solid #B9DDF3; }
+  .badge-personal { background: #F0F2F5; color: #3D3D3D; border: 1px solid #E8ECF0; }
+  .scope-n { font-size: 11px; font-weight: 700; opacity: .75; }
 
   /* ------- Toast (auth feedback) ------- */
   #toast-region {
@@ -522,6 +525,9 @@
 
         <!-- ===== Auth: signed-in control (hidden until login) ===== -->
         <div id="auth-user" class="hidden items-center gap-2 sm:gap-3">
+          <a id="manage-link" href="manage.html" class="hidden btn btn-ghost text-sm font-700 px-3.5 py-2 rounded-full items-center gap-1.5" title="People, access and activity (managers only)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Manage
+          </a>
           <span id="auth-private-pill" class="hidden sm:inline-flex badge badge-private items-center" title="Private organisation repositories are now included">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             Private repos included
@@ -615,6 +621,10 @@
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Developer view
           </button>
         </div>
+        <div id="scope-toggle" role="radiogroup" aria-label="Choose which repositories to show" class="hidden items-center bg-white border border-cborder rounded-full p-1 gap-1">
+          <button type="button" role="radio" aria-checked="true" data-scope="org" class="view-opt text-sm font-700 px-4 py-2 inline-flex items-center gap-1.5" title="Every repository in the CobblestoneLearning organisation">Organisation <span id="scope-org-n" class="scope-n"></span></button>
+          <button type="button" role="radio" aria-checked="false" data-scope="mine" class="view-opt text-sm font-700 px-4 py-2 inline-flex items-center gap-1.5" title="Your own repositories, and organisation repositories you have pushed to in the last 90 days">Mine <span id="scope-mine-n" class="scope-n"></span></button>
+        </div>
         <span class="hidden sm:inline text-xs text-greytext font-600" id="view-hint">Grouped by what each project does — pick a tool and open it.</span>
       </div>
       <div class="flex flex-col sm:flex-row gap-3">
@@ -672,7 +682,7 @@
 <section id="gists" class="bg-white border-t border-cborder">
   <div class="max-w-[1400px] mx-auto px-4 sm:px-8 py-11 sm:py-12">
     <div class="flex items-baseline justify-between gap-4 mb-5">
-      <h2 class="text-lg sm:text-xl font-800 tracking-tight">Gists</h2>
+      <h2 id="gists-heading" class="text-lg sm:text-xl font-800 tracking-tight">Gists</h2>
       <p id="gist-count" class="text-sm font-600 text-greytext" aria-hidden="true"></p>
     </div>
     <p id="gist-status" class="sr-only" role="status" aria-live="polite">Loading gists…</p>
@@ -740,16 +750,65 @@ function ghFetch(url, opts) {
   return fetch(url, Object.assign({}, opts, { headers: h }));
 }
 
-/* cobblestonelearning has been an ORGANISATION since 2026-11-16. /users/... still lists its
-   public repos (that endpoint works for organisations too), and staff see private repos via
-   affiliation=organization_member.
-   Public repos always come from the user endpoint; when signed in we ALSO pull the
-   private repos the viewer can access via /user/repos and merge them in. */
-function publicReposUrl() {
-  return 'https://api.github.com/users/cobblestonelearning/repos?per_page=100&sort=updated';
+/* CobblestoneLearning has been an ORGANISATION since 2026-11-16. The sign-in OAuth app is
+   owned by the organisation, so the org's third-party restriction does not apply to it.
+   Signed out: the org's public repos. Signed in: every org repo the viewer can see (members
+   see all of them, base permission Read) plus the viewer's own repos, shown as "Personal".
+   Every list is paginated: there are more than 100 repos. */
+var ORG = 'CobblestoneLearning';
+function orgReposUrl(signedIn) {
+  return 'https://api.github.com/orgs/' + ORG + '/repos?per_page=100&sort=updated&type=' + (signedIn ? 'all' : 'public');
 }
-function privateReposUrl() {
-  return 'https://api.github.com/user/repos?per_page=100&sort=updated&visibility=private&affiliation=owner,collaborator,organization_member';
+function personalReposUrl() {
+  return 'https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner';
+}
+
+/* Fetch every page of a GitHub list endpoint by following the Link: rel="next" header.
+   maxPages caps runaway loops (and the events feed, which GitHub caps at 3 pages). */
+function ghFetchAll(url, maxPages) {
+  var out = [], pages = 0, cap = maxPages || 20;
+  function step(u) {
+    return ghFetch(u).then(function (r) {
+      if (!r.ok) { var e = new Error('GitHub API responded ' + r.status); e.status = r.status; throw e; }
+      var link = r.headers.get('Link') || '';
+      return r.json().then(function (data) {
+        if (Array.isArray(data)) out = out.concat(data);
+        pages++;
+        var m = link.match(/<([^>]+)>;\s*rel="next"/);
+        return (m && pages < cap) ? step(m[1]) : out;
+      });
+    });
+  }
+  return step(url);
+}
+
+/* "owner/name" for a repo shown on the page (personal repos are not under the org). */
+function repoFull(name) {
+  for (var i = 0; i < ALL_REPOS.length; i++) {
+    if (ALL_REPOS[i].name === name && !ALL_REPOS[i]._personal) return ALL_REPOS[i].full_name;
+  }
+  for (var j = 0; j < ALL_REPOS.length; j++) {
+    if (ALL_REPOS[j].name === name) return ALL_REPOS[j].full_name;
+  }
+  return ORG + '/' + name;
+}
+
+/* What the signed-in viewer can do in a repo, from the API's permissions block. */
+function accessLabel(repo) {
+  var p = repo && repo.permissions;
+  if (!ghToken || !p) return '';
+  if (p.admin) return 'Admin';
+  if (p.maintain) return 'Maintain';
+  if (p.push) return 'Write';
+  if (p.triage) return 'Triage';
+  return 'Read';
+}
+function scopeBadges(repo) {
+  var b = '';
+  if (repo._personal) b += '<span class="badge badge-personal" title="On your own GitHub account, not the organisation">Personal</span>';
+  var a = accessLabel(repo);
+  if (a && !repo._personal) b += '<span class="badge badge-access" title="Your access to this repository">' + escapeHtml(a) + '</span>';
+  return b;
 }
 
 /* ============================================================
@@ -999,6 +1058,32 @@ var ALL_REPOS = [];
 var FILTERS = { search: '', lang: '__all', cat: '__all', integration: '__all', sort: 'updated', showExtra: false };
 /* 'staff' (group by purpose, default) | 'dev' (today's full developer view). UI
    preference only — persisted to localStorage (never the OAuth token). */
+/* 'org' (the organisation's repos, default) | 'mine' (signed in only: the viewer's own repos
+   plus org repos they pushed to recently). Persisted like VIEW. */
+var SCOPE = 'org';
+try { if (localStorage.getItem('cb_scope') === 'mine') SCOPE = 'mine'; } catch (e) {}
+function scopedRepos() {
+  if (SCOPE === 'mine' && ghToken) return ALL_REPOS.filter(function (r) { return r._mine; });
+  return ALL_REPOS.filter(function (r) { return !r._personal; });
+}
+/* Show the Organisation / Mine switch only when signed in, with counts. */
+function updateScopeUI(data) {
+  var box = document.getElementById('scope-toggle');
+  if (!box) return;
+  var on = !!ghToken;
+  box.classList.toggle('hidden', !on);
+  box.classList.toggle('inline-flex', on);
+  if (!on) return;
+  var orgN = 0, mineN = 0;
+  (data || ALL_REPOS).forEach(function (r) { if (!r._personal) orgN++; if (r._mine) mineN++; });
+  var o = document.getElementById('scope-org-n'), m = document.getElementById('scope-mine-n');
+  if (o) o.textContent = orgN;
+  if (m) m.textContent = mineN;
+  box.querySelectorAll('.view-opt').forEach(function (b) {
+    b.setAttribute('aria-checked', String(b.getAttribute('data-scope') === SCOPE));
+  });
+}
+
 var VIEW = 'staff';
 try { var _savedView = localStorage.getItem('cb_view'); if (_savedView === 'staff' || _savedView === 'dev') VIEW = _savedView; } catch (e) {}
 
@@ -1017,17 +1102,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ---- Repos: restore a persisted GitHub session if present, else public-first ---- */
   restoreSessionThenLoad();
+});
 
-  /* ---- Gists ---- */
-  ghFetch('https://api.github.com/users/cobblestonelearning/gists')
-    .then(function (response) {
-      if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
-      return response.json();
-    })
+/* ============================================================
+   Gists. Organisations cannot own gists, so signed out there is nothing to list;
+   signed in, this shows the viewer's own gists. The team's old shared gists are kept
+   in the private repo csl-gists.
+   ============================================================ */
+function loadGists() {
+  var gistCards = document.getElementById('gist-cards');
+  var gistStatus = document.getElementById('gist-status');
+  var heading = document.getElementById('gists-heading');
+  if (!gistCards) return;
+  if (heading) heading.textContent = ghToken ? 'Your gists' : 'Gists';
+  if (!ghToken) {
+    emptyState(gistCards, gistStatus, 'Sign in to see your gists',
+      'Organisations cannot own gists, so gists live on each person\'s own account. The team\'s old shared snippets are in the csl-gists repository.', false);
+    document.getElementById('gist-count').textContent = '';
+    return;
+  }
+  showRepoSkeletons(gistCards, 3);
+  ghFetchAll('https://api.github.com/gists?per_page=100', 3)
     .then(function (data) {
       if (!Array.isArray(data) || data.length === 0) {
         emptyState(gistCards, gistStatus, 'No gists yet',
-          'This organisation has not published any public gists.', false);
+          'You have no gists on your GitHub account. The team\'s old shared snippets are in the csl-gists repository.', false);
         document.getElementById('gist-count').textContent = '';
         return;
       }
@@ -1035,19 +1134,16 @@ document.addEventListener('DOMContentLoaded', function () {
     })
     .catch(function (error) {
       console.error('Error fetching GitHub gists:', error);
-      var rl = error && error.status === 403;
-      emptyState(gistCards, gistStatus,
-        rl ? 'GitHub rate limit reached' : 'Could not load gists',
-        rl ? 'The unauthenticated GitHub API is temporarily rate-limited. Wait a few minutes and retry.'
-           : 'We could not reach GitHub just now. Please try again in a little while.',
-        rl);
+      emptyState(gistCards, gistStatus, 'Could not load gists',
+        'We could not reach GitHub just now. Please try again in a little while.', false);
     });
-});
+}
 
 /* ============================================================
    Repos loader (reusable — called on load and after sign-in/out)
    ============================================================ */
 function loadRepos() {
+  loadGists();
   var repoCards = document.getElementById('repo-cards');
   var repoStatus = document.getElementById('repo-status');
 
@@ -1065,29 +1161,47 @@ function loadRepos() {
     return response.json();
   }
 
-  /* Public list is always fetched (works signed-out). When signed in, also fetch the
-     private repos the viewer can access — but never let a private-fetch failure break
-     the public view (swallow it to []). */
-  var publicReq = ghFetch(publicReposUrl()).then(okJson);
-  var privateReq = ghToken
-    ? ghFetch(privateReposUrl()).then(okJson).catch(function () { return []; })
+  /* Signed out: the org's public repos. Signed in: every org repo the viewer can see, their
+     own repos, and their recent activity (to work out "Mine"). If the signed-in org fetch
+     fails, fall back to the public list; the personal and activity fetches never break it. */
+  var signedIn = !!ghToken;
+  var me = (CBUSER && CBUSER.login) || '';
+  var orgReq = ghFetchAll(orgReposUrl(signedIn));
+  if (signedIn) orgReq = orgReq.catch(function () { return ghFetchAll(orgReposUrl(false)); });
+  var personalReq = signedIn
+    ? ghFetchAll(personalReposUrl()).catch(function () { return []; })
+    : Promise.resolve([]);
+  var eventsReq = (signedIn && me)
+    ? ghFetchAll('https://api.github.com/users/' + encodeURIComponent(me) + '/events?per_page=100', 3).catch(function () { return []; })
     : Promise.resolve([]);
 
-  Promise.all([publicReq, privateReq])
+  Promise.all([orgReq, personalReq, eventsReq])
     .then(function (parts) {
       hideFullscreenLoader();
       var skel = document.getElementById('lang-chip-skeleton');
       if (skel) skel.remove();
+      /* Org repos the viewer has pushed to or created in the last ~90 days. */
+      var worked = {};
+      (parts[2] || []).forEach(function (ev) {
+        if (ev && ev.repo && ev.repo.name && /^(Push|Create|PullRequest|Release)Event$/.test(ev.type)) worked[ev.repo.name.toLowerCase()] = true;
+      });
       var seen = {}, data = [];
-      (Array.isArray(parts[0]) ? parts[0] : [])
-        .concat(Array.isArray(parts[1]) ? parts[1] : [])
-        .forEach(function (r) {
-          if (!r || !r.owner || !r.owner.login) return;
-          if (r.owner.login.toLowerCase() !== 'cobblestonelearning') return; // only this account's repos
-          if (seen[r.id]) return;
-          seen[r.id] = true;
-          data.push(r);
-        });
+      (parts[0] || []).forEach(function (r) {
+        if (!r || !r.owner || !r.owner.login || seen[r.id]) return;
+        if (r.owner.login.toLowerCase() !== ORG.toLowerCase()) return;
+        seen[r.id] = true;
+        r._mine = !!worked[(r.full_name || '').toLowerCase()];
+        data.push(r);
+      });
+      (parts[1] || []).forEach(function (r) {
+        if (!r || !r.owner || seen[r.id]) return;
+        if (!me || r.owner.login.toLowerCase() !== me.toLowerCase()) return;   // the viewer's own account only
+        seen[r.id] = true;
+        r._personal = true;
+        r._mine = true;
+        data.push(r);
+      });
+      updateScopeUI(data);
       data.sort(function (a, b) {
         return new Date(b.updated_at || b.pushed_at || 0) - new Date(a.updated_at || a.pushed_at || 0);
       });
@@ -1100,7 +1214,7 @@ function loadRepos() {
         return;
       }
       ALL_REPOS = data;
-      computeStats(data);
+      computeStats(data.filter(function (r) { return !r._personal; }));
       renderChips();
       applyFilters();
     })
@@ -1352,11 +1466,11 @@ function computeStats(repos) {
 function renderChips() {
   var integ = document.getElementById('integration-filter');
   if (VIEW === 'dev') {
-    buildLangChips(ALL_REPOS);
+    buildLangChips(scopedRepos());
     if (integ) { integ.classList.add('hidden'); integ.innerHTML = ''; }
   } else {
-    buildCategoryChips(ALL_REPOS);
-    buildIntegrationChips(ALL_REPOS);
+    buildCategoryChips(scopedRepos());
+    buildIntegrationChips(scopedRepos());
     updateChipStates();
   }
 }
@@ -1509,6 +1623,20 @@ function wireControls() {
     applyFilters();
   });
 
+  var scopeToggle = document.getElementById('scope-toggle');
+  if (scopeToggle) scopeToggle.addEventListener('click', function (e) {
+    var b = e.target.closest('.view-opt');
+    if (!b) return;
+    var sc = b.getAttribute('data-scope');
+    if (!sc || sc === SCOPE) return;
+    SCOPE = sc;
+    try { localStorage.setItem('cb_scope', SCOPE); } catch (e2) {}
+    updateScopeUI();
+    FILTERS.lang = '__all'; FILTERS.cat = '__all'; FILTERS.integration = '__all';
+    renderChips();
+    applyFilters();
+  });
+
   wireChipRow();
   applyViewUI();
 }
@@ -1527,7 +1655,7 @@ function repoMatchesSearch(r) {
    The other live filters (search + forks/archived) still apply. Used both to
    render the list and to decide which chips would still yield projects. */
 function staffListFor(catVal, integVal) {
-  return ALL_REPOS.filter(function (r) {
+  return scopedRepos().filter(function (r) {
     if (!FILTERS.showExtra && (r.fork || r.archived)) return false;
     if (catVal !== '__all' && categoryForRepo(r) !== catVal) return false;
     if (integVal !== '__all' && integrationsForRepo(r).indexOf(integVal) === -1) return false;
@@ -1560,7 +1688,7 @@ function updateChipStates() {
 }
 
 function applyFilters() {
-  var list = ALL_REPOS.slice();
+  var list = scopedRepos();
 
   if (!FILTERS.showExtra) {
     list = list.filter(function (r) { return !r.fork && !r.archived; });
@@ -1609,7 +1737,7 @@ function renderRepos(list) {
   container.setAttribute('aria-busy', 'false');
   container.className = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5';
 
-  var total = ALL_REPOS.length;
+  var total = scopedRepos().length;
   var shown = list.length;
   countEl.textContent = shown === total ? shown + ' shown' : shown + ' of ' + total + ' shown';
   announceStatus(statusEl, shown === 0
@@ -1660,7 +1788,7 @@ function renderStaffView(list) {
   var countEl = document.getElementById('repo-count');
   container.setAttribute('aria-busy', 'false');
 
-  var total = ALL_REPOS.length;
+  var total = scopedRepos().length;
   var shown = list.length;
   countEl.textContent = shown === total ? shown + ' shown' : shown + ' of ' + total + ' shown';
   announceStatus(statusEl, shown === 0
@@ -1730,6 +1858,7 @@ function buildStaffCard(repo, idx) {
     badges += '<span class="badge badge-private" title="Private — visible because you are signed in">' +
       '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Private</span>';
   }
+  badges += scopeBadges(repo);
   if (live) {
     badges += '<span class="badge badge-live"><span class="w-1.5 h-1.5 rounded-full" style="background:#2D9E5A" aria-hidden="true"></span>Live</span>';
   }
@@ -1780,6 +1909,7 @@ function buildRepoCard(repo, idx) {
     badges += '<span class="badge badge-private" title="Private repository — visible because you are signed in">' +
       '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Private</span>';
   }
+  badges += scopeBadges(repo);
   /* Only show a "Live" badge for repos that actually publish Pages. Private
      repos without Pages must not get one. */
   if (repo.has_pages) {
@@ -1960,7 +2090,7 @@ var modalClipboard = null;
 function fetchRepoDetails(repoName) {
   /* preserve the trigger focus across the async detail render */
   if (!modal.classList.contains('open')) lastFocused = document.activeElement;
-  ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName)
+  ghFetch('https://api.github.com/repos/' + repoFull(repoName))
     .then(function (response) {
       if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
       return response.json();
@@ -1980,13 +2110,13 @@ function fetchRepoDetails(repoName) {
 /* Fetch GitHub-rendered (sanitized) HTML for the two docs. README uses the html
    media type; CLREADME is fetched raw then rendered via the /markdown endpoint. */
 function fetchRenderedReadme(repoName) {
-  return ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/readme',
+  return ghFetch('https://api.github.com/repos/' + repoFull(repoName) + '/readme',
                  { headers: { 'Accept': 'application/vnd.github.html' } })
     .then(function (r) { return r.ok ? r.text() : null; })
     .catch(function () { return null; });
 }
 function fetchRenderedCLReadme(repoName) {
-  return ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/CLREADME.md')
+  return ghFetch('https://api.github.com/repos/' + repoFull(repoName) + '/contents/CLREADME.md')
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (j) {
       if (!j || !j.content) return null;
@@ -1996,7 +2126,7 @@ function fetchRenderedCLReadme(repoName) {
       return ghFetch('https://api.github.com/markdown', {
         method: 'POST',
         headers: { 'Accept': 'application/vnd.github.html', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: md, mode: 'gfm', context: 'cobblestonelearning/' + repoName })
+        body: JSON.stringify({ text: md, mode: 'gfm', context: repoFull(repoName) })
       }).then(function (r) { return r.ok ? r.text() : null; })
         .then(function (html) { return { html: html || '', raw: md, sha: sha }; });
     })
@@ -2186,7 +2316,7 @@ function enhanceSharedNotes(body, repo, data, onChange){
     var newRaw = replaceSharedNotes(state.raw, newNotes), content = safeBtoa(newRaw);
     if (content == null){ showToast('Could not encode the note.'); return; }
     wrap.classList.add('cbnote-busy');
-    ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/CLREADME.md', {
+    ghFetch('https://api.github.com/repos/' + repoFull(repoName) + '/contents/CLREADME.md', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: msg, content: content, sha: state.sha, branch: repo.default_branch || 'main' })
     }).then(function(r){ if (!r.ok){ var er = new Error('PUT ' + r.status); er.status = r.status; throw er; } return r.json(); })
@@ -2262,7 +2392,7 @@ function openDemo(repo){
   document.addEventListener('keydown', onKey);
   ov.querySelector('.demo-close').onclick = close;
   var apiPath = path.split('/').map(encodeURIComponent).join('/');
-  var base = 'https://api.github.com/repos/cobblestonelearning/' + repo.name + '/contents/' + apiPath;
+  var base = 'https://api.github.com/repos/' + repoFull(repo.name) + '/contents/' + apiPath;
   /* One authenticated request with the raw media type + cache:no-store (defeats the
      stale-JSON cache). If it still comes back as JSON, decode the base64 content
      (≤1MB) or fall back to the pre-signed download_url (larger files). */
@@ -2500,7 +2630,7 @@ function showRepoExplore(repo) {
       appendAction(actionsLoading);
 
       /* README */
-      ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/readme')
+      ghFetch('https://api.github.com/repos/' + repoFull(repoName) + '/readme')
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (readme) {
           if (readme && readme.content) {
@@ -2526,7 +2656,7 @@ function showRepoExplore(repo) {
         .then(settleAction);
 
       /* index.html preview */
-      ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/index.html')
+      ghFetch('https://api.github.com/repos/' + repoFull(repoName) + '/contents/index.html')
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (indexFile) {
           if (indexFile && indexFile.download_url) {
@@ -2657,7 +2787,7 @@ function buildTreeList(repoName, contents, isRoot) {
 }
 
 function fetchFileStructure(repoName, path) {
-  ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/' + path)
+  ghFetch('https://api.github.com/repos/' + repoFull(repoName) + '/contents/' + path)
     .then(function (response) {
       if (!response.ok) throw new Error('GitHub API responded ' + response.status);
       return response.json();
@@ -2680,7 +2810,7 @@ function fetchFileStructure(repoName, path) {
 }
 
 function fetchFileStructureInto(repoName, path, parentLi) {
-  ghFetch('https://api.github.com/repos/cobblestonelearning/' + repoName + '/contents/' + path)
+  ghFetch('https://api.github.com/repos/' + repoFull(repoName) + '/contents/' + path)
     .then(function (response) {
       if (!response.ok) throw new Error('GitHub API responded ' + response.status);
       return response.json();
@@ -2802,6 +2932,20 @@ function setSignedInUI(login, avatarUrl) {
     avatar.alt = login ? (login + ' avatar') : 'GitHub avatar';
   }
   if (loginEl) loginEl.textContent = login || '';   /* textContent escapes */
+  /* Show "Manage" to owners and members of the managers team. GitHub enforces the real
+     permissions; this only decides whether the link is worth showing. */
+  var manage = document.getElementById('manage-link');
+  if (manage && login) {
+    ghFetch('https://api.github.com/user/memberships/orgs/' + ORG)
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (m) {
+        if (m && m.role === 'admin') return true;
+        return ghFetch('https://api.github.com/orgs/' + ORG + '/teams/managers/memberships/' + encodeURIComponent(login))
+          .then(function (r) { return r.ok; });
+      })
+      .then(function (ok) { if (ok && ghToken) { manage.classList.remove('hidden'); manage.classList.add('inline-flex'); } })
+      .catch(function () {});
+  }
 }
 
 function setSignedOutUI() {
@@ -2814,6 +2958,8 @@ function setSignedOutUI() {
   if (user) { user.classList.add('hidden'); user.classList.remove('flex'); }
   if (avatar) { avatar.src = ''; avatar.alt = ''; }
   if (loginEl) loginEl.textContent = '';
+  var manage = document.getElementById('manage-link');
+  if (manage) { manage.classList.add('hidden'); manage.classList.remove('inline-flex'); }
 }
 
 function wireAuth() {
