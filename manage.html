@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Manage · Cobblestone Learning Repository Hub</title>
+<meta name="description" content="Managers-only page for the Cobblestone Learning GitHub organisation: people, teams, repository access and activity." />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="no-referrer" />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+
+<!-- Tailwind (Play CDN, no SRI: it is dynamic). Same config as index.html. -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        screens: { xs: '425px' },
+        colors: {
+          cyan: '#27AAE1',
+          cblue: '#0074B4',
+          yellow: '#FFC20E',
+          dark: '#3D3D3D',
+          grey: '#939393',
+          greytext: '#6B6B6B',
+          lightbg: '#F8F9FB',
+          cborder: '#E8ECF0'
+        },
+        fontFamily: { sans: ['Montserrat', 'Helvetica', 'Arial', 'sans-serif'] },
+        fontWeight: { '300': '300', '400': '400', '600': '600', '700': '700', '800': '800' }
+      }
+    }
+  };
+</script>
+
+<style>
+  :root {
+    --cyan: #27AAE1; --cblue: #0074B4; --yellow: #FFC20E; --dark: #3D3D3D; --grey: #939393;
+    --greytext: #6B6B6B; --lightbg: #F8F9FB; --cborder: #E8ECF0; --red: #C0392B; --green: #1E7D44;
+  }
+  [hidden] { display: none !important; }
+  html, body { max-width: 100%; overflow-x: hidden; }
+  body { font-family: 'Montserrat', Helvetica, Arial, sans-serif; color: var(--dark); background: var(--lightbg); }
+  *, *::before, *::after { box-sizing: border-box; }
+  ::selection { background: rgba(39,170,225,0.25); }
+  a { color: var(--cblue); }
+  .muted { color: var(--greytext); }
+
+  .surface { background: #fff; border: 1px solid var(--cborder); border-radius: 16px; }
+  .card-title { font-size: 15px; font-weight: 700; color: var(--dark); }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; border-radius: 9999px; cursor: pointer;
+    transition: transform .2s ease, box-shadow .25s ease, background .25s ease, color .2s ease, border-color .2s ease; white-space: nowrap; }
+  .btn-primary { background: linear-gradient(135deg, #0074B4, #005C90); color: #fff; box-shadow: 0 8px 20px -10px rgba(0,116,180,0.7); border: 1.5px solid transparent; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 14px 26px -10px rgba(0,116,180,0.85); }
+  .btn-ghost { background: #fff; color: var(--cblue); border: 1.5px solid var(--cborder); }
+  .btn-ghost:hover { border-color: var(--cyan); }
+  .btn-danger { background: #fff; color: var(--red); border: 1.5px solid #F2C4BE; }
+  .btn-danger:hover { background: #FDF1EF; border-color: var(--red); }
+  .btn-danger-solid { background: var(--red); color: #fff; border: 1.5px solid var(--red); }
+  .btn-danger-solid:hover { background: #A93226; }
+  .btn-sm { font-size: 12px; padding: 5px 11px; }
+  .btn-md { font-size: 14px; padding: 9px 18px; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; transform: none !important; box-shadow: none; }
+
+  /* Form fields */
+  .field { background: #fff; border: 1.5px solid var(--cborder); border-radius: 10px; padding: 8px 12px; font-size: 14px; color: var(--dark); min-height: 40px; }
+  .field:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(39,170,225,0.15); outline: none; }
+  .field-sm { padding: 4px 8px; font-size: 13px; min-height: 32px; }
+  .label { display: block; font-size: 12px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+
+  /* Badges */
+  .badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; padding: 3px 9px; border-radius: 9999px;
+    display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .b-blue { background: #E8F4FC; color: var(--cblue); }
+  .b-grey { background: #F0F2F5; color: var(--greytext); }
+  .b-amber { background: #FFF8E1; color: #8A6500; border: 1px solid #F0E0A8; }
+  .b-green { background: #F0FAF3; color: var(--green); border: 1px solid #B7E4C5; }
+  .b-red { background: #FDF1EF; color: var(--red); border: 1px solid #F2C4BE; }
+  .b-cyan { background: linear-gradient(135deg,#0074B4,#005C90); color: #fff; }
+
+  /* Callouts */
+  .note { border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.55; }
+  .note-info { background: #E8F4FC; border: 1px solid #B9DDF3; }
+  .note-warn { background: #FFF8E1; border: 1px solid #FFE08A; }
+  .note-error { background: #FDF1EF; border: 1px solid #F2C4BE; color: #8E2A20; }
+
+  /* Tabs */
+  .tab { font-size: 14px; font-weight: 700; color: var(--greytext); padding: 12px 4px 10px; border-bottom: 3px solid transparent; white-space: nowrap; background: none; cursor: pointer; }
+  .tab:hover { color: var(--cblue); }
+  .tab[aria-selected="true"] { color: var(--dark); border-bottom-color: var(--cyan); }
+  .tab:focus-visible { outline-offset: -3px !important; }
+
+  /* Tables */
+  .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tbl th { text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--greytext);
+    padding: 8px 10px; border-bottom: 2px solid var(--cborder); white-space: nowrap; background: #fff; }
+  .tbl td { padding: 9px 10px; border-bottom: 1px solid var(--cborder); vertical-align: middle; }
+  .tbl tbody tr:hover { background: #F4FBFE; }
+  .tbl .sort-btn { font: inherit; text-transform: inherit; letter-spacing: inherit; color: inherit; background: none; border: 0; cursor: pointer; display: inline-flex; gap: 4px; align-items: center; padding: 0; }
+  .tbl .sort-btn:hover { color: var(--cblue); }
+  .scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .avatar { width: 28px; height: 28px; border-radius: 9999px; border: 1px solid var(--cborder); background: var(--lightbg); flex: none; }
+  .linkish { color: var(--cblue); font-weight: 700; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+  .linkish:hover { text-decoration: underline; text-underline-offset: 2px; }
+  code.ref { font-size: 12px; background: #F0F2F5; border-radius: 6px; padding: 1px 6px; }
+
+  /* Stat tiles */
+  .stat { background: #fff; border: 1px solid var(--cborder); border-radius: 14px; padding: 14px 16px; }
+  .stat .n { font-size: 26px; font-weight: 800; color: var(--dark); line-height: 1.1; }
+  .stat .l { font-size: 12px; font-weight: 600; color: var(--greytext); margin-top: 2px; }
+
+  /* Spinner + skeleton */
+  .spin { width: 26px; height: 26px; border: 3px solid var(--cborder); border-top-color: var(--cyan); border-radius: 50%; animation: s .8s linear infinite; }
+  @keyframes s { to { transform: rotate(360deg); } }
+  .skeleton { background: linear-gradient(100deg, #E8ECF0 30%, #F8F9FB 50%, #E8ECF0 70%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; height: 14px; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  /* Toast (visual only; screen readers get #live) */
+  #toast-region { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 80; display: flex; flex-direction: column; gap: 8px; align-items: center;
+    width: max-content; max-width: calc(100vw - 32px); pointer-events: none; }
+  .toast { background: #3D3D3D; color: #fff; font-size: 13px; font-weight: 600; padding: 10px 16px; border-radius: 10px; box-shadow: 0 14px 34px -14px rgba(0,0,0,.55);
+    max-width: 100%; display: inline-flex; align-items: center; gap: 8px; animation: toastIn .25s cubic-bezier(.16,.84,.44,1); }
+  .toast .dot { width: 8px; height: 8px; border-radius: 9999px; background: var(--cyan); flex: none; }
+  .toast.err .dot { background: #F2C4BE; }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  /* Dialogs */
+  dialog.dlg { border: 0; padding: 0; border-radius: 16px; width: calc(100vw - 32px); max-width: 520px; color: var(--dark); box-shadow: 0 30px 80px -30px rgba(0,0,0,.5); }
+  dialog.dlg-wide { max-width: 900px; max-height: calc(100vh - 32px); }
+  dialog.dlg::backdrop { background: rgba(61,61,61,.5); }
+  .dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px 12px; border-bottom: 3px solid var(--cyan); position: sticky; top: 0; background: #fff; z-index: 1; }
+
+  /* Chart */
+  .chart-wrap { position: relative; }
+  .chart-tip { position: absolute; pointer-events: none; background: #3D3D3D; color: #fff; font-size: 12px; font-weight: 600; padding: 6px 9px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, -110%); }
+
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible {
+    outline: 3px solid rgba(39,170,225,0.6); outline-offset: 2px; border-radius: 6px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn, .toast, .spin, .skeleton { transition: none !important; animation: none !important; }
+    .btn:hover { transform: none !important; }
+  }
+</style>
+</head>
+<body class="bg-lightbg text-dark antialiased">
+
+<a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-3 focus:left-3 focus:bg-white focus:text-cblue focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg">Skip to content</a>
+
+<!-- ============ HEADER ============ -->
+<header class="sticky top-0 z-50 bg-white border-b border-cborder">
+  <div class="max-w-[1400px] mx-auto px-4 sm:px-8">
+    <div class="flex items-center justify-between h-[68px] gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <a href="index.html" class="shrink-0"><img src="cobblestone-logo.png" alt="Cobblestone Learning repository hub" class="h-9 sm:h-10 w-auto" width="1870" height="769" decoding="async" /></a>
+        <span class="hidden sm:inline-block h-7 w-px bg-cborder mx-1" aria-hidden="true"></span>
+        <span class="inline-flex items-center gap-2 text-xs font-700 tracking-wide uppercase text-greytext">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan" aria-hidden="true"></span>Manage
+        </span>
+      </div>
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <a href="index.html" class="hidden md:inline-flex items-center gap-1.5 text-sm font-600 text-greytext hover:text-cblue px-3 py-2 rounded-lg">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to the hub
+        </a>
+        <a href="index.html" class="md:hidden text-sm font-600 text-greytext hover:text-cblue px-2 py-2" aria-label="Back to the hub">Hub</a>
+        <div id="auth-user" class="hidden items-center gap-2 sm:gap-3">
+          <img id="auth-avatar" src="" alt="" class="w-8 h-8 rounded-full border border-cborder bg-lightbg" width="32" height="32" />
+          <span id="auth-login" class="hidden sm:inline text-sm font-700 truncate max-w-[120px]"></span>
+          <button id="signout-btn" type="button" class="btn btn-ghost btn-md" aria-label="Sign out of GitHub">Sign out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+
+  <!-- ===== Sign in ===== -->
+  <section id="view-signin" class="max-w-[1400px] mx-auto px-4 sm:px-8 py-12 sm:py-20">
+    <div class="surface max-w-lg mx-auto p-6 sm:p-8">
+      <h1 class="text-2xl font-800 tracking-tight mb-2">Manage the organisation</h1>
+      <p class="muted text-sm leading-relaxed mb-5">People, teams, repository access and activity for the CobblestoneLearning organisation on GitHub. This page is for Cobblestone owners and managers.</p>
+      <p id="signin-msg" class="note note-error mb-4" hidden></p>
+      <button id="signin-btn" type="button" class="btn btn-primary btn-md w-full sm:w-auto">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.05.78 2.12 0 1.53-.01 2.77-.01 3.15 0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>
+        Sign in with GitHub
+      </button>
+      <div class="note note-info mt-5">
+        <p class="font-700 mb-1">You'll be asked to sign in again after a refresh; this is deliberate.</p>
+        <p>This page asks GitHub for organisation administration access (<code class="ref">admin:org</code>), which can change who is in the organisation. To keep that safe on a public website, the access is held only while this page is open and is never saved in your browser. Signing out removes it straight away.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Loading ===== -->
+  <section id="view-loading" class="max-w-[1400px] mx-auto px-4 sm:px-8 py-20" hidden>
+    <div class="flex flex-col items-center gap-4 text-center">
+      <div class="spin" aria-hidden="true"></div>
+      <p id="loading-msg" class="font-600">Checking your access…</p>
+    </div>
+  </section>
+
+  <!-- ===== Not allowed ===== -->
+  <section id="view-denied" class="max-w-[1400px] mx-auto px-4 sm:px-8 py-12 sm:py-20" hidden>
+    <div class="surface max-w-lg mx-auto p-6 sm:p-8">
+      <h1 class="text-2xl font-800 tracking-tight mb-2">This page is for Cobblestone managers</h1>
+      <p id="denied-msg" class="muted text-sm leading-relaxed mb-5"></p>
+      <div class="flex flex-wrap gap-3">
+        <a href="index.html" class="btn btn-primary btn-md no-underline" style="color:#fff">Back to the hub</a>
+        <button type="button" class="btn btn-ghost btn-md" data-signout>Sign out</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== App ===== -->
+  <div id="view-app" hidden>
+    <section class="bg-white border-b border-cborder">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-8 pt-7">
+        <div class="flex flex-wrap items-center gap-3 mb-1">
+          <h1 class="text-2xl sm:text-3xl font-800 tracking-tight">Manage the organisation</h1>
+          <span id="role-pill" class="badge b-blue"></span>
+        </div>
+        <p class="muted text-sm mb-3">CobblestoneLearning on GitHub: people, teams, repository access and activity.</p>
+        <div id="app-notes" class="space-y-2 mb-3"></div>
+        <div role="tablist" aria-label="Management sections" id="tablist" class="flex gap-5 sm:gap-7 overflow-x-auto -mb-px">
+          <button role="tab" type="button" class="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true">Overview</button>
+          <button role="tab" type="button" class="tab" id="tab-people" aria-controls="panel-people" aria-selected="false" tabindex="-1">People</button>
+          <button role="tab" type="button" class="tab" id="tab-teams" aria-controls="panel-teams" aria-selected="false" tabindex="-1">Teams</button>
+          <button role="tab" type="button" class="tab" id="tab-repos" aria-controls="panel-repos" aria-selected="false" tabindex="-1">Repositories</button>
+          <button role="tab" type="button" class="tab" id="tab-activity" aria-controls="panel-activity" aria-selected="false" tabindex="-1">Activity</button>
+        </div>
+      </div>
+    </section>
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
+      <div role="tabpanel" id="panel-overview" aria-labelledby="tab-overview" tabindex="0" class="space-y-5"></div>
+      <div role="tabpanel" id="panel-people" aria-labelledby="tab-people" tabindex="0" class="space-y-5" hidden></div>
+      <div role="tabpanel" id="panel-teams" aria-labelledby="tab-teams" tabindex="0" class="space-y-5" hidden></div>
+      <div role="tabpanel" id="panel-repos" aria-labelledby="tab-repos" tabindex="0" class="space-y-5" hidden></div>
+      <div role="tabpanel" id="panel-activity" aria-labelledby="tab-activity" tabindex="0" class="space-y-5" hidden></div>
+    </div>
+  </div>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-white border-t border-cborder mt-6">
+  <div class="max-w-[1400px] mx-auto px-4 sm:px-8 py-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left">
+      <div class="flex items-center gap-3">
+        <img src="cobblestone-logo.png" alt="Cobblestone Learning logo" class="h-8 w-auto" width="1870" height="769" loading="lazy" decoding="async" />
+        <span class="hidden sm:inline-block h-6 w-px bg-cborder" aria-hidden="true"></span>
+        <span class="text-xs font-600 tracking-wide text-greytext">Learning. Creativity. Trust.</span>
+      </div>
+      <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-5 text-xs muted">
+        <a href="https://github.com/cobblestonelearning" target="_blank" rel="noopener" class="font-700 text-cblue hover:underline underline-offset-2">github.com/cobblestonelearning</a>
+        <span class="font-600">Internal repository hub &middot; &copy; 2026 Cobblestone Learning</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<p id="live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+<div id="toast-region" aria-hidden="true"></div>
+
+<!-- Confirm dialog (used for every destructive or powerful change) -->
+<dialog id="confirm-dlg" class="dlg" aria-labelledby="confirm-title" aria-describedby="confirm-body">
+  <div class="p-5 sm:p-6">
+    <h2 id="confirm-title" class="text-lg font-800 mb-2"></h2>
+    <p id="confirm-body" class="text-sm leading-relaxed"></p>
+    <p id="confirm-warn" class="note note-warn mt-3" hidden></p>
+    <div class="flex flex-wrap justify-end gap-3 mt-5">
+      <button id="confirm-cancel" type="button" class="btn btn-ghost btn-md">Cancel</button>
+      <button id="confirm-ok" type="button" class="btn btn-md"></button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Repository access panel -->
+<dialog id="repo-dlg" class="dlg dlg-wide" aria-labelledby="repo-title">
+  <div class="dlg-head">
+    <div class="min-w-0">
+      <h2 id="repo-title" class="text-lg font-800 truncate"></h2>
+      <p id="repo-sub" class="text-xs muted"></p>
+    </div>
+    <button id="repo-close" type="button" class="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-full bg-lightbg hover:bg-cborder" aria-label="Close access panel">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+    </button>
+  </div>
+  <div id="repo-body" class="p-5 space-y-6"></div>
+</dialog>
+
+<script>
+'use strict';
+/* ============================================================
+   Config. These values are safe to be public; the OAuth client
+   secret lives only in the Cloudflare Worker at exchangeUrl.
+   ============================================================ */
+const ORG = 'CobblestoneLearning';
+const API = 'https://api.github.com';
+const AUTH_CONFIG = {
+  clientId: 'Ov23liHyPVBdzXg8TOYS',
+  exchangeUrl: 'https://cobblestone-oauth.cobblestonelearning.workers.dev',
+  scope: 'read:org repo admin:org'
+};
+const DAY = 86400000;
+
+/* The access token is held IN MEMORY ONLY. Never write it to localStorage or
+   sessionStorage: admin:org is powerful and this is a public origin. */
+let token = null;
+let oauthPopup = null;
+
+let S = freshState();
+function freshState() {
+  return {
+    me: null, role: null, scopes: '',
+    members: [], owners: new Set(), managers: new Set(), managersTeam: null,
+    twoFaOff: null, invitations: null, outside: null, repos: [], teams: null,
+    events: [], eventsTruncated: false, lastActivity: new Map(), lastPushBy: new Map(),
+    outsideRepos: null, outsideScan: null, outsideOpen: new Set(),
+    teamInfo: null, errors: {},
+    repoSort: { key: 'pushed', dir: -1 }, repoFilter: { q: '', vis: 'all' },
+    actFilter: { who: '', repo: '', type: '' }, memberFilter: ''
+  };
+}
+const isOwner = () => S.role === 'owner';
+
+/* ============================================================
+   Small helpers. All API data goes into the page via textContent
+   (h() appends strings as text nodes) or DOM properties, never innerHTML.
+   ============================================================ */
+const $ = (sel, root) => (root || document).querySelector(sel);
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'text') el.textContent = v;
+    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : String(v));
+  }
+  for (const kid of kids.flat(Infinity)) if (kid != null && kid !== false) el.append(kid instanceof Node ? kid : String(kid));
+  return el;
+}
+const SVGNS = 'http://www.w3.org/2000/svg';
+function s(tag, attrs, ...kids) {
+  const el = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs || {})) if (v != null) el.setAttribute(k, String(v));
+  for (const kid of kids.flat()) if (kid != null) el.append(kid instanceof Node ? kid : String(kid));
+  return el;
+}
+function safeUrl(u) { return typeof u === 'string' && u.startsWith('https://') ? u : '#'; }
+function avatarSrc(u, size) { const a = safeUrl(u && u.avatar_url); return a === '#' ? '' : a + (a.includes('?') ? '&' : '?') + 's=' + (size || 56); }
+function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+const rtf = new Intl.RelativeTimeFormat('en-GB', { numeric: 'auto' });
+function rel(d) {
+  if (!d) return 'never';
+  const sec = (new Date(d) - Date.now()) / 1000, abs = Math.abs(sec);
+  for (const [u, n] of [['year', 31536000], ['month', 2592000], ['week', 604800], ['day', 86400], ['hour', 3600], ['minute', 60]])
+    if (abs >= n) return rtf.format(Math.round(sec / n), u);
+  return 'just now';
+}
+function exact(d) { return new Date(d).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }); }
+function timeEl(d) { return d ? h('time', { datetime: d, title: exact(d) }, rel(d)) : h('span', { class: 'muted' }, 'never'); }
+function shortDate(d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); }
+function repoUrl(name) { return 'https://github.com/' + ORG + '/' + encodeURIComponent(name); }
+function userUrl(login) { return 'https://github.com/' + encodeURIComponent(login); }
+function ext(href, label, cls) { return h('a', { href: safeUrl(href), target: '_blank', rel: 'noopener', class: cls || 'font-700 hover:underline underline-offset-2' }, label); }
+
+let liveTimer = null;
+function announce(msg, isError) {
+  const live = $('#live');
+  live.textContent = '';
+  clearTimeout(liveTimer);
+  liveTimer = setTimeout(() => { live.textContent = msg; }, 60);
+  const t = h('div', { class: 'toast' + (isError ? ' err' : '') }, h('span', { class: 'dot' }), h('span', null, msg));
+  $('#toast-region').append(t);
+  setTimeout(() => t.remove(), isError ? 7000 : 4200);
+}
+
+/* UI building blocks */
+function card(title, sub, ...kids) {
+  return h('section', { class: 'surface p-4 sm:p-5' },
+    title ? h('h2', { class: 'card-title' }, title) : null,
+    sub ? h('p', { class: 'text-xs muted mt-0.5 mb-3' }, sub) : (title ? h('div', { class: 'mb-3' }) : null),
+    kids);
+}
+function btn(label, opts) {
+  opts = opts || {};
+  return h('button', Object.assign({ type: opts.submit ? 'submit' : 'button', class: 'btn ' + (opts.size || 'btn-sm') + ' ' + ({ primary: 'btn-primary', danger: 'btn-danger' }[opts.variant] || 'btn-ghost') }, opts.attrs || {}, opts.onclick ? { onclick: opts.onclick } : {}), label);
+}
+function badge(text, variant, title) { return h('span', { class: 'badge ' + (variant || 'b-grey'), title }, text); }
+function note(text, kind) { return h('div', { class: 'note note-' + (kind || 'info') }, text); }
+function empty(text) { return h('p', { class: 'text-sm muted py-2' }, text); }
+function skeletonRows(n) { return h('div', { class: 'space-y-2 py-1', 'aria-hidden': 'true' }, Array.from({ length: n || 3 }, (_, i) => h('div', { class: 'skeleton', style: 'width:' + (90 - i * 15) + '%' }))); }
+function person(u, extra) {
+  return h('span', { class: 'inline-flex items-center gap-2 min-w-0' },
+    h('img', { class: 'avatar', src: avatarSrc(u, 56), alt: '', width: 28, height: 28, loading: 'lazy' }),
+    ext(userUrl(u.login), u.login, 'font-700 hover:underline underline-offset-2 truncate'), extra || null);
+}
+function table(label, headers, rows, opts) {
+  opts = opts || {};
+  return h('div', { class: 'scroll-x', role: 'region', 'aria-label': label, tabindex: '0' },
+    h('table', { class: 'tbl' },
+      h('thead', null, h('tr', null, headers.map(x => x instanceof Node ? x : h('th', { scope: 'col' }, x)))),
+      h('tbody', null, rows)));
+}
+
+/* ============================================================
+   GitHub API
+   ============================================================ */
+class ApiError extends Error { constructor(status, message) { super(message); this.status = status; } }
+function friendly(status, msg, limited) {
+  if (status === 401) return 'Your GitHub sign-in has expired. Please sign in again.';
+  if (limited) return 'GitHub\'s rate limit has been reached. Please wait a few minutes and try again.';
+  if (status === 403) return 'GitHub refused this request. Your account may not have permission, or the organisation may need to approve this sign-in app.' + (msg ? ' (GitHub said: ' + msg + ')' : '');
+  if (status === 404) return 'Not found, or your account does not have access to it.';
+  if (status === 409) return 'GitHub reported a conflict' + (msg ? ': ' + msg : '.');
+  if (status === 422) return 'GitHub could not accept that' + (msg ? ': ' + msg : '.');
+  if (status === 0) return 'Could not reach GitHub. Check your connection and try again.';
+  return 'GitHub returned an error (' + status + ')' + (msg ? ': ' + msg : '.');
+}
+const errText = e => (e && e.message) || 'Something went wrong.';
+
+async function gh(pathOrUrl, opts) {
+  opts = opts || {};
+  const url = pathOrUrl.startsWith('https://') ? pathOrUrl : API + pathOrUrl;
+  const headers = { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
+  let r;
+  try {
+    r = await fetch(url, { method: opts.method || 'GET', headers, cache: 'no-store',
+      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined });
+  } catch (e) { throw new ApiError(0, friendly(0)); }
+  if (r.status === 401 && token) setTimeout(() => expired(), 0);
+  return r;
+}
+async function toApiError(r) {
+  let msg = '';
+  try {
+    const j = await r.json();
+    msg = j.message || '';
+    if (Array.isArray(j.errors) && j.errors.length) msg += ' (' + j.errors.map(e => typeof e === 'string' ? e : (e.message || e.code)).filter(Boolean).join('; ') + ')';
+  } catch (e) { /* no body */ }
+  return new ApiError(r.status, friendly(r.status, msg, r.headers.get('x-ratelimit-remaining') === '0'));
+}
+async function ghJson(path, opts) {
+  const r = await gh(path, opts);
+  if (!r.ok) throw await toApiError(r);
+  const t = r.status === 204 ? '' : await r.text();
+  return t ? JSON.parse(t) : null;
+}
+/* Send a change; returns { status, data }. */
+async function ghSend(path, method, body) {
+  const r = await gh(path, { method, body });
+  if (!r.ok) throw await toApiError(r);
+  const t = r.status === 204 ? '' : await r.text();
+  return { status: r.status, data: t ? JSON.parse(t) : null };
+}
+function nextLink(link) {
+  if (!link) return null;
+  for (const part of link.split(',')) { const m = part.match(/<([^>]+)>;\s*rel="([^"]+)"/); if (m && m[2] === 'next') return m[1]; }
+  return null;
+}
+/* Every page of a list endpoint, following Link: rel="next". */
+async function ghAll(path, opts) {
+  opts = opts || {};
+  let url = path.startsWith('https://') ? path : API + path;
+  if (!/[?&]per_page=/.test(url)) url += (url.includes('?') ? '&' : '?') + 'per_page=100';
+  const out = [];
+  for (let page = 0; url && page < (opts.maxPages || 100); page++) {
+    const r = await gh(url);
+    if (!r.ok) { if (opts.lenient && out.length) break; throw await toApiError(r); }
+    const data = await r.json();
+    if (Array.isArray(data)) out.push(...data);
+    url = nextLink(r.headers.get('link'));
+  }
+  return out;
+}
+const settle = p => p.then(v => ({ ok: true, v }), e => ({ ok: false, e }));
+/* Run fn over items with at most `limit` in flight. */
+async function pool(items, limit, fn, onProgress) {
+  let next = 0, done = 0;
+  const out = new Array(items.length);
+  async function worker() {
+    while (next < items.length) {
+      const i = next++;
+      try { out[i] = { ok: true, v: await fn(items[i], i) }; } catch (e) { out[i] = { ok: false, e }; }
+      done++; if (onProgress) onProgress(done, items.length);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const enc = encodeURIComponent;
+
+/* Run an action from a button: disable it while busy, report errors, and put focus
+   back on the matching control after the section re-renders. */
+async function act(button, fn) {
+  const key = button && button.dataset.key;
+  if (button) { button.disabled = true; button.setAttribute('aria-busy', 'true'); }
+  try { await fn(); }
+  catch (e) { announce(errText(e), true); }
+  finally {
+    if (button && button.isConnected) {
+      button.disabled = false; button.removeAttribute('aria-busy');
+      if (document.activeElement === document.body || document.activeElement === button) button.focus();
+    }
+    else if (key) { const again = document.querySelector('[data-key="' + CSS.escape(key) + '"]'); if (again) again.focus(); }
+  }
+}
+
+/* Accessible confirm dialog. Resolves true only when the action button is pressed. */
+function confirmAction(o) {
+  return new Promise(resolve => {
+    const d = $('#confirm-dlg'), ok = $('#confirm-ok'), warn = $('#confirm-warn');
+    const prev = document.activeElement;
+    $('#confirm-title').textContent = o.title;
+    $('#confirm-body').textContent = o.body;
+    warn.textContent = o.warning || ''; warn.hidden = !o.warning;
+    ok.textContent = o.confirmLabel || 'Confirm';
+    ok.className = 'btn btn-md ' + (o.danger ? 'btn-danger-solid' : 'btn-primary');
+    let result = false;
+    const onOk = () => { result = true; d.close(); };
+    const onClose = () => {
+      ok.removeEventListener('click', onOk); d.removeEventListener('close', onClose);
+      if (prev && prev.isConnected && prev.focus) prev.focus();
+      resolve(result);
+    };
+    ok.addEventListener('click', onOk); d.addEventListener('close', onClose);
+    d.showModal();
+    $('#confirm-cancel').focus();      /* safe default */
+  });
+}
+$('#confirm-cancel').addEventListener('click', () => $('#confirm-dlg').close());
+
+/* ============================================================
+   Sign-in (same OAuth popup pattern as index.html, admin scope,
+   token kept in memory only)
+   ============================================================ */
+function show(view) {
+  for (const v of ['signin', 'loading', 'denied', 'app']) $('#view-' + v).hidden = v !== view;
+}
+function setLoading(msg) { $('#loading-msg').textContent = msg; }
+
+window.addEventListener('message', e => {
+  if (e.origin !== window.location.origin) return;
+  if (!e.data || e.data.source !== 'cobblestone-oauth') return;
+  if (oauthPopup && !oauthPopup.closed) oauthPopup.close();
+  if (e.data.error) { sessionStorage.removeItem('cb_oauth_state'); announce('Sign-in cancelled'); return; }
+  const expected = sessionStorage.getItem('cb_oauth_state');
+  sessionStorage.removeItem('cb_oauth_state');                  /* single-use CSRF state */
+  if (!expected || e.data.state !== expected) { signInError('Sign-in failed: the security check did not match. Please try again.'); return; }
+  if (e.data.code) exchange(e.data.code);
+});
+
+function signIn() {
+  const buf = new Uint8Array(16);
+  crypto.getRandomValues(buf);
+  const state = Array.from(buf, b => ('0' + b.toString(16)).slice(-2)).join('');
+  sessionStorage.setItem('cb_oauth_state', state);
+  const authUrl = 'https://github.com/login/oauth/authorize' +
+    '?client_id=' + enc(AUTH_CONFIG.clientId) +
+    '&redirect_uri=' + enc(location.origin + '/callback.html') +
+    '&scope=' + enc(AUTH_CONFIG.scope) +
+    '&state=' + enc(state);
+  const w = 600, ht = 720;
+  const left = (window.screenLeft != null ? window.screenLeft : window.screenX) + Math.max(0, (window.innerWidth - w) / 2);
+  const top = (window.screenTop != null ? window.screenTop : window.screenY) + Math.max(0, (window.innerHeight - ht) / 2);
+  oauthPopup = window.open(authUrl, 'cobblestone-oauth', 'width=' + w + ',height=' + ht + ',left=' + left + ',top=' + top + ',menubar=no,toolbar=no,location=no,status=no');
+  if (!oauthPopup) { sessionStorage.removeItem('cb_oauth_state'); signInError('The sign-in window was blocked. Please allow pop-ups for this site and try again.'); }
+}
+
+async function exchange(code) {
+  show('loading'); setLoading('Signing you in…');
+  try {
+    const r = await fetch(AUTH_CONFIG.exchangeUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
+    if (!r.ok) throw new Error('exchange ' + r.status);
+    const data = await r.json();
+    if (!data || !data.access_token) throw new Error('no token');
+    token = data.access_token;                                   /* memory only */
+    await start();
+  } catch (e) {
+    console.error('Sign-in failed:', e);
+    resetUser();
+    signInError(e instanceof ApiError ? errText(e) : 'Sign-in failed. Please try again.');
+  }
+}
+
+function signInError(msg) {
+  show('signin');
+  const m = $('#signin-msg'); m.textContent = msg; m.hidden = !msg;
+  if (msg) announce(msg, true);
+}
+
+function resetUser() {
+  token = null;
+  S = freshState();
+  for (const id of ['repo-dlg', 'confirm-dlg']) { const d = $('#' + id); if (d.open) d.close(); }
+  const u = $('#auth-user'); u.classList.add('hidden'); u.classList.remove('flex');
+  $('#auth-avatar').src = ''; $('#auth-login').textContent = '';
+  for (const p of document.querySelectorAll('[role="tabpanel"]')) p.replaceChildren();
+  $('#app-notes').replaceChildren();
+}
+function signOut() { resetUser(); signInError(''); announce('Signed out'); $('#signin-btn').focus(); }
+function expired() { if (!token) return; resetUser(); signInError('Your GitHub sign-in has expired. Please sign in again.'); }
+
+$('#signin-btn').addEventListener('click', signIn);
+$('#signout-btn').addEventListener('click', signOut);
+document.querySelector('[data-signout]').addEventListener('click', signOut);
+
+/* ============================================================
+   Who can do what
+   ============================================================ */
+async function start() {
+  show('loading'); setLoading('Checking your access…');
+  const r = await gh('/user');
+  if (!r.ok) throw await toApiError(r);
+  S.scopes = r.headers.get('x-oauth-scopes') || '';
+  S.me = await r.json();
+  const u = $('#auth-user'); u.classList.remove('hidden'); u.classList.add('flex');
+  $('#auth-avatar').src = avatarSrc(S.me, 64); $('#auth-avatar').alt = S.me.login + ' avatar';
+  $('#auth-login').textContent = S.me.login;
+
+  let membership = null, blocked = false;
+  try { membership = await ghJson('/user/memberships/orgs/' + ORG); }
+  catch (e) { if (e.status === 403) blocked = true; else if (e.status !== 404) throw e; }
+
+  if (membership && membership.state === 'active' && membership.role === 'admin') S.role = 'owner';
+  else if (membership && membership.state === 'active') {
+    try {
+      const tm = await ghJson('/orgs/' + ORG + '/teams/managers/memberships/' + enc(S.me.login));
+      if (tm && tm.state === 'active') S.role = 'manager';
+    } catch (e) { if (e.status !== 404 && e.status !== 403) throw e; }
+  }
+
+  if (!S.role) {
+    $('#denied-msg').textContent = blocked
+      ? 'You are signed in as ' + S.me.login + ', but GitHub would not confirm your membership of ' + ORG + '. If you are an owner, the organisation may need to approve this sign-in app (GitHub: organisation Settings, Third-party access).'
+      : 'You are signed in as ' + S.me.login + '. Managing the organisation is limited to Cobblestone owners and the managers team. If you think you should have access, ask an organisation owner.';
+    show('denied');
+    const dh = $('#view-denied h1'); dh.tabIndex = -1; dh.focus();
+    announce('This page is for Cobblestone managers');
+    return;
+  }
+  await loadAll();
+  renderApp();
+  show('app');
+  const hash = (location.hash || '').slice(1);
+  selectTab(TABS.includes(hash) ? hash : 'overview', true);
+  announce('Signed in as ' + S.me.login + (isOwner() ? ', owner' : ', manager (read only)'));
+}
+
+async function loadAll() {
+  setLoading('Loading people, repositories and activity…');
+  const o = '/orgs/' + ORG;
+  const [members, owners, twofa, mteam, mmembers, invites, outside, repos, teams, events] = await Promise.all([
+    settle(ghAll(o + '/members')),
+    settle(ghAll(o + '/members?role=admin')),
+    isOwner() ? settle(ghAll(o + '/members?filter=2fa_disabled')) : Promise.resolve(null),
+    settle(ghJson(o + '/teams/managers')),
+    settle(ghAll(o + '/teams/managers/members')),
+    settle(ghAll(o + '/invitations')),
+    settle(ghAll(o + '/outside_collaborators')),
+    settle(ghAll(o + '/repos?type=all&sort=full_name')),
+    settle(ghAll(o + '/teams')),
+    settle(ghAll('/users/' + enc(S.me.login) + '/events/orgs/' + ORG, { maxPages: 3, lenient: true }))
+  ]);
+  if (!members.ok) throw members.e;
+  S.members = members.v.sort((a, b) => a.login.localeCompare(b.login, 'en', { sensitivity: 'base' }));
+  S.owners = new Set(owners.ok ? owners.v.map(m => m.id) : []);
+  if (!owners.ok) S.errors.owners = errText(owners.e);
+  S.twoFaOff = twofa && twofa.ok ? new Set(twofa.v.map(m => m.id)) : null;
+  if (twofa && !twofa.ok) S.errors.twofa = errText(twofa.e);
+  S.managersTeam = mteam.ok ? mteam.v : null;
+  S.managers = new Set(mmembers.ok ? mmembers.v.map(m => m.id) : []);
+  S.invitations = invites.ok ? invites.v : null;
+  if (!invites.ok) S.errors.invitations = invites.e.status === 403 || invites.e.status === 404 ? 'Only organisation owners can see pending invitations.' : errText(invites.e);
+  S.outside = outside.ok ? outside.v.sort((a, b) => a.login.localeCompare(b.login)) : null;
+  if (!outside.ok) S.errors.outside = errText(outside.e);
+  S.repos = repos.ok ? repos.v : [];
+  if (!repos.ok) S.errors.repos = errText(repos.e);
+  S.teams = teams.ok ? teams.v : null;
+  if (!teams.ok) S.errors.teams = errText(teams.e);
+  S.events = events.ok ? events.v : [];
+  if (!events.ok) S.errors.events = errText(events.e);
+  S.eventsTruncated = S.events.length >= 300;
+  deriveActivity();
+}
+
+function repoShort(ev) { const n = (ev.repo && ev.repo.name) || ''; const i = n.indexOf('/'); return i >= 0 && n.slice(0, i).toLowerCase() === ORG.toLowerCase() ? n.slice(i + 1) : n; }
+function actorName(ev) { return (ev.actor && (ev.actor.display_login || ev.actor.login)) || 'Someone'; }
+function deriveActivity() {
+  S.lastActivity = new Map(); S.lastPushBy = new Map();
+  for (const ev of S.events) {                 /* newest first */
+    const login = ev.actor && ev.actor.login;
+    if (login && !S.lastActivity.has(login.toLowerCase())) S.lastActivity.set(login.toLowerCase(), ev);
+    if (ev.type === 'PushEvent') { const r = repoShort(ev); if (!S.lastPushBy.has(r)) S.lastPushBy.set(r, ev); }
+  }
+}
+
+/* ============================================================
+   Tabs (roving tabindex, arrow keys, Home/End)
+   ============================================================ */
+const TABS = ['overview', 'people', 'teams', 'repos', 'activity'];
+function selectTab(id, focus) {
+  for (const t of TABS) {
+    const tab = $('#tab-' + t), on = t === id;
+    tab.setAttribute('aria-selected', on ? 'true' : 'false');
+    tab.tabIndex = on ? 0 : -1;
+    $('#panel-' + t).hidden = !on;
+  }
+  if (focus) $('#tab-' + id).focus();
+  if (id === 'teams') ensureTeams();
+  if (id === 'activity') drawChart(false);
+  try { history.replaceState(null, '', '#' + id); } catch (e) { /* ignore */ }
+}
+$('#tablist').addEventListener('click', e => { const t = e.target.closest('[role="tab"]'); if (t) selectTab(t.id.slice(4), true); });
+$('#tablist').addEventListener('keydown', e => {
+  const cur = TABS.indexOf(document.activeElement.id.slice(4));
+  if (cur < 0) return;
+  let n = null;
+  if (e.key === 'ArrowRight') n = (cur + 1) % TABS.length;
+  else if (e.key === 'ArrowLeft') n = (cur - 1 + TABS.length) % TABS.length;
+  else if (e.key === 'Home') n = 0;
+  else if (e.key === 'End') n = TABS.length - 1;
+  if (n != null) { e.preventDefault(); selectTab(TABS[n], true); }
+});
+
+/* ============================================================
+   Render: shell
+   ============================================================ */
+function ownerLogins() { return S.members.filter(m => S.owners.has(m.id)).map(m => m.login); }
+function renderApp() {
+  $('#role-pill').textContent = isOwner() ? 'Owner' : 'Manager, read only';
+  $('#role-pill').className = 'badge ' + (isOwner() ? 'b-cyan' : 'b-blue');
+  const notes = $('#app-notes'); notes.replaceChildren();
+  if (!isOwner()) {
+    const owners = ownerLogins();
+    notes.append(note('You are viewing as a manager, so this page is read only. GitHub only lets organisation owners change members and invitations, and repository admins change collaborators.' + (owners.length ? ' For changes, ask an owner: ' + owners.join(', ') + '.' : ''), 'info'));
+  } else if (S.scopes && !/\badmin:org\b/.test(S.scopes)) {
+    notes.append(note('This sign-in does not include organisation administration access (admin:org), so changes may fail. Sign out and sign in again, and approve the access GitHub asks for.', 'warn'));
+  }
+  renderOverview(); renderPeople(); renderRepos(); renderActivity();
+  $('#panel-teams').replaceChildren(S.teams ? card('Teams', null, skeletonRows(4)) : note(S.errors.teams || 'Teams could not be loaded.', 'error'));
+  S.teamInfo = null;
+}
+
+/* ============================================================
+   Overview
+   ============================================================ */
+function pushCounts(days) {
+  const since = Date.now() - days * DAY, byRepo = new Map(), byPerson = new Map();
+  for (const ev of S.events) {
+    if (ev.type !== 'PushEvent' || new Date(ev.created_at) < since) continue;
+    const r = repoShort(ev), p = actorName(ev);
+    byRepo.set(r, (byRepo.get(r) || 0) + 1); byPerson.set(p, (byPerson.get(p) || 0) + 1);
+  }
+  return { byRepo, byPerson };
+}
+function staleRepos() {
+  const cutoff = Date.now() - 180 * DAY;
+  return S.repos.filter(r => !r.pushed_at || new Date(r.pushed_at) < cutoff).sort((a, b) => new Date(a.pushed_at || 0) - new Date(b.pushed_at || 0));
+}
+function renderOverview() {
+  const p = $('#panel-overview');
+  const stat = (n, l, title) => h('div', { class: 'stat', title }, h('div', { class: 'n' }, n), h('div', { class: 'l' }, l));
+  const na = (list, why) => list == null ? h('span', { title: why }, 'n/a') : String(list.length);
+  const priv = S.repos.filter(r => r.private).length;
+  const stats = h('div', { class: 'grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3' },
+    stat(String(S.members.length), 'Members'),
+    stat(String(S.owners.size), 'Owners'),
+    stat(S.managersTeam ? String(S.managers.size) : 'n/a', 'Managers'),
+    stat(na(S.outside, S.errors.outside), 'Outside collaborators'),
+    stat(na(S.invitations, S.errors.invitations), 'Pending invitations'),
+    stat(String(S.repos.length), 'Repositories'),
+    stat(String(priv), 'Private repositories'));
+  const kids = [h('h2', { class: 'sr-only' }, 'Overview'), stats];
+  if (S.errors.repos) kids.push(note('Repositories could not be loaded. ' + S.errors.repos, 'error'));
+
+  const grid = h('div', { class: 'grid gap-5 lg:grid-cols-3' });
+  if (isOwner()) {
+    let body;
+    if (!S.twoFaOff) body = note('Two-factor status could not be loaded. ' + (S.errors.twofa || ''), 'error');
+    else {
+      const off = S.members.filter(m => S.twoFaOff.has(m.id));
+      body = off.length
+        ? h('ul', { class: 'space-y-2' }, off.map(m => h('li', null, person(m))))
+        : empty('Everyone in the organisation has two-factor authentication turned on.');
+    }
+    grid.append(card('Members without two-factor', 'Members who sign in with a password alone. Only owners can see this.', body,
+      h('p', { class: 'text-xs mt-3' }, ext('https://github.com/organizations/' + ORG + '/settings/security', 'Require two-factor for everyone on GitHub'))));
+  }
+  const stale = staleRepos();
+  grid.append(card('Not pushed in 180 days', plural(stale.length, 'repository', 'repositories') + ' with no push for six months or more. Candidates for archiving.',
+    stale.length ? h('ul', { class: 'space-y-1.5 max-h-72 overflow-y-auto pr-1', tabindex: '0', 'aria-label': 'Repositories not pushed in 180 days' },
+      stale.map(r => h('li', { class: 'flex justify-between gap-3 text-sm' }, ext(r.html_url, r.name, 'font-700 hover:underline truncate'), h('span', { class: 'muted shrink-0' }, timeEl(r.pushed_at)))))
+      : empty('Every repository has been pushed in the last six months.')));
+
+  const { byRepo } = pushCounts(30);
+  const recent = S.repos.filter(r => r.pushed_at && new Date(r.pushed_at) > Date.now() - 30 * DAY)
+    .map(r => ({ r, n: byRepo.get(r.name) || 0 }))
+    .sort((a, b) => b.n - a.n || new Date(b.r.pushed_at) - new Date(a.r.pushed_at)).slice(0, 10);
+  grid.append(card('Most active in the last 30 days', 'Ranked by pushes in your activity feed, then by the latest push.',
+    recent.length ? h('ol', { class: 'space-y-1.5' }, recent.map(x => h('li', { class: 'flex justify-between gap-3 text-sm' },
+      ext(x.r.html_url, x.r.name, 'font-700 hover:underline truncate'),
+      h('span', { class: 'muted shrink-0' }, x.n ? plural(x.n, 'push', 'pushes') : h('span', null, 'pushed ', timeEl(x.r.pushed_at))))))
+      : empty('No repository has been pushed in the last 30 days.')));
+  kids.push(grid);
+  p.replaceChildren(...kids);
+}
+
+/* ============================================================
+   People
+   ============================================================ */
+const USERNAME_RE = /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/;
+function lastActivityCell(login) {
+  const ev = S.lastActivity.get(login.toLowerCase());
+  return ev ? h('span', null, timeEl(ev.created_at), h('span', { class: 'block text-xs muted' }, (ev.type === 'PushEvent' ? 'pushed to ' : 'active in ') + repoShort(ev))) : h('span', { class: 'muted' }, 'no recent activity');
+}
+function renderPeople() {
+  const p = $('#panel-people');
+  const kids = [h('h2', { class: 'sr-only' }, 'People')];
+  if (isOwner()) kids.push(inviteForm());
+  kids.push(membersCard(), invitationsCard(), outsideCard());
+  p.replaceChildren(...kids);
+}
+
+function inviteForm() {
+  const msg = h('p', { class: 'text-sm mt-2', id: 'invite-msg', role: 'status' });
+  const user = h('input', { id: 'invite-user', class: 'field w-full', autocomplete: 'off', spellcheck: 'false', placeholder: 'GitHub username', 'aria-describedby': 'invite-msg' });
+  const role = h('select', { id: 'invite-role', class: 'field w-full' }, h('option', { value: 'direct_member' }, 'Member'), h('option', { value: 'admin' }, 'Owner'));
+  const mgr = h('input', { id: 'invite-mgr', type: 'checkbox', class: 'w-4 h-4 accent-[#0074B4]', disabled: !S.managersTeam });
+  const submit = btn('Send invitation', { variant: 'primary', size: 'btn-md', submit: true, attrs: { 'data-key': 'invite-submit' } });
+  const form = h('form', { class: 'grid gap-3 sm:grid-cols-[1fr_180px_auto] items-end', novalidate: true },
+    h('div', null, h('label', { class: 'label', for: 'invite-user' }, 'Username'), user),
+    h('div', null, h('label', { class: 'label', for: 'invite-role' }, 'Role'), role),
+    submit,
+    h('label', { class: 'sm:col-span-3 inline-flex items-center gap-2 text-sm font-600', for: 'invite-mgr' }, mgr,
+      'Make a manager (adds them to the managers team, which has write access to every repository)'));
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    act(submit, async () => {
+      const login = user.value.trim().replace(/^@/, '');
+      msg.className = 'text-sm mt-2';
+      if (!USERNAME_RE.test(login)) { msg.textContent = 'Enter a GitHub username (letters, numbers and single hyphens).'; msg.classList.add('text-[#C0392B]'); user.focus(); return; }
+      let u;
+      try { u = await ghJson('/users/' + enc(login)); }
+      catch (err) { if (err.status === 404) { msg.textContent = 'There is no GitHub account called ' + login + '.'; msg.classList.add('text-[#C0392B]'); return; } throw err; }
+      if (S.members.some(m => m.id === u.id)) { msg.textContent = u.login + ' is already a member.'; return; }
+      const body = { invitee_id: u.id, role: role.value };
+      if (mgr.checked && S.managersTeam) body.team_ids = [S.managersTeam.id];
+      await ghSend('/orgs/' + ORG + '/invitations', 'POST', body);
+      user.value = ''; mgr.checked = false;
+      msg.textContent = 'Invitation sent to ' + u.login + '. GitHub will email them a link to join.';
+      announce('Invitation sent to ' + u.login);
+      await refreshInvitations();
+    });
+  });
+  return card('Invite someone', 'They must already have a GitHub account. The invitation lasts seven days.', form, msg);
+}
+
+function membersCard() {
+  const filter = h('input', { id: 'member-filter', class: 'field field-sm w-full sm:w-64', type: 'search', placeholder: 'Filter by username', value: S.memberFilter });
+  const q = S.memberFilter.toLowerCase();
+  const list = S.members.filter(m => !q || m.login.toLowerCase().includes(q));
+  const rows = list.map(m => {
+    const owner = S.owners.has(m.id), manager = S.managers.has(m.id), self = S.me && m.id === S.me.id;
+    const tfa = S.twoFaOff == null ? h('span', { class: 'muted text-xs', title: 'Only owners can see this' }, 'Hidden')
+      : (S.twoFaOff.has(m.id) ? badge('Off', 'b-red') : badge('On', 'b-green'));
+    const cells = [
+      h('td', null, person(m, self ? h('span', { class: 'text-xs muted' }, '(you)') : null)),
+      h('td', null, h('span', { class: 'inline-flex flex-wrap gap-1.5' }, badge(owner ? 'Owner' : 'Member', owner ? 'b-cyan' : 'b-grey'), manager ? badge('Manager', 'b-blue') : null)),
+      h('td', null, tfa),
+      h('td', null, lastActivityCell(m.login))
+    ];
+    if (isOwner()) {
+      const actions = h('div', { class: 'flex flex-wrap gap-1.5' });
+      if (!self || !owner) actions.append(btn(owner ? 'Make member' : 'Make owner', { attrs: { 'data-key': 'role:' + m.login }, onclick: e => act(e.currentTarget, () => changeRole(m, !owner)) }));
+      if (S.managersTeam) actions.append(btn(manager ? 'Remove from managers' : 'Add to managers', { attrs: { 'data-key': 'mgr:' + m.login }, onclick: e => act(e.currentTarget, () => toggleManager(m, !manager)) }));
+      if (!self) actions.append(btn('Remove', { variant: 'danger', attrs: { 'data-key': 'rm:' + m.login, 'aria-label': 'Remove ' + m.login + ' from the organisation' }, onclick: e => act(e.currentTarget, () => removeMember(m)) }));
+      else actions.append(h('span', { class: 'text-xs muted self-center' }, 'You cannot demote or remove yourself here.'));
+      cells.push(h('td', null, actions));
+    }
+    return h('tr', null, cells);
+  });
+  filter.addEventListener('input', () => {
+    S.memberFilter = filter.value;
+    const pos = filter.selectionStart;
+    const fresh = membersCard();
+    $('#members-card').replaceWith(fresh);
+    const f = $('#member-filter'); f.focus(); try { f.setSelectionRange(pos, pos); } catch (e) { /* ignore */ }
+  });
+  const c = card('Members (' + S.members.length + ')', 'Owners have full control. Managers are in the managers team, with write access to every repository.',
+    h('div', { class: 'mb-3' }, h('label', { class: 'sr-only', for: 'member-filter' }, 'Filter members by username'), filter),
+    h('p', { class: 'sr-only', role: 'status' }, q ? 'Showing ' + list.length + ' of ' + S.members.length + ' members' : ''),
+    S.errors.owners ? note('Owner list could not be loaded, so roles may show as Member. ' + S.errors.owners, 'warn') : null,
+    rows.length ? table('Members', ['Person', 'Role', 'Two-factor', 'Last activity'].concat(isOwner() ? ['Actions'] : []), rows) : empty('No members match that filter.'));
+  c.id = 'members-card';
+  return c;
+}
+
+function invitationsCard() {
+  const c = h('div', { id: 'invitations-card' });
+  if (S.invitations == null) { c.append(card('Pending invitations', null, note(S.errors.invitations || 'Not available.', 'info'))); return c; }
+  const roleName = r => ({ admin: 'Owner', direct_member: 'Member', billing_manager: 'Billing manager', reinstate: 'Returning member' }[r] || r);
+  const rows = S.invitations.map(inv => {
+    const who = inv.login || inv.email || 'Unknown';
+    return h('tr', null,
+      h('td', null, inv.login ? person({ login: inv.login, avatar_url: 'https://github.com/' + enc(inv.login) + '.png' }) : h('span', { class: 'font-700' }, who)),
+      h('td', null, roleName(inv.role)),
+      h('td', null, inv.inviter ? inv.inviter.login : ''),
+      h('td', null, timeEl(inv.created_at)),
+      isOwner() ? h('td', null, btn('Cancel invitation', { variant: 'danger', attrs: { 'data-key': 'inv:' + inv.id, 'aria-label': 'Cancel invitation for ' + who }, onclick: e => act(e.currentTarget, () => cancelInvitation(inv, who)) })) : null);
+  });
+  c.append(card('Pending invitations (' + S.invitations.length + ')', 'People who have been invited but have not accepted yet.',
+    rows.length ? table('Pending invitations', ['Invitee', 'Role', 'Invited by', 'Sent'].concat(isOwner() ? ['Actions'] : []), rows) : empty('No pending invitations.')));
+  return c;
+}
+
+function outsideCard() {
+  const c = h('div', { id: 'outside-card' });
+  if (S.outside == null) { c.append(card('Outside collaborators', null, note('Outside collaborators could not be loaded. ' + (S.errors.outside || ''), 'error'))); return c; }
+  const scan = S.outsideScan;
+  const progress = h('p', { id: 'outside-progress', class: 'text-sm muted mb-3', role: 'status' },
+    scan && scan.running ? 'Checking repositories: ' + scan.done + ' of ' + scan.total : (scan && scan.failed ? scan.failed + ' ' + (scan.failed === 1 ? 'repository' : 'repositories') + ' could not be checked.' : ''));
+  const rows = S.outside.map(u => {
+    const open = S.outsideOpen.has(u.login.toLowerCase());
+    const repos = S.outsideRepos && S.outsideRepos.get(u.login.toLowerCase());
+    let reposCell;
+    if (open && repos) reposCell = repos.length ? h('ul', { class: 'space-y-0.5' }, repos.map(x => h('li', { class: 'text-sm' }, ext(repoUrl(x.repo), x.repo), h('span', { class: 'muted text-xs' }, ' (' + permLabel(x.perm) + ')'))))
+      : h('span', { class: 'muted text-sm' }, 'Not on any repository now');
+    else reposCell = btn(scan && scan.running && open ? 'Checking…' : 'Show repos', { attrs: { 'data-key': 'out:' + u.login, 'aria-label': 'Show repos for ' + u.login }, onclick: e => showOutsideRepos(u, e.currentTarget) });
+    return h('tr', null, h('td', null, person(u)), h('td', null, reposCell),
+      isOwner() ? h('td', null, btn('Remove from all repos', { variant: 'danger', attrs: { 'data-key': 'outrm:' + u.login, 'aria-label': 'Remove from all repos, ' + u.login }, onclick: e => act(e.currentTarget, () => removeOutside(u)) })) : null);
+  });
+  c.append(card('Outside collaborators (' + S.outside.length + ')', 'People who are not members but have been given access to one or more repositories.',
+    progress, rows.length ? table('Outside collaborators', ['Person', 'Repositories'].concat(isOwner() ? ['Actions'] : []), rows) : empty('No outside collaborators.')));
+  return c;
+}
+
+/* Find which repos each outside collaborator is on: one shared scan, at most 4 requests at a time. */
+async function showOutsideRepos(u, button) {
+  S.outsideOpen.add(u.login.toLowerCase());
+  if (S.outsideRepos) { rerenderOutside('out:' + u.login); return; }
+  if (S.outsideScan && S.outsideScan.running) { rerenderOutside('out:' + u.login); return; }
+  button.disabled = true;
+  S.outsideScan = { running: true, done: 0, total: S.repos.length, failed: 0 };
+  rerenderOutside('out:' + u.login);
+  const map = new Map();
+  const results = await pool(S.repos, 4, async r => {
+    const list = await ghAll('/repos/' + enc(r.owner.login) + '/' + enc(r.name) + '/collaborators?affiliation=outside');
+    for (const c of list) {
+      const k = c.login.toLowerCase();
+      if (!map.has(k)) map.set(k, []);
+      map.get(k).push({ repo: r.name, perm: c.role_name || permFromFlags(c.permissions) });
+    }
+  }, (done, total) => {
+    S.outsideScan.done = done;
+    const pr = $('#outside-progress'); if (pr) pr.textContent = 'Checking repositories: ' + done + ' of ' + total;
+  });
+  S.outsideScan = { running: false, failed: results.filter(x => !x.ok).length };
+  S.outsideRepos = map;
+  for (const o of S.outside) if (!map.has(o.login.toLowerCase())) map.set(o.login.toLowerCase(), []);
+  rerenderOutside('out:' + u.login);
+  announce('Finished checking ' + plural(S.repos.length, 'repository', 'repositories'));
+}
+function rerenderOutside(focusKey) {
+  const had = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.key;
+  $('#outside-card').replaceWith(outsideCard());
+  const k = had || focusKey;
+  const el = k && document.querySelector('[data-key="' + CSS.escape(k) + '"]');
+  if (el) el.focus();
+  else { const t = $('#outside-card table'); if (t) t.closest('[tabindex]').focus(); }
+}
+
+/* --- People actions (owners only) --- */
+async function changeRole(m, makeOwner) {
+  if (S.me && m.id === S.me.id && !makeOwner) { announce('You cannot demote yourself here.', true); return; }
+  const after = S.owners.size + (makeOwner ? 1 : -1);
+  const ok = await confirmAction({
+    title: makeOwner ? 'Make ' + m.login + ' an owner?' : 'Make ' + m.login + ' a member?',
+    body: makeOwner
+      ? m.login + ' will become an owner of ' + ORG + ', with full control of every repository, member, team, setting and billing.'
+      : m.login + ' will stop being an owner. They stay in the organisation as a member, with the base permission (Read) plus any team or repository access they already have.',
+    warning: !makeOwner && after < 2 ? 'This will leave ' + plural(after, 'owner') + '. Keep at least two, so the organisation is not locked out if one account is lost.' : '',
+    confirmLabel: makeOwner ? 'Make owner' : 'Make member', danger: !makeOwner
+  });
+  if (!ok) return;
+  await ghSend('/orgs/' + ORG + '/memberships/' + enc(m.login), 'PUT', { role: makeOwner ? 'admin' : 'member' });
+  if (makeOwner) S.owners.add(m.id); else S.owners.delete(m.id);
+  renderPeople(); renderOverview();
+  announce(m.login + ' is now ' + (makeOwner ? 'an owner' : 'a member'));
+}
+async function toggleManager(m, add) {
+  const ok = await confirmAction({
+    title: add ? 'Add ' + m.login + ' to managers?' : 'Remove ' + m.login + ' from managers?',
+    body: add ? m.login + ' will join the managers team and get write access to every repository in ' + ORG + '.'
+      : m.login + ' will leave the managers team and lose the write access to every repository that it gives. They keep any access from other teams or direct invitations.',
+    confirmLabel: add ? 'Add to managers' : 'Remove from managers', danger: !add
+  });
+  if (!ok) return;
+  const path = '/orgs/' + ORG + '/teams/' + enc(S.managersTeam.slug) + '/memberships/' + enc(m.login);
+  if (add) await ghSend(path, 'PUT', { role: 'member' }); else await ghSend(path, 'DELETE');
+  if (add) S.managers.add(m.id); else S.managers.delete(m.id);
+  renderPeople(); renderOverview();
+  announce(m.login + (add ? ' added to' : ' removed from') + ' managers');
+}
+async function removeMember(m) {
+  if (S.me && m.id === S.me.id) { announce('You cannot remove yourself here.', true); return; }
+  const owner = S.owners.has(m.id), after = S.owners.size - 1;
+  const ok = await confirmAction({
+    title: 'Remove ' + m.login + ' from ' + ORG + '?',
+    body: m.login + ' will be removed from the organisation and every team, and lose access to all private repositories. They will lose access to their forks of private repositories, though they may still have copies on their own computer. You can invite them again later.',
+    warning: owner && after < 2 ? m.login + ' is an owner. Removing them will leave ' + plural(after, 'owner') + '. Keep at least two.' : '',
+    confirmLabel: 'Remove from organisation', danger: true
+  });
+  if (!ok) return;
+  await ghSend('/orgs/' + ORG + '/memberships/' + enc(m.login), 'DELETE');
+  S.members = S.members.filter(x => x.id !== m.id); S.owners.delete(m.id); S.managers.delete(m.id);
+  renderPeople(); renderOverview();
+  announce(m.login + ' removed from the organisation');
+  const f = $('#member-filter'); if (f) f.focus();
+}
+async function cancelInvitation(inv, who) {
+  const ok = await confirmAction({ title: 'Cancel the invitation for ' + who + '?', body: 'The link in their invitation email will stop working. You can invite them again later.', confirmLabel: 'Cancel invitation', danger: true });
+  if (!ok) return;
+  await ghSend('/orgs/' + ORG + '/invitations/' + enc(inv.id), 'DELETE');
+  S.invitations = S.invitations.filter(x => x.id !== inv.id);
+  $('#invitations-card').replaceWith(invitationsCard()); renderOverview();
+  announce('Invitation for ' + who + ' cancelled');
+}
+async function refreshInvitations() {
+  try { S.invitations = await ghAll('/orgs/' + ORG + '/invitations'); } catch (e) { /* keep the old list */ }
+  const c = $('#invitations-card'); if (c) c.replaceWith(invitationsCard());
+  renderOverview();
+}
+async function removeOutside(u) {
+  const known = S.outsideRepos && S.outsideRepos.get(u.login.toLowerCase());
+  const ok = await confirmAction({
+    title: 'Remove ' + u.login + ' from every repository?',
+    body: u.login + ' will lose access to ' + (known ? plural(known.length, 'repository', 'repositories') : 'every repository') + ' in ' + ORG + ' straight away. They will lose access to their forks of private repositories, though they may still have copies on their own computer.',
+    confirmLabel: 'Remove from all repos', danger: true
+  });
+  if (!ok) return;
+  await ghSend('/orgs/' + ORG + '/outside_collaborators/' + enc(u.login), 'DELETE');
+  S.outside = S.outside.filter(x => x.id !== u.id);
+  rerenderOutside(); renderOverview();
+  announce(u.login + ' removed from every repository');
+}
+
+/* ============================================================
+   Teams (loaded when the tab is first opened)
+   ============================================================ */
+const humanise = sname => { const t = String(sname || '').replace(/_/g, ' '); return t.charAt(0).toUpperCase() + t.slice(1); };
+async function ensureTeams() {
+  if (!S.teams || S.teamInfo) return;
+  S.teamInfo = new Map();
+  const panel = $('#panel-teams');
+  const progress = h('p', { class: 'text-sm muted', role: 'status' }, 'Loading teams…');
+  panel.replaceChildren(h('h2', { class: 'sr-only' }, 'Teams'), progress, card(null, null, skeletonRows(4)));
+  /* Org roles per team: list roles, then each role's teams. Errors are ignored. */
+  const roleMap = new Map();
+  try {
+    const roles = await ghJson('/orgs/' + ORG + '/organization-roles');
+    await pool((roles && roles.roles) || [], 4, async role => {
+      const teams = await ghAll('/orgs/' + ORG + '/organization-roles/' + enc(role.id) + '/teams');
+      for (const t of teams) { if (!roleMap.has(t.slug)) roleMap.set(t.slug, []); roleMap.get(t.slug).push(role.name); }
+    });
+  } catch (e) { /* not available on this plan or to this user */ }
+  await pool(S.teams, 4, async t => {
+    const [mem, repos] = await Promise.all([settle(ghAll('/orgs/' + ORG + '/teams/' + enc(t.slug) + '/members')), settle(ghAll('/orgs/' + ORG + '/teams/' + enc(t.slug) + '/repos'))]);
+    S.teamInfo.set(t.slug, { members: mem.ok ? mem.v : null, repos: repos.ok ? repos.v.length : null, roles: roleMap.get(t.slug) || [] });
+  }, (d, n) => { progress.textContent = 'Loading teams: ' + d + ' of ' + n; });
+  renderTeams();
+}
+function renderTeams() {
+  const panel = $('#panel-teams');
+  if (!S.teams.length) { panel.replaceChildren(card('Teams', null, empty('This organisation has no teams.'))); return; }
+  const cards = S.teams.slice().sort((a, b) => a.name.localeCompare(b.name)).map(t => {
+    const info = S.teamInfo.get(t.slug) || {};
+    return h('section', { class: 'surface p-4 sm:p-5' },
+      h('div', { class: 'flex flex-wrap items-center gap-2 mb-1' },
+        h('h3', { class: 'card-title' }, ext(t.html_url, t.name, 'hover:underline underline-offset-2 text-dark')),
+        badge(t.privacy === 'secret' ? 'Secret' : 'Visible', 'b-grey'),
+        (info.roles || []).map(r => badge('Org role: ' + humanise(r), 'b-blue'))),
+      t.description ? h('p', { class: 'text-sm muted mb-2' }, t.description) : null,
+      h('p', { class: 'text-sm mb-3' }, h('span', { class: 'font-700' }, info.repos == null ? 'Repository count unavailable' : plural(info.repos, 'repository', 'repositories')),
+        info.roles && info.roles.length ? h('span', { class: 'muted' }, ' directly, plus every repository through its org role') : null),
+      info.members == null ? note('Members could not be loaded.', 'error')
+        : info.members.length ? h('ul', { class: 'flex flex-wrap gap-x-4 gap-y-2', 'aria-label': t.name + ' members' }, info.members.map(m => h('li', null, person(m))))
+          : empty('No members.'));
+  });
+  panel.replaceChildren(h('h2', { class: 'sr-only' }, 'Teams'),
+    h('p', { class: 'text-sm muted' }, plural(S.teams.length, 'team') + '. Org roles give a team access across every repository.'),
+    h('div', { class: 'grid gap-5 lg:grid-cols-2' }, cards));
+}
+
+/* ============================================================
+   Repositories
+   ============================================================ */
+const catOf = r => { const t = (r.topics || []).find(x => x.startsWith('cat-')); return t ? t.slice(4) : ''; };
+const pushedBy = r => { const ev = S.lastPushBy.get(r.name); return ev ? actorName(ev) : ''; };
+function sortedRepos() {
+  const { q, vis } = S.repoFilter, ql = q.toLowerCase();
+  const list = S.repos.filter(r => (vis === 'all' || (vis === 'archived' ? r.archived : r.visibility === vis))
+    && (!ql || r.name.toLowerCase().includes(ql) || (r.description || '').toLowerCase().includes(ql) || (r.topics || []).some(t => t.includes(ql))));
+  const { key, dir } = S.repoSort;
+  const val = { name: r => r.name.toLowerCase(), visibility: r => r.visibility, category: r => catOf(r) || '~',
+    pushed: r => new Date(r.pushed_at || 0).getTime(), by: r => (pushedBy(r) || '~').toLowerCase(), issues: r => r.open_issues_count || 0 }[key];
+  return list.sort((a, b) => { const x = val(a), y = val(b); return (x < y ? -1 : x > y ? 1 : 0) * dir || a.name.localeCompare(b.name); });
+}
+function renderRepos() {
+  const p = $('#panel-repos');
+  if (S.errors.repos) { p.replaceChildren(note('Repositories could not be loaded. ' + S.errors.repos, 'error')); return; }
+  const search = h('input', { id: 'repo-search', type: 'search', class: 'field w-full', placeholder: 'Search name, description or topic', value: S.repoFilter.q });
+  const vis = h('select', { id: 'repo-vis', class: 'field w-full' },
+    [['all', 'All'], ['private', 'Private'], ['public', 'Public'], ['internal', 'Internal'], ['archived', 'Archived']].map(([v, l]) => h('option', { value: v, selected: S.repoFilter.vis === v }, l)));
+  const count = h('p', { id: 'repo-count', class: 'text-sm muted', role: 'status', 'aria-live': 'polite' });
+  const tableHost = h('div', { id: 'repo-table' });
+  let t = null;
+  search.addEventListener('input', () => { S.repoFilter.q = search.value; drawRepoTable(); clearTimeout(t); t = setTimeout(updateRepoCount, 400); });
+  vis.addEventListener('change', () => { S.repoFilter.vis = vis.value; drawRepoTable(); updateRepoCount(); });
+  p.replaceChildren(h('h2', { class: 'sr-only' }, 'Repositories'),
+    card(null, null,
+      h('div', { class: 'grid gap-3 sm:grid-cols-[1fr_200px] mb-3' },
+        h('div', null, h('label', { class: 'label', for: 'repo-search' }, 'Search'), search),
+        h('div', null, h('label', { class: 'label', for: 'repo-vis' }, 'Show'), vis)),
+      count,
+      h('p', { class: 'text-xs muted mb-3' }, 'Select a repository name to see and manage who has access.'),
+      tableHost));
+  drawRepoTable(); updateRepoCount();
+}
+function updateRepoCount() { const c = $('#repo-count'); if (c) c.textContent = 'Showing ' + sortedRepos().length + ' of ' + plural(S.repos.length, 'repository', 'repositories'); }
+function drawRepoTable(focusKey) {
+  const host = $('#repo-table'); if (!host) return;
+  const cols = [['name', 'Repository'], ['visibility', 'Visibility'], ['category', 'Category'], ['pushed', 'Last pushed'], ['by', 'Last pushed by'], ['issues', 'Open issues and PRs']];
+  const headers = cols.map(([k, l]) => {
+    const on = S.repoSort.key === k;
+    return h('th', { scope: 'col', 'aria-sort': on ? (S.repoSort.dir > 0 ? 'ascending' : 'descending') : 'none' },
+      h('button', { type: 'button', class: 'sort-btn', 'data-key': 'sort:' + k, onclick: () => {
+        S.repoSort = on ? { key: k, dir: -S.repoSort.dir } : { key: k, dir: k === 'pushed' || k === 'issues' ? -1 : 1 };
+        drawRepoTable('sort:' + k);
+      } }, l, h('span', { 'aria-hidden': 'true' }, on ? (S.repoSort.dir > 0 ? '▲' : '▼') : '')));
+  });
+  const list = sortedRepos();
+  const rows = list.map(r => h('tr', null,
+    h('td', null, h('span', { class: 'inline-flex items-center gap-2' },
+      h('button', { type: 'button', class: 'linkish', 'data-key': 'repo:' + r.name, 'aria-haspopup': 'dialog', onclick: e => openRepo(r, e.currentTarget) }, r.name),
+      h('a', { href: safeUrl(r.html_url), target: '_blank', rel: 'noopener', class: 'muted hover:text-cblue', 'aria-label': 'Open ' + r.name + ' on GitHub' },
+        s('svg', { width: 13, height: 13, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'aria-hidden': 'true' }, s('path', { d: 'M7 17L17 7M8 7h9v9' })))),
+      r.description ? h('span', { class: 'block text-xs muted max-w-[360px] truncate', title: r.description }, r.description) : null),
+    h('td', null, h('span', { class: 'inline-flex gap-1' }, badge(r.visibility, r.private ? 'b-amber' : 'b-green'), r.archived ? badge('Archived') : null)),
+    h('td', null, catOf(r) ? h('span', { class: 'badge b-blue' }, catOf(r)) : h('span', { class: 'muted' }, 'none')),
+    h('td', { class: 'whitespace-nowrap' }, timeEl(r.pushed_at)),
+    h('td', null, pushedBy(r) || h('span', { class: 'muted text-xs' }, 'not in recent activity')),
+    h('td', null, String(r.open_issues_count || 0))));
+  host.replaceChildren(rows.length ? table('Repositories', headers, rows) : empty('No repositories match.'));
+  if (focusKey) { const el = host.querySelector('[data-key="' + CSS.escape(focusKey) + '"]'); if (el) el.focus(); }
+}
+
+/* --- Access panel --- */
+const PERMS = [['pull', 'Read'], ['triage', 'Triage'], ['push', 'Write'], ['maintain', 'Maintain'], ['admin', 'Admin']];
+const toApiPerm = x => ({ read: 'pull', write: 'push' }[x] || x);
+function permLabel(x) { const k = toApiPerm(x); const f = PERMS.find(p => p[0] === k); return f ? f[1] : humanise(x); }
+function permFromFlags(p) { if (!p) return 'read'; return p.admin ? 'admin' : p.maintain ? 'maintain' : p.push ? 'write' : p.triage ? 'triage' : 'read'; }
+function permSelect(id, current) {
+  const k = toApiPerm(current || 'pull');
+  const sel = h('select', { id, class: 'field field-sm' }, PERMS.map(([v, l]) => h('option', { value: v, selected: v === k }, l)));
+  if (!PERMS.some(p => p[0] === k)) sel.prepend(h('option', { value: k, selected: true, disabled: true }, humanise(current)));
+  return sel;
+}
+let currentRepo = null, repoOpener = null;
+$('#repo-close').addEventListener('click', () => $('#repo-dlg').close());
+$('#repo-dlg').addEventListener('close', () => { currentRepo = null; if (repoOpener && repoOpener.isConnected) repoOpener.focus(); });
+$('#repo-dlg').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+
+function openRepo(r, opener) {
+  currentRepo = r; repoOpener = opener;
+  $('#repo-title').textContent = r.name;
+  const sub = $('#repo-sub'); sub.replaceChildren(r.visibility + ' repository', r.archived ? ', archived' : '', ' · ', ext(r.html_url, 'Open on GitHub'));
+  const body = $('#repo-body');
+  body.replaceChildren(
+    h('section', { id: 'acc-collab' }), h('section', { id: 'acc-teams' }),
+    h('section', { id: 'acc-invites' }), h('section', { id: 'acc-contrib' }));
+  if (!isOwner()) body.prepend(note('Read only. Ask an owner or a repository admin to change access.', 'info'));
+  $('#repo-dlg').showModal();
+  $('#repo-close').focus();
+  loadCollaborators(r); loadRepoTeams(r); loadRepoInvites(r); loadContributors(r);
+}
+function sectionHead(title, sub) { return [h('h3', { class: 'font-700 text-[15px]' }, title), sub ? h('p', { class: 'text-xs muted mb-2' }, sub) : h('div', { class: 'mb-2' })]; }
+const rpath = r => '/repos/' + enc(r.owner.login) + '/' + enc(r.name);
+
+async function loadCollaborators(r, focusKey) {
+  const host = $('#acc-collab'); if (!host || currentRepo !== r) return;
+  host.replaceChildren(...sectionHead('Direct collaborators', 'People given access to this repository directly, not through a team or the base permission.'), skeletonRows(3));
+  let list;
+  try { list = await ghAll(rpath(r) + '/collaborators?affiliation=direct'); }
+  catch (e) { if (currentRepo === r) host.replaceChildren(...sectionHead('Direct collaborators'), note(errText(e), 'error')); return; }
+  if (currentRepo !== r) return;
+  const rows = list.map(c => {
+    const perm = c.role_name || permFromFlags(c.permissions);
+    let permCell = h('span', null, permLabel(perm)), actions = null;
+    if (isOwner()) {
+      const id = 'perm-' + c.id, sel = permSelect(id, perm);
+      permCell = h('span', { class: 'inline-flex items-center gap-1.5' }, h('label', { class: 'sr-only', for: id }, 'Permission for ' + c.login), sel,
+        btn('Change', { attrs: { 'data-key': 'chg:' + c.login, 'aria-label': 'Change permission for ' + c.login }, onclick: e => act(e.currentTarget, async () => {
+          if (sel.value === toApiPerm(perm)) { announce(c.login + ' already has ' + permLabel(perm) + ' access'); return; }
+          await ghSend(rpath(r) + '/collaborators/' + enc(c.login), 'PUT', { permission: sel.value });
+          announce(c.login + ' now has ' + permLabel(sel.value) + ' access to ' + r.name);
+          await loadCollaborators(r, 'chg:' + c.login);
+        }) }));
+      actions = h('td', null, btn('Remove', { variant: 'danger', attrs: { 'data-key': 'rmc:' + c.login, 'aria-label': 'Remove ' + c.login + ' from ' + r.name }, onclick: e => act(e.currentTarget, async () => {
+        const ok = await confirmAction({ title: 'Remove ' + c.login + ' from ' + r.name + '?',
+          body: c.login + ' will lose their direct ' + permLabel(perm) + ' access to ' + r.name + '. If they are a member of the organisation they keep any access from teams and the base permission (Read).',
+          confirmLabel: 'Remove access', danger: true });
+        if (!ok) return;
+        await ghSend(rpath(r) + '/collaborators/' + enc(c.login), 'DELETE');
+        announce(c.login + ' removed from ' + r.name);
+        await loadCollaborators(r, 'add-collab-btn');
+      }) }));
+    }
+    return h('tr', null, h('td', null, person(c)), h('td', null, permCell), actions);
+  });
+  const kids = [...sectionHead('Direct collaborators (' + list.length + ')', 'People given access to this repository directly, not through a team or the base permission.'),
+    rows.length ? table('Direct collaborators', ['Person', 'Permission'].concat(isOwner() ? ['Actions'] : []), rows) : empty('No direct collaborators.')];
+  if (isOwner()) {
+    const u = h('input', { id: 'add-collab', class: 'field field-sm w-full', placeholder: 'GitHub username', autocomplete: 'off', spellcheck: 'false' });
+    const sel = permSelect('add-perm', 'push');
+    const msg = h('p', { class: 'text-xs mt-1', role: 'status' });
+    const go = btn('Add collaborator', { variant: 'primary', submit: true, attrs: { 'data-key': 'add-collab-btn' } });
+    const form = h('form', { class: 'grid gap-2 sm:grid-cols-[1fr_140px_auto] items-end mt-3', novalidate: true },
+      h('div', null, h('label', { class: 'label', for: 'add-collab' }, 'Add a person'), u),
+      h('div', null, h('label', { class: 'label', for: 'add-perm' }, 'Permission'), sel), go);
+    form.addEventListener('submit', e => { e.preventDefault(); act(go, async () => {
+      const login = u.value.trim().replace(/^@/, '');
+      if (!USERNAME_RE.test(login)) { msg.textContent = 'Enter a GitHub username.'; u.focus(); return; }
+      const res = await ghSend(rpath(r) + '/collaborators/' + enc(login), 'PUT', { permission: sel.value });
+      announce(res.status === 201 ? 'Invitation sent to ' + login + ' for ' + r.name : login + ' now has ' + permLabel(sel.value) + ' access to ' + r.name);
+      await Promise.all([loadCollaborators(r, 'add-collab-btn'), loadRepoInvites(r)]);
+    }); });
+    kids.push(form, msg);
+  }
+  host.replaceChildren(...kids);
+  if (focusKey) { const el = host.querySelector('[data-key="' + CSS.escape(focusKey) + '"]'); if (el) el.focus(); }
+}
+async function loadRepoTeams(r) {
+  const host = $('#acc-teams'); if (!host) return;
+  host.replaceChildren(...sectionHead('Teams'), skeletonRows(2));
+  try {
+    const list = await ghAll(rpath(r) + '/teams');
+    if (currentRepo !== r) return;
+    host.replaceChildren(...sectionHead('Teams (' + list.length + ')', 'Teams given access to this repository. Teams with an org role (such as managers) reach every repository and may not be listed here.'),
+      list.length ? h('ul', { class: 'flex flex-wrap gap-2' }, list.map(t => h('li', { class: 'badge b-blue' }, t.name + ': ' + permLabel(t.permission)))) : empty('No teams have been added to this repository.'));
+  } catch (e) { if (currentRepo === r) host.replaceChildren(...sectionHead('Teams'), note(errText(e), 'error')); }
+}
+async function loadRepoInvites(r) {
+  const host = $('#acc-invites'); if (!host || currentRepo !== r) return;
+  host.replaceChildren(...sectionHead('Pending invitations'), skeletonRows(1));
+  try {
+    const list = await ghAll(rpath(r) + '/invitations');
+    if (currentRepo !== r) return;
+    const rows = list.map(inv => {
+      const who = (inv.invitee && inv.invitee.login) || 'Unknown';
+      return h('tr', null, h('td', null, inv.invitee ? person(inv.invitee) : who), h('td', null, permLabel(inv.permissions)),
+        h('td', null, inv.inviter ? inv.inviter.login : ''), h('td', null, timeEl(inv.created_at)),
+        isOwner() ? h('td', null, btn('Cancel', { variant: 'danger', attrs: { 'data-key': 'rinv:' + inv.id, 'aria-label': 'Cancel invitation for ' + who }, onclick: e => act(e.currentTarget, async () => {
+          const ok = await confirmAction({ title: 'Cancel the invitation for ' + who + '?', body: who + ' will not be able to accept the invitation to ' + r.name + '. You can invite them again later.', confirmLabel: 'Cancel invitation', danger: true });
+          if (!ok) return;
+          await ghSend(rpath(r) + '/invitations/' + enc(inv.id), 'DELETE');
+          announce('Invitation for ' + who + ' cancelled');
+          await loadRepoInvites(r);
+          const c = $('#repo-close'); if (c) c.focus();
+        }) })) : null);
+    });
+    host.replaceChildren(...sectionHead('Pending invitations (' + list.length + ')'),
+      rows.length ? table('Pending repository invitations', ['Invitee', 'Permission', 'Invited by', 'Sent'].concat(isOwner() ? ['Actions'] : []), rows) : empty('No pending invitations for this repository.'));
+  } catch (e) { if (currentRepo === r) host.replaceChildren(...sectionHead('Pending invitations'), note(errText(e), 'error')); }
+}
+/* Contributor stats can return 202 while GitHub computes them: retry up to 3 times, 2 s apart. */
+async function loadContributors(r) {
+  const host = $('#acc-contrib'); if (!host) return;
+  const head = sectionHead('Contributors', 'Commits on the default branch, all time.');
+  host.replaceChildren(...head, skeletonRows(2));
+  try {
+    let res = null;
+    for (let i = 0; i < 4; i++) {
+      res = await gh(rpath(r) + '/stats/contributors');
+      if (res.status !== 202) break;
+      if (i < 3) await sleep(2000);
+      if (currentRepo !== r) return;
+    }
+    if (currentRepo !== r) return;
+    if (res.status === 202) { host.replaceChildren(...head, empty('GitHub is still counting, try again in a minute.'), btn('Try again', { onclick: () => loadContributors(r) })); return; }
+    if (res.status === 204) { host.replaceChildren(...head, empty('No commits yet.')); return; }
+    if (!res.ok) throw await toApiError(res);
+    const list = ((await res.json()) || []).filter(c => c && c.author).sort((a, b) => b.total - a.total);
+    host.replaceChildren(...head, list.length
+      ? h('ul', { class: 'grid gap-2 sm:grid-cols-2' }, list.map(c => h('li', { class: 'flex justify-between gap-3 text-sm' }, person(c.author), h('span', { class: 'muted shrink-0' }, plural(c.total, 'commit')))))
+      : empty('No contributors found.'));
+  } catch (e) { if (currentRepo === r) host.replaceChildren(...head, note(errText(e), 'error')); }
+}
+
+/* ============================================================
+   Activity
+   ============================================================ */
+const TYPE_LABELS = { PushEvent: 'Pushes', PullRequestEvent: 'Pull requests', PullRequestReviewEvent: 'Reviews', PullRequestReviewCommentEvent: 'Comments',
+  IssuesEvent: 'Issues', IssueCommentEvent: 'Comments', CommitCommentEvent: 'Comments', CreateEvent: 'Created', DeleteEvent: 'Deleted',
+  MemberEvent: 'Collaborators', ReleaseEvent: 'Releases', PublicEvent: 'Made public', ForkEvent: 'Forks', WatchEvent: 'Stars', GollumEvent: 'Wiki' };
+const typeLabel = t => TYPE_LABELS[t] || 'Other';
+function describe(ev) {
+  const p = ev.payload || {}, repo = ext(repoUrl(repoShort(ev)), repoShort(ev));
+  const code = x => h('code', { class: 'ref' }, x || '');
+  const num = p.number || (p.pull_request && p.pull_request.number) || (p.issue && p.issue.number);
+  const title = x => x && x.title ? ': "' + x.title + '"' : '';
+  switch (ev.type) {
+    case 'PushEvent': {
+      const br = (p.ref || '').replace('refs/heads/', ''), n = p.size != null ? p.size : (p.distinct_size != null ? p.distinct_size : (Array.isArray(p.commits) ? p.commits.length : null));
+      return [n > 0 ? 'pushed ' + plural(n, 'commit') + ' to ' : 'pushed to ', repo, br ? ' (' + br + ')' : ''];
+    }
+    case 'CreateEvent': return p.ref_type === 'repository' ? ['created repository ', repo] : ['created ' + (p.ref_type || '') + ' ', code(p.ref), ' in ', repo];
+    case 'DeleteEvent': return ['deleted ' + (p.ref_type || '') + ' ', code(p.ref), ' in ', repo];
+    case 'PullRequestEvent': {
+      const verb = p.action === 'closed' && p.pull_request && p.pull_request.merged ? 'merged' : (p.action || 'updated');
+      return [verb + ' pull request' + (num ? ' #' + num : '') + ' in ', repo, title(p.pull_request)];
+    }
+    case 'PullRequestReviewEvent': return ['reviewed pull request' + (num ? ' #' + num : '') + ' in ', repo];
+    case 'PullRequestReviewCommentEvent': return ['commented on pull request' + (num ? ' #' + num : '') + ' in ', repo];
+    case 'IssuesEvent': return [(p.action || 'updated') + ' issue' + (num ? ' #' + num : '') + ' in ', repo, title(p.issue)];
+    case 'IssueCommentEvent': return ['commented on' + (num ? ' #' + num : ' an issue') + ' in ', repo];
+    case 'CommitCommentEvent': return ['commented on a commit in ', repo];
+    case 'MemberEvent': return [(p.action || 'added') + ' ', h('strong', null, (p.member && p.member.login) || 'someone'), ' as a collaborator on ', repo];
+    case 'ReleaseEvent': return ['published release ', code(p.release && (p.release.name || p.release.tag_name)), ' in ', repo];
+    case 'PublicEvent': return ['made ', repo, ' public'];
+    case 'ForkEvent': return ['forked ', repo];
+    case 'WatchEvent': return ['starred ', repo];
+    case 'GollumEvent': return ['updated the wiki in ', repo];
+    default: return [humanise(ev.type.replace(/Event$/, '').replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()) + ' in ', repo];
+  }
+}
+function renderActivity() {
+  const p = $('#panel-activity');
+  const kids = [h('h2', { class: 'sr-only' }, 'Activity')];
+  if (S.errors.events) kids.push(note('The activity feed could not be loaded. ' + S.errors.events, 'error'));
+  kids.push(metricsCard());
+  const evs = S.events;
+  const uniq = arr => Array.from(new Set(arr)).sort((a, b) => a.localeCompare(b));
+  const mkSel = (id, label, allLabel, opts, key) => {
+    const sel = h('select', { id, class: 'field w-full' }, h('option', { value: '' }, allLabel), opts.map(o => h('option', { value: o, selected: S.actFilter[key] === o }, o)));
+    sel.addEventListener('change', () => { S.actFilter[key] = sel.value; drawFeed(); });
+    return h('div', null, h('label', { class: 'label', for: id }, label), sel);
+  };
+  kids.push(card('Recent activity', 'Your view of the organisation\'s activity feed: up to 300 events from about the last 90 days, including private repositories you can see.',
+    h('div', { class: 'grid gap-3 sm:grid-cols-3 mb-3' },
+      mkSel('act-who', 'Person', 'Everyone', uniq(evs.map(actorName)), 'who'),
+      mkSel('act-repo', 'Repository', 'All repositories', uniq(evs.map(repoShort)), 'repo'),
+      mkSel('act-type', 'Type', 'All types', uniq(evs.map(e => typeLabel(e.type))), 'type')),
+    h('p', { id: 'feed-count', class: 'text-sm muted mb-2', role: 'status', 'aria-live': 'polite' }),
+    h('ul', { id: 'feed', class: 'divide-y divide-[#E8ECF0]' })));
+  kids.push(note([
+    'GitHub\'s full change log for the organisation (who changed which setting) is in Settings → Logs → Audit log on GitHub; on the Free plan it isn\'t available to this page. ',
+    ext('https://github.com/organizations/' + ORG + '/settings/audit-log', 'Open the audit log on GitHub')
+  ], 'info'));
+  p.replaceChildren(...kids);
+  drawFeed();
+}
+function drawFeed() {
+  const { who, repo, type } = S.actFilter;
+  const list = S.events.filter(e => (!who || actorName(e) === who) && (!repo || repoShort(e) === repo) && (!type || typeLabel(e.type) === type));
+  const feed = $('#feed'); if (!feed) return;
+  feed.replaceChildren(...(list.length ? list.map(ev => h('li', { class: 'flex items-start gap-3 py-2.5 text-sm' },
+    h('img', { class: 'avatar mt-0.5', src: avatarSrc(ev.actor, 56), alt: '', width: 28, height: 28, loading: 'lazy' }),
+    h('div', { class: 'min-w-0 flex-1' }, h('strong', null, actorName(ev)), ' ', describe(ev)),
+    h('span', { class: 'muted text-xs shrink-0 pt-0.5' }, timeEl(ev.created_at))))
+    : [h('li', { class: 'py-2' }, empty(S.events.length ? 'No activity matches these filters.' : 'No recent activity.'))]));
+  $('#feed-count').textContent = 'Showing ' + list.length + ' of ' + plural(S.events.length, 'event');
+}
+
+/* --- Metrics --- */
+function weeklyPushes() {
+  const now = new Date(), start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  start.setDate(start.getDate() - ((start.getDay() + 6) % 7));           /* this Monday */
+  const weeks = Array.from({ length: 12 }, (_, i) => { const d = new Date(start); d.setDate(d.getDate() - (11 - i) * 7); return { start: d, n: 0 }; });
+  for (const ev of S.events) {
+    if (ev.type !== 'PushEvent') continue;
+    const t = new Date(ev.created_at);
+    for (let i = 11; i >= 0; i--) if (t >= weeks[i].start) { weeks[i].n++; break; }
+  }
+  return weeks;
+}
+function metricsCard() {
+  const weeks = weeklyPushes();
+  const { byRepo, byPerson } = pushCounts(30);
+  const top = m => Array.from(m.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const oldest = S.events.length ? new Date(S.events[S.events.length - 1].created_at) : null;
+  const partial = oldest && S.eventsTruncated && oldest > weeks[0].start;
+  const topList = (title, entries, linkRepo) => h('div', null, h('h4', { class: 'font-700 text-sm mb-2' }, title),
+    entries.length ? h('ol', { class: 'space-y-1.5 text-sm list-decimal pl-5' }, entries.map(([k, n]) => h('li', null,
+      h('span', { class: 'flex justify-between gap-3' }, linkRepo ? ext(repoUrl(k), k, 'font-700 hover:underline truncate') : h('span', { class: 'font-700 truncate' }, k), h('span', { class: 'muted shrink-0' }, plural(n, 'push', 'pushes'))))))
+      : empty('No pushes in the last 30 days.'));
+  const tableRows = weeks.map(w => h('tr', null, h('td', null, 'Week starting ' + shortDate(w.start)), h('td', null, String(w.n))));
+  return card('Metrics', 'From your activity feed, so it covers repositories you can see.',
+    h('div', { class: 'grid gap-6 lg:grid-cols-[2fr_1fr_1fr]' },
+      h('div', null,
+        h('h4', { class: 'font-700 text-sm mb-2', id: 'chart-title' }, 'Pushes per week, last 12 weeks'),
+        h('div', { id: 'chart', class: 'chart-wrap' }),
+        partial ? h('p', { class: 'text-xs muted mt-1' }, 'The feed only reaches back to ' + oldest.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', so earlier weeks may be undercounted.') : null,
+        h('details', { class: 'mt-2 text-sm' }, h('summary', { class: 'cursor-pointer font-600 text-cblue' }, 'Show as a table'),
+          h('table', { class: 'tbl mt-2' }, h('thead', null, h('tr', null, h('th', { scope: 'col' }, 'Week'), h('th', { scope: 'col' }, 'Pushes'))), h('tbody', null, tableRows)))),
+      topList('Top people, last 30 days', top(byPerson), false),
+      topList('Top repositories, last 30 days', top(byRepo), true)),
+    h('p', { class: 'text-sm mt-5' }, h('span', { class: 'font-800 text-lg' }, String(staleRepos().length)), ' ',
+      h('span', { class: 'muted' }, 'repositories have had no push in 180 days.')));
+}
+/* Inline SVG bar chart, drawn at the container's real width so labels stay readable. */
+let chartW = 0;
+function drawChart(onResize) {
+  const host = $('#chart'); if (!host || !host.isConnected || host.closest('[hidden]')) return;
+  const W = Math.max(280, host.clientWidth || 600);
+  if (onResize === true && W === chartW && host.firstChild) return;
+  chartW = W;
+  const weeks = weeklyPushes();
+  const H = 230, m = { l: 34, r: 8, t: 30, b: 34 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const max = Math.max(...weeks.map(w => w.n));
+  const yMax = max <= 4 ? 4 : Math.ceil(max / 4) * 4;
+  const band = iw / weeks.length, bw = Math.max(6, Math.min(36, band - 6));
+  const y = v => m.t + ih - (v / yMax) * ih;
+  const every = band >= 46 ? 1 : band >= 24 ? 2 : 3;
+  const total = weeks.reduce((a, w) => a + w.n, 0);
+  const svg = s('svg', { width: W, height: H, viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-labelledby': 'chart-title chart-desc', style: 'display:block;max-width:100%;font-family:inherit' },
+    s('desc', { id: 'chart-desc' }, total + ' pushes in 12 weeks; the busiest week had ' + max + '. The table below has every week.'));
+  for (let i = 0; i <= 4; i++) {
+    const v = (yMax / 4) * i, yy = y(v);
+    svg.append(s('line', { x1: m.l, x2: W - m.r, y1: yy, y2: yy, stroke: i === 0 ? '#C9D0D8' : '#E8ECF0', 'stroke-width': 1 }),
+      s('text', { x: m.l - 6, y: yy + 4, 'text-anchor': 'end', 'font-size': 11, fill: '#6B6B6B' }, String(v)));
+  }
+  svg.append(s('text', { x: 0, y: 12, 'font-size': 11, 'font-weight': 700, fill: '#6B6B6B' }, 'Pushes'));
+  const tip = h('div', { class: 'chart-tip', hidden: true });
+  weeks.forEach((w, i) => {
+    const cx = m.l + band * i + band / 2, x = cx - bw / 2, top = y(w.n), bh = m.t + ih - top;
+    if (w.n > 0) {
+      const r = Math.min(4, bw / 2, bh);
+      svg.append(s('path', { d: 'M' + x + ',' + (top + bh) + 'V' + (top + r) + 'Q' + x + ',' + top + ' ' + (x + r) + ',' + top + 'H' + (x + bw - r) + 'Q' + (x + bw) + ',' + top + ' ' + (x + bw) + ',' + (top + r) + 'V' + (top + bh) + 'Z', fill: '#27AAE1' }));
+    }
+    if (i % every === (weeks.length - 1) % every)
+      svg.append(s('text', { x: cx, y: H - m.b + 16, 'text-anchor': 'middle', 'font-size': 11, fill: '#6B6B6B' }, shortDate(w.start)));
+    const hit = s('rect', { x: m.l + band * i, y: m.t, width: band, height: ih, fill: 'transparent' });
+    hit.addEventListener('mouseenter', () => { tip.textContent = 'Week starting ' + shortDate(w.start) + ': ' + plural(w.n, 'push', 'pushes'); tip.style.left = cx + 'px'; tip.style.top = Math.max(top, m.t + 10) + 'px'; tip.hidden = false; });
+    hit.addEventListener('mouseleave', () => { tip.hidden = true; });
+    svg.append(hit);
+  });
+  svg.append(s('text', { x: m.l + iw / 2, y: H - 2, 'text-anchor': 'middle', 'font-size': 11, fill: '#6B6B6B' }, 'Week starting'));
+  host.replaceChildren(svg, tip);
+}
+if ('ResizeObserver' in window) {
+  let rt = null;
+  new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(() => drawChart(true), 150); }).observe(document.body);
+}
+</script>
+</body>
+</html>
