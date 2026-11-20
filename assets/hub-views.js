@@ -249,7 +249,7 @@
   /* Everything the City draws: the listed projects plus retired (archived) ones, which stand as ruins. */
   function cityItems(list) {
     var seen = {}; list.forEach(function (i) { seen[i.repo.name] = 1; });
-    var retired = scopedRepos().filter(function (r) { return r.archived && !r.fork && !seen[r.name]; }).map(HX.info);
+    var retired = scopedRepos().filter(function (r) { return r.archived && !r.fork && !seen[r.name]; }).map(HX.info).filter(function (i) { return !HX.isCopy(i); });
     return list.concat(retired).map(function (i) {
       var gone = !!i.repo.archived || i.status === 'retired';
       return { key: i.repo.name, name: i.name, tagline: i.tagline, purpose: i.purpose, kind: i.kind, kindLabel: HX.KINDS[i.kind].label,
@@ -1291,7 +1291,7 @@
   /* ---------------- The cinematic header, fed with explorer data ---------------- */
   HX.updateHero = function () {
     if (typeof window.cinRender !== 'function') return;
-    var repos = ALL_REPOS.filter(function (r) { return !r._personal; }), list = repos.map(HX.info);
+    var repos = ALL_REPOS.filter(function (r) { return !r._personal; }), list = repos.map(HX.info).filter(function (i) { return !HX.isCopy(i); });
     var now = Date.now(), latest = 0, a7 = 0, a30 = 0, DAYS = 91, daily = [], i;
     for (i = 0; i < DAYS; i++) daily.push(0);
     var mid = new Date(); mid.setHours(0, 0, 0, 0);

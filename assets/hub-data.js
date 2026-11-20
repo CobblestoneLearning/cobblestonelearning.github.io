@@ -342,7 +342,8 @@
       gallery: Array.isArray(src.gallery) ? src.gallery.filter(function (g) { return g && safePath(g.src); }) : [],
       guides: Array.isArray(src.guides) ? src.guides.filter(function (g) { return g && Array.isArray(g.steps); }) : [],
       owner: (hub && hub.owner) || '', hasCard: !!hub, langs: ex.langs || [], langTotal: ex.langTotal || 0, last: ex.last || null,
-      recent: ex.recent || 0, hasNotes: !!ex.cl
+      recent: ex.recent || 0, hasNotes: !!ex.cl,
+      same_as: (hub && typeof hub.same_as === 'string') ? hub.same_as.toLowerCase() : ''   /* another copy of that repo's project: show one card */
     };
     info.search = [info.name, repo.name, info.tagline, info.summary, HX.PURPOSE[purpose].label, HX.KINDS[kind].label,
       works.join(' '), runs.map(function (s) { return s.name + ' ' + s.site; }).join(' '), topics.join(' '), (info.features || []).join(' ')].join(' ').toLowerCase();
@@ -353,7 +354,14 @@
   HX.md = function (t) { return escapeHtml(String(t == null ? '' : t)).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>'); };
   HX.demoFor = function (repo) { var i = HX.info(repo); return i && i.demo; };
 
-  HX.list = function () { return scopedRepos().filter(function (r) { return !r.fork && !r.archived || HX.showExtra; }).map(HX.info); };
+  /* A repo whose card says "same_as": "<other repo>" is another copy of that project (a site mirror and the
+     working copy, say). While the other repo is visible too, only that one is shown. */
+  HX.isCopy = function (info) {
+    if (!info || !info.same_as || info.same_as === info.key) return false;
+    for (var i = 0; i < ALL_REPOS.length; i++) if (ALL_REPOS[i].name.toLowerCase() === info.same_as) return true;
+    return false;
+  };
+  HX.list = function () { return scopedRepos().filter(function (r) { return !r.fork && !r.archived || HX.showExtra; }).map(HX.info).filter(function (i) { return !HX.isCopy(i); }); };
   HX.showExtra = false;
   HX.byName = function (name) {
     var n = String(name || '').toLowerCase();
