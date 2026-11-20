@@ -1,0 +1,31 @@
+{
+  "note": "Signed out, so only public projects show. Serve this folder first (python3 -m http.server 8791 --bind 127.0.0.1); the City needs http, not file. Each run uses about 11 of GitHub's 60 signed-out requests an hour.",
+  "url": "http://127.0.0.1:8791/index.html",
+  "viewport": [1600, 1000],
+  "wait": 4000,
+  "setup": "window.__top=function(){const s=document.querySelector('main > section');if(s)s.style.display='none';scrollTo(0,0);};window.__go=async function(h,ms){location.hash=h;await new Promise(r=>setTimeout(r,ms||800));__top();};",
+  "cover": { "wait": 1500 },
+  "gallery": [
+    {
+      "file": "01-discover.jpg",
+      "setup": "await __go('#/discover');",
+      "wait": 2500,
+      "caption": "Discover gives you different ways to start, such as the City, the demos and a learner's journey.",
+      "alt": "The Discover view with five large tiles: Explore the city, Try something, Follow a learner, See how it connects and Browse the map."
+    },
+    {
+      "file": "02-city.jpg",
+      "setup": "await __go('#/city'); await new Promise(r=>setTimeout(r,6000)); document.querySelector('[data-hx-city=\"full\"]').click();",
+      "wait": 12000,
+      "caption": "In the City, each building is a project. Its shape shows its kind, and its height shows its size.",
+      "alt": "A city of model buildings on a round island, shown full screen, with two labelled neighbourhoods and a cable car line."
+    },
+    {
+      "file": "03-project.jpg",
+      "setup": "document.querySelector('[data-hx-city=\"full\"]').click(); await new Promise(r=>setTimeout(r,500)); await __go('#/p/subtitle-studio?tab=built');",
+      "wait": 6000,
+      "caption": "Each project has a page with its links, its place in the City and the developer notes.",
+      "alt": "The page for the subtitle editor on the How it's built tab, with Try the demo and Open the live page buttons."
+    }
+  ]
+}

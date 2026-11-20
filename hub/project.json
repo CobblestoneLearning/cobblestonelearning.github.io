@@ -24,5 +24,23 @@
   ],
   "live_url": "https://cobblestonelearning.github.io/",
   "owner": "Bryan Hurley",
-  "updated": "2026-11-20"
+  "updated": "2026-11-20",
+  "cover": "hub/cover.jpg",
+  "gallery": [
+    {
+      "src": "hub/gallery/01-discover.jpg",
+      "caption": "Discover gives you different ways to start, such as the City, the demos and a learner's journey.",
+      "alt": "The Discover view with five large tiles: Explore the city, Try something, Follow a learner, See how it connects and Browse the map."
+    },
+    {
+      "src": "hub/gallery/02-city.jpg",
+      "caption": "In the City, each building is a project. Its shape shows its kind, and its height shows its size.",
+      "alt": "A city of model buildings on a round island, shown full screen, with two labelled neighbourhoods and a cable car line."
+    },
+    {
+      "src": "hub/gallery/03-project.jpg",
+      "caption": "Each project has a page with its links, its place in the City and the developer notes.",
+      "alt": "The page for the subtitle editor on the How it's built tab, with Try the demo and Open the live page buttons."
+    }
+  ]
 }
