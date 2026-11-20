@@ -45,7 +45,7 @@
   };
 </script>
 
-<link href="assets/hub-explore.css?v=4" rel="stylesheet" />
+<link href="assets/hub-explore.css?v=5" rel="stylesheet" />
 <!-- The City view (assets/hub-city.js) imports three.js by its bare name; this points it at the vendored copy. -->
 <script type="importmap">{ "imports": { "three": "./assets/vendor/three/three.module.min.js" } }</script>
 <!-- Prism core + language components + line-numbers + clipboard.js (SRI-pinned, deferred) -->
@@ -538,7 +538,7 @@
 
         <!-- ===== Auth: signed-in control (hidden until login) ===== -->
         <div id="auth-user" class="hidden items-center gap-2 sm:gap-3">
-          <a id="manage-link" href="manage.html" class="hidden btn btn-ghost text-sm font-700 px-3.5 py-2 rounded-full items-center gap-1.5" title="People, access and activity (managers only)">
+          <a id="manage-link" href="https://cobblestone-manage.cobblestonelearning.workers.dev/" class="hidden btn btn-ghost text-sm font-700 px-3.5 py-2 rounded-full items-center gap-1.5" title="People, access and activity (managers only)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Manage
           </a>
           <span id="auth-private-pill" class="hidden sm:inline-flex badge badge-private items-center" title="Private organisation repositories are now included">
@@ -2514,11 +2514,10 @@ function signIn() {
   }).join('');
   sessionStorage.setItem('cb_oauth_state', state);
 
-  var authUrl = 'https://github.com/login/oauth/authorize' +
-    '?client_id=' + encodeURIComponent(AUTH_CONFIG.clientId) +
-    '&redirect_uri=' + encodeURIComponent(location.origin + '/callback.html') +
-    '&scope=' + encodeURIComponent(AUTH_CONFIG.scope) +
-    '&state=' + encodeURIComponent(state);
+  /* PKCE: only this page, which holds the verifier, can redeem the code it gets back. */
+  var vb = new Uint8Array(32);
+  crypto.getRandomValues(vb);
+  pkceVerifier = b64url(vb);
 
   /* Centered popup (must be opened in the click handler so it is not blocked). */
   var w = 600, h = 720;
@@ -2528,21 +2527,38 @@ function signIn() {
   var winH = window.innerHeight || document.documentElement.clientHeight || screen.height;
   var left = dualLeft + Math.max(0, (winW - w) / 2);
   var top = dualTop + Math.max(0, (winH - h) / 2);
-  oauthPopup = window.open(authUrl, 'cobblestone-oauth',
+  oauthPopup = window.open('about:blank', 'cobblestone-oauth',
     'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top +
     ',menubar=no,toolbar=no,location=no,status=no');
   if (!oauthPopup) {
     sessionStorage.removeItem('cb_oauth_state');
+    pkceVerifier = null;
     showToast('Pop-up blocked — please allow pop-ups and try again.');
+    return;
   }
+  /* the window is open (inside the click); its address follows once the challenge is hashed */
+  crypto.subtle.digest('SHA-256', new TextEncoder().encode(pkceVerifier)).then(function (hash) {
+    var authUrl = 'https://github.com/login/oauth/authorize' +
+      '?client_id=' + encodeURIComponent(AUTH_CONFIG.clientId) +
+      '&redirect_uri=' + encodeURIComponent(location.origin + '/callback.html') +
+      '&scope=' + encodeURIComponent(AUTH_CONFIG.scope) +
+      '&state=' + encodeURIComponent(state) +
+      '&code_challenge=' + encodeURIComponent(b64url(new Uint8Array(hash))) + '&code_challenge_method=S256';
+    if (oauthPopup && !oauthPopup.closed) oauthPopup.location = authUrl;
+  });
+}
+var pkceVerifier = null;
+function b64url(bytes) {
+  return btoa(String.fromCharCode.apply(null, Array.prototype.slice.call(bytes))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 function exchange(code) {
   showFullscreenLoader('Signing you in…');
+  var verifier = pkceVerifier; pkceVerifier = null;
   fetch(AUTH_CONFIG.exchangeUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code: code })
+    body: JSON.stringify(verifier ? { code: code, code_verifier: verifier } : { code: code })
   })
     .then(function (r) {
       if (!r.ok) throw new Error('Exchange responded ' + r.status);
@@ -2630,6 +2646,6 @@ function restoreSessionThenLoad() {
 })();
 </script>
 <script src="assets/hub-data.js?v=4"></script>
-<script src="assets/hub-views.js?v=4"></script>
+<script src="assets/hub-views.js?v=5"></script>
 </body>
 </html>

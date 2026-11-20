@@ -472,7 +472,7 @@
   function afterCity(list, route) {
     if (cityFail) { cityNoGL(); return; }
     if (!HX.extraReady) { cityBoot('Building the city', 'Reading the details of ' + plural(list.length, 'project', 'projects'), true); return; }
-    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=1', document.baseURI).href);
+    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=2', document.baseURI).href);
     HX._cityP.then(function (mod) {
       cityMod = mod;
       var slot = document.getElementById('hx-city-slot'); if (!slot) return;     /* left the view meanwhile */
@@ -586,6 +586,8 @@
      panel still works), and the browser goes full screen too where it allows that. */
   function cityFull(on) {
     document.body.classList.toggle('hx-city-full', on);
+    document.documentElement.classList.toggle('hx-city-full', on);   /* no page scrolling underneath */
+    if (city) city.setFull(on);
     var b = document.querySelector('[data-hx-city="full"]');
     if (b) { b.setAttribute('aria-pressed', String(on)); b.lastChild.textContent = on ? 'Exit full screen' : 'Full screen'; }
     var d = document, el = d.documentElement;

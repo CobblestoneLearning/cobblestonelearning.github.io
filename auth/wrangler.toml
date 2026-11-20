@@ -7,6 +7,7 @@ compatibility_date = "2024-11-01"
 [vars]
 GITHUB_CLIENT_ID = "Ov23liHyPVBdzXg8TOYS"               # OAuth App Client ID (public, not secret)
 ALLOWED_ORIGIN   = "https://cobblestonelearning.github.io"
+REDIRECT_URI     = "https://cobblestonelearning.github.io/callback.html"   # binds each exchange to the hub's callback
 
 # The client SECRET is set out-of-band (never commit it):
 #   wrangler secret put GITHUB_CLIENT_SECRET

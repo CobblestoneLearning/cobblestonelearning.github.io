@@ -609,7 +609,9 @@ button.hx-pill { cursor: pointer; font-family: inherit; }
 @media (max-width: 1000px) { .hx-notes-grid { grid-template-columns: minmax(0, 1fr); } .hx-notes-side { position: static; } }
 
 /* the City, full screen: the stage fills the window, with every control still on it */
-body.hx-city-full { overflow: hidden; }
+/* the page scrolls on <html> (overflow-x: clip keeps body from taking it), so lock both */
+html.hx-city-full, html.hx-city-full body { overflow: hidden !important; overscroll-behavior: none; }
+html.hx-city-full .hx-city-help { display: none; }   /* it says Ctrl + scroll; in full screen the wheel zooms */
 body.hx-city-full .hx-city { position: fixed; inset: 0; height: auto; z-index: 300; border: 0; border-radius: 0; }
 body.hx-city-full .hx-city-tip { z-index: 400; }
 body.hx-city-full .demo-overlay, body.hx-city-full #modal, body.hx-city-full .hx-lightbox, body.hx-city-full .toast { z-index: 500; }

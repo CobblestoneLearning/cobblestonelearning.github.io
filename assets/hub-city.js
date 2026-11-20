@@ -1959,7 +1959,7 @@ export class City {
       if (t && t.type === 'project') this.h.onOpen(t.item.key);
     });
     this.host.addEventListener('wheel', (e) => {
-      if (this.walking || e.ctrlKey || e.metaKey) return;
+      if (this.walking || this.full || e.ctrlKey || e.metaKey) return;   /* full screen: nothing else to scroll, so the wheel zooms */
       e.stopPropagation();
       this.hint.classList.add('on');
       clearTimeout(this._hintT);
@@ -1982,6 +1982,7 @@ export class City {
     this._sync();
   }
 
+  setFull(on) { this.full = !!on; }
   setInset(frac) { this.inset = frac || 0; this._applyInset(); }
   _applyInset() {
     if (this.inset && this._w && this._h) this.camera.setViewOffset(this._w, this._h, 0, Math.round(this._h * this.inset * 0.66), this._w, this._h);
