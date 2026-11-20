@@ -7,14 +7,22 @@
 <meta name="description" content="Managers-only page for the Cobblestone Learning GitHub organisation: people, teams, repository access and activity." />
 <meta name="robots" content="noindex, nofollow" />
 <meta name="referrer" content="no-referrer" />
+<!-- SECURITY: never shown inside another site's frame (clickjacking). GitHub Pages cannot send
+     X-Frame-Options, and a meta policy cannot set frame-ancestors, so the page hides itself instead. -->
+<style id="fb">html{display:none!important}</style>
+<script>if (self === top) { var fb = document.getElementById('fb'); fb.parentNode.removeChild(fb); } else { try { top.location = self.location; } catch (e) {} }</script>
+<noscript><style>html{display:block!important}</style></noscript>
+<!-- SECURITY: this page holds an admin:org token. Scripts only from this site; data only to GitHub's API and
+     the sign-in worker; images only from GitHub; no frames, plugins, base changes or form posts. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://avatars.githubusercontent.com https://github.com; connect-src 'self' https://api.github.com https://cobblestone-oauth.cobblestonelearning.workers.dev; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
 
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
 
-<!-- Tailwind (Play CDN, no SRI: it is dynamic). Same config as index.html. -->
-<script src="https://cdn.tailwindcss.com"></script>
+<!-- Tailwind 3.4.17, pinned copy: a page holding a sign-in token takes no unpinned third-party script (assets/vendor/tailwind/README.md) -->
+<script src="assets/vendor/tailwind/tailwindcss-3.4.17.js"></script>
 <script>
   tailwind.config = {
     theme: {
@@ -194,7 +202,7 @@
       </button>
       <div class="note note-info mt-5">
         <p class="font-700 mb-1">You'll be asked to sign in again after a refresh; this is deliberate.</p>
-        <p>This page asks GitHub for organisation administration access (<code class="ref">admin:org</code>), which can change who is in the organisation. To keep that safe on a public website, the access is held only while this page is open and is never saved in your browser. Signing out removes it straight away.</p>
+        <p>This page asks GitHub for organisation administration access (<code class="ref">admin:org</code>), which can change who is in the organisation. The access is held only while this page is open and is never saved in your browser. Signing out removes it from this page. To take back the app's access completely, revoke "Cobblestone Repository Hub" in your GitHub settings, under Applications, Authorized OAuth Apps.</p>
       </div>
     </div>
   </section>
@@ -430,6 +438,8 @@ const errText = e => (e && e.message) || 'Something went wrong.';
 async function gh(pathOrUrl, opts) {
   opts = opts || {};
   const url = pathOrUrl.startsWith('https://') ? pathOrUrl : API + pathOrUrl;
+  /* SECURITY: the token only ever goes to GitHub's API */
+  if (new URL(url).origin !== new URL(API).origin) throw new Error('Blocked a request to ' + new URL(url).origin + '.');
   const headers = { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
   if (token) headers['Authorization'] = 'Bearer ' + token;
   if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
@@ -551,7 +561,7 @@ function show(view) {
 function setLoading(msg) { $('#loading-msg').textContent = msg; }
 
 window.addEventListener('message', e => {
-  if (e.origin !== window.location.origin) return;
+  if (e.origin !== window.location.origin || !oauthPopup || e.source !== oauthPopup) return;   /* only the popup this page opened */
   if (!e.data || e.data.source !== 'cobblestone-oauth') return;
   if (oauthPopup && !oauthPopup.closed) oauthPopup.close();
   if (e.data.error) { sessionStorage.removeItem('cb_oauth_state'); announce('Sign-in cancelled'); return; }
@@ -609,7 +619,14 @@ function resetUser() {
   for (const p of document.querySelectorAll('[role="tabpanel"]')) p.replaceChildren();
   $('#app-notes').replaceChildren();
 }
-function signOut() { resetUser(); signInError(''); announce('Signed out'); $('#signin-btn').focus(); }
+/* Signing out, or leaving the page, cancels the token at GitHub (the worker's /revoke): this page
+   never keeps it, so nothing is lost, and an admin:org token is never left valid behind you. */
+function revokeToken(t) {
+  if (!t) return;
+  try { fetch(AUTH_CONFIG.exchangeUrl.replace(/\/$/, '') + '/revoke', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ access_token: t }) }).catch(() => {}); } catch (e) {}
+}
+window.addEventListener('pagehide', () => revokeToken(token));
+function signOut() { revokeToken(token); resetUser(); signInError(''); announce('Signed out'); $('#signin-btn').focus(); }
 function expired() { if (!token) return; resetUser(); signInError('Your GitHub sign-in has expired. Please sign in again.'); }
 
 $('#signin-btn').addEventListener('click', signIn);
@@ -855,6 +872,12 @@ function inviteForm() {
       try { u = await ghJson('/users/' + enc(login)); }
       catch (err) { if (err.status === 404) { msg.textContent = 'There is no GitHub account called ' + login + '.'; msg.classList.add('text-[#C0392B]'); return; } throw err; }
       if (S.members.some(m => m.id === u.id)) { msg.textContent = u.login + ' is already a member.'; return; }
+      if (role.value === 'admin' || mgr.checked) {
+        const ok = await confirmAction({ title: 'Invite ' + u.login + (role.value === 'admin' ? ' as an owner?' : ' as a manager?'),
+          body: role.value === 'admin' ? u.login + ' will be able to change everything in the organisation: people, teams, settings and every repository.' : u.login + ' will have write access to every repository in the organisation.',
+          confirmLabel: 'Send invitation' });
+        if (!ok) return;
+      }
       const body = { invitee_id: u.id, role: role.value };
       if (mgr.checked && S.managersTeam) body.team_ids = [S.managersTeam.id];
       await ghSend('/orgs/' + ORG + '/invitations', 'POST', body);
@@ -1213,6 +1236,12 @@ async function loadCollaborators(r, focusKey) {
       permCell = h('span', { class: 'inline-flex items-center gap-1.5' }, h('label', { class: 'sr-only', for: id }, 'Permission for ' + c.login), sel,
         btn('Change', { attrs: { 'data-key': 'chg:' + c.login, 'aria-label': 'Change permission for ' + c.login }, onclick: e => act(e.currentTarget, async () => {
           if (sel.value === toApiPerm(perm)) { announce(c.login + ' already has ' + permLabel(perm) + ' access'); return; }
+          if (sel.value === 'admin' || sel.value === 'maintain') {
+            const ok = await confirmAction({ title: 'Give ' + c.login + ' ' + permLabel(sel.value) + ' access to ' + r.name + '?',
+              body: sel.value === 'admin' ? c.login + ' will be able to change the settings of ' + r.name + ', including who has access and whether it is public.' : c.login + ' will be able to manage ' + r.name + ' without access to its sensitive settings.',
+              confirmLabel: 'Give access' });
+            if (!ok) return;
+          }
           await ghSend(rpath(r) + '/collaborators/' + enc(c.login), 'PUT', { permission: sel.value });
           announce(c.login + ' now has ' + permLabel(sel.value) + ' access to ' + r.name);
           await loadCollaborators(r, 'chg:' + c.login);
@@ -1242,6 +1271,10 @@ async function loadCollaborators(r, focusKey) {
     form.addEventListener('submit', e => { e.preventDefault(); act(go, async () => {
       const login = u.value.trim().replace(/^@/, '');
       if (!USERNAME_RE.test(login)) { msg.textContent = 'Enter a GitHub username.'; u.focus(); return; }
+      const ok = await confirmAction({ title: 'Give ' + login + ' ' + permLabel(sel.value) + ' access to ' + r.name + '?',
+        body: 'If ' + login + ' is not in the organisation, GitHub invites them as an outside collaborator on ' + r.name + ' only.' + (sel.value === 'admin' ? ' Admin access can change the settings of ' + r.name + ', including whether it is public.' : ''),
+        confirmLabel: 'Give access' });
+      if (!ok) return;
       const res = await ghSend(rpath(r) + '/collaborators/' + enc(login), 'PUT', { permission: sel.value });
       announce(res.status === 201 ? 'Invitation sent to ' + login + ' for ' + r.name : login + ' now has ' + permLabel(sel.value) + ' access to ' + r.name);
       await Promise.all([loadCollaborators(r, 'add-collab-btn'), loadRepoInvites(r)]);

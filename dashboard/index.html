@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
+<!-- SECURITY: never shown inside another site's frame (clickjacking). GitHub Pages cannot send
+     X-Frame-Options, and a meta policy cannot set frame-ancestors, so the page hides itself instead. -->
+<style id="fb">html{display:none!important}</style>
+<script>if (self === top) { var fb = document.getElementById('fb'); fb.parentNode.removeChild(fb); } else { try { top.location = self.location; } catch (e) {} }</script>
+<noscript><style>html{display:block!important}</style></noscript>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Cobblestone Learning — Organisation Dashboard</title>
 <meta name="description" content="A cinematic single-screen organisation dashboard for Cobblestone Learning." />
@@ -435,7 +440,11 @@ const $  = (s,r=document)=>r.querySelector(s);
 const SVGNS="http://www.w3.org/2000/svg";
 const S = (n,a={})=>{const e=document.createElementNS(SVGNS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const hostname=u=>{try{return new URL(u).hostname.replace(/^www\./,"");}catch(e){return (u||"").replace(/^https?:\/\//,"").replace(/^www\./,"").split("/")[0];}};
+/* SECURITY: repo fields such as homepage are free text set by any repo admin. Escape anything
+   written as HTML, and only ever link to https:// addresses. */
+const escH=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+const httpsUrl=u=>{try{const x=new URL(u);return x.protocol==="https:"?x.href:null;}catch(e){return null;}};
+const hostname=u=>{try{return new URL(u).hostname.replace(/^www\./,"");}catch(e){return "";}};
 
 /* =================== cobblestone floor =================== */
 function buildFloor(){
@@ -556,8 +565,8 @@ function buildLangs(lang){
   const f=$("#f-langs"); f.innerHTML="";
   items.forEach((it,idx)=>{
     const row=document.createElement("div"); row.className="chip";
-    row.innerHTML=`<span class="dot" style="background:${it.color||palette[idx%palette.length]}"></span>`+
-      `<span class="nm">${it.name}</span>`+(it.pct!=null?`<span class="pc">${Math.round(it.pct)}%</span>`:"");
+    row.innerHTML=`<span class="dot" style="background:${/^#[0-9a-f]{3,8}$/i.test(it.color||"")?it.color:palette[idx%palette.length]}"></span>`+
+      `<span class="nm">${escH(it.name)}</span>`+(it.pct!=null?`<span class="pc">${Math.round(it.pct)}%</span>`:"");
     f.appendChild(row);
   });
 }
@@ -622,13 +631,15 @@ function buildLive(live){
   const tiles=items.length?items:Array.from({length:n},(_,i)=>({name:"Demo "+(i+1)}));
   function makeTile(d,i){
     const a=document.createElement("a");
-    a.className="ptile"; a.href=d.url||"#"; if(d.url){a.target="_blank"; a.rel="noopener";}
+    const url=httpsUrl(d.url);
+    a.className="ptile"; a.href=url||"#"; if(url){a.target="_blank"; a.rel="noopener";}
     a.style.animationDelay=(-(i*0.3)).toFixed(2)+"s";
     const [v1,v2]=tileTint(d.name||d.url); a.style.setProperty("--pv1",v1); a.style.setProperty("--pv2",v2);
-    const dom=hostname(d.url||d.name);
-    a.innerHTML=(d.embed&&d.url)
+    const dom=escH(hostname(url||"")||d.name||"");
+    /* never allow-same-origin: a framed page on this origin would run as this page */
+    a.innerHTML=(d.embed&&url)
       ? `<div class="pchrome"><b></b><b></b><b></b><span class="pdom">${dom}</span></div>`+
-        `<iframe src="${d.url}" loading="lazy" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer"></iframe>`+
+        `<iframe src="${escH(url)}" loading="lazy" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>`+
         `<span class="popen">Open ↗</span>`
       : `<div class="pchrome"><b></b><b></b><b></b><span class="pdom">${dom}</span></div>`+
         `<div class="pbody"><div class="pbar w2"></div><div class="pbar w1"></div><div class="pbar w3"></div></div>`+
@@ -650,10 +661,10 @@ function buildLive(live){
   const list=$("#f-live"); list.innerHTML="";
   tiles.forEach(d=>{
     const row=document.createElement("div"); row.className="demo-row";
-    const dom=hostname(d.url||"");
+    const url=httpsUrl(d.url), dom=escH(hostname(url||""));
     row.innerHTML=`<span class="dot"></span>`+
-      `<span class="nm"><b>${d.name||dom||"Untitled"}</b>${dom?`<span>${dom}</span>`:""}</span>`+
-      `<a class="open-btn" href="${d.url||"#"}" ${d.url?'target="_blank" rel="noopener"':""}>Open `+
+      `<span class="nm"><b>${escH(d.name)||dom||"Untitled"}</b>${dom?`<span>${dom}</span>`:""}</span>`+
+      `<a class="open-btn" href="${escH(url||"#")}" ${url?'target="_blank" rel="noopener"':""}>Open `+
       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></a>`;
     list.appendChild(row);
   });
@@ -717,16 +728,16 @@ window.setDashboardData=function(partial){ Object.assign(DATA,partial); render(D
 const GH_USER="cobblestonelearning";
 const GH_PALETTE=["#27AAE1","#0074B4","#3D3D3D","#FFC20E","#2D9E5A","#1582AB","#8A6500"];
 function ghPagesUrl(repo){
-  if(repo.homepage) return repo.homepage;
+  const home=httpsUrl(repo.homepage); if(home) return home;
   if((repo.name||"").toLowerCase()===GH_USER+".github.io") return "https://"+GH_USER+".github.io/";
-  return "https://"+GH_USER+".github.io/"+repo.name+"/";
+  return "https://"+GH_USER+".github.io/"+encodeURIComponent(repo.name)+"/";
 }
 function loadLive(token){
   const headers={Accept:"application/vnd.github+json"};
   if(token) headers.Authorization="Bearer "+token;
   // The organisation's repos, every page (there are more than 100). Signed out: public only.
   // (/users/<org>/repos returns public repos only, even with a token, so it is not used.)
-  const fetchAll=(url,acc=[],n=0)=>fetch(url,{headers})
+  const fetchAll=(url,acc=[],n=0)=>(new URL(url).origin!=="https://api.github.com"?Promise.reject(new Error("Blocked request to "+new URL(url).origin)):fetch(url,{headers}))
     .then(r=>{ if(!r.ok) return Promise.reject(new Error("GitHub "+r.status));
       const next=(/<([^>]+)>;\s*rel="next"/.exec(r.headers.get("Link")||"")||[])[1];
       return r.json().then(rows=>{ acc=acc.concat(Array.isArray(rows)?rows:[]);
@@ -828,9 +839,11 @@ function exchange(code){
     .then(user=>{ setAuthUI((user&&user.login)||"GitHub"); dToast("Signed in — loading private repos…"); loadLive(ghToken); })
     .catch(err=>{ console.error(err); ghToken=null; setAuthUI(null); dToast("Sign-in failed — please try again."); });
 }
-function signOut(){ ghToken=null; setAuthUI(null); dToast("Signed out"); loadLive(); }
+/* signing out cancels the token at GitHub (the worker's /revoke), not just here */
+function signOut(){ const t=ghToken; if(t){ try{ fetch(AUTH_CONFIG.exchangeUrl.replace(/\/$/,"")+"/revoke",{method:"POST",keepalive:true,headers:{"Content-Type":"application/json"},body:JSON.stringify({access_token:t})}).catch(()=>{}); }catch(e){} }
+  ghToken=null; setAuthUI(null); dToast("Signed out"); loadLive(); }
 window.addEventListener("message",function(e){
-  if(e.origin!==window.location.origin)return;
+  if(e.origin!==window.location.origin||!oauthPopup||e.source!==oauthPopup)return;
   if(!e.data||e.data.source!=="cobblestone-oauth")return;
   if(e.data.error){ sessionStorage.removeItem("cb_oauth_state"); if(oauthPopup&&!oauthPopup.closed)oauthPopup.close(); dToast("Sign-in cancelled"); return; }
   const expected=sessionStorage.getItem("cb_oauth_state"); sessionStorage.removeItem("cb_oauth_state");

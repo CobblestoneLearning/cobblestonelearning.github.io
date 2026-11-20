@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- Defence in depth: no plugins, no <base> hijack, no form posts to other sites. (GitHub Pages cannot send headers; a meta policy cannot set frame-ancestors.) -->
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'self'" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<!-- SECURITY: never shown inside another site's frame (clickjacking). GitHub Pages cannot send
+     X-Frame-Options, and a meta policy cannot set frame-ancestors, so the page hides itself instead. -->
+<style id="fb">html{display:none!important}</style>
+<script>if (self === top) { var fb = document.getElementById('fb'); fb.parentNode.removeChild(fb); } else { try { top.location = self.location; } catch (e) {} }</script>
+<noscript><style>html{display:block!important}</style></noscript>
 <title>Cobblestone Learning — Repository Hub</title>
 <meta name="description" content="Internal repository hub for Cobblestone Learning. Browse, search and explore the company's GitHub organisation, repositories and gists." />
 <meta name="robots" content="noindex, nofollow" />
@@ -13,7 +21,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
 
 <!-- Tailwind (Play CDN — no SRI, it is dynamic) -->
-<script src="https://cdn.tailwindcss.com"></script>
+<!-- Tailwind 3.4.17, pinned copy: a page holding a sign-in token takes no unpinned third-party script (assets/vendor/tailwind/README.md) -->
+<script src="assets/vendor/tailwind/tailwindcss-3.4.17.js"></script>
 <script>
   tailwind.config = {
     theme: {
@@ -36,6 +45,9 @@
   };
 </script>
 
+<link href="assets/hub-explore.css?v=4" rel="stylesheet" />
+<!-- The City view (assets/hub-city.js) imports three.js by its bare name; this points it at the vendored copy. -->
+<script type="importmap">{ "imports": { "three": "./assets/vendor/three/three.module.min.js" } }</script>
 <!-- Prism core + language components + line-numbers + clipboard.js (SRI-pinned, deferred) -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/themes/prism.min.css" rel="stylesheet" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" integrity="sha512-cbQXwDFK7lj2Fqfkuxbo5iD1dSbLlJGXGpfTDqbggqjHJeyzx88I3rfwjS38WJag/ihH7lzuGlGHpDBymLirZQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -67,7 +79,8 @@
     --cborder: #E8ECF0;
   }
 
-  html, body { max-width: 100%; overflow-x: hidden; }
+  /* clip, not hidden: hidden makes body a scroll container, and then the sticky header and explorer bar never stick */
+  html, body { max-width: 100%; overflow-x: hidden; overflow-x: clip; }
   html { scroll-behavior: smooth; }
   body { font-family: 'Montserrat', Helvetica, Arial, sans-serif; color: var(--dark); background: var(--lightbg); }
   *, *::before, *::after { box-sizing: border-box; }
@@ -492,7 +505,7 @@
 
 <body class="bg-lightbg text-dark antialiased">
 
-<a href="#repos" class="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-3 focus:left-3 focus:bg-white focus:text-cblue focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg">Skip to repositories</a>
+<a href="#explore" class="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-3 focus:left-3 focus:bg-white focus:text-cblue focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg">Skip to the projects</a>
 
 <!-- ============ TOP BAR ============ -->
 <header id="site-header" class="sticky top-0 z-50 bg-white border-b border-cborder">
@@ -552,9 +565,9 @@
 <section class="bg-white border-b border-cborder">
   <div class="max-w-[1400px] mx-auto px-4 sm:px-8 pt-8 pb-7 sm:pt-10 sm:pb-9">
     <div class="reveal mb-7 max-w-2xl">
-      <h1 class="text-2xl sm:text-3xl font-800 tracking-tight mb-2">Cobblestone Learning repositories</h1>
+      <h1 class="text-2xl sm:text-3xl font-800 tracking-tight mb-2">Everything we have built</h1>
       <p class="text-body-muted text-sm sm:text-base font-400 leading-relaxed">
-        Your internal command centre for the <code class="font-600 text-cblue bg-lightbg px-1.5 py-0.5 rounded">cobblestonelearning</code> GitHub organisation. Search, filter and explore every repository and gist — read the code, preview live pages and copy a clone command in one click.
+        The tools, plugins, themes and snippets behind Cobblestone Learning's learning sites. Browse by what they do, follow a learner's journey, or look inside the code. Select any card below to start.
       </p>
     </div>
 
@@ -564,40 +577,40 @@
         <div class="cin-rig" id="cin-rig">
           <div class="cin-stage"><div class="cin-floorwrap"><div class="cin-floor" id="cin-floor" style="--cols:18"></div></div></div>
           <div class="cin-deck">
-            <article class="cin-card" data-accent="cyan" style="--d:0">
-              <div class="cin-accent"></div>
+            <article class="cin-card hx-link" data-accent="cyan" style="--d:0" data-hx-go="city" tabindex="0" role="link" aria-label="Explore every project as a city">
+              <div class="cin-accent"></div><span class="hx-go">Explore the city &rarr;</span>
               <div class="cin-kicker"><span class="cin-pin"></span>Codebase</div>
               <div class="cin-graphic" id="cin-g-repos"></div>
               <div class="cin-value"><span class="cin-num" id="cin-n-repos">0</span></div>
-              <div class="cin-label">Repositories</div>
+              <div class="cin-label">Projects</div>
               <div class="cin-sub">across the organisation</div>
               <div class="cin-foot"><div class="cin-units" id="cin-f-repos"></div></div>
             </article>
-            <article class="cin-card" data-accent="blue" style="--d:1">
-              <div class="cin-accent"></div>
-              <div class="cin-kicker"><span class="cin-pin"></span>Composition</div>
+            <article class="cin-card hx-link" data-accent="blue" style="--d:1" data-hx-go="connections" tabindex="0" role="link" aria-label="See how our projects connect to platforms">
+              <div class="cin-accent"></div><span class="hx-go">See the connections &rarr;</span>
+              <div class="cin-kicker"><span class="cin-pin"></span><span id="cin-k-langs">Works with</span></div>
               <div class="cin-graphic" id="cin-g-langs"></div>
               <div class="cin-value"><span class="cin-num" id="cin-n-langs">0</span></div>
-              <div class="cin-label">Primary languages</div>
-              <div class="cin-sub">distinct across all repos</div>
+              <div class="cin-label" id="cin-l-langs">Platforms</div>
+              <div class="cin-sub" id="cin-s-langs">that our projects plug into</div>
               <div class="cin-foot"><div class="cin-chips" id="cin-f-langs"></div></div>
             </article>
-            <article class="cin-card" data-accent="amber" style="--d:2">
-              <div class="cin-accent"></div>
+            <article class="cin-card hx-link" data-accent="amber" style="--d:2" data-hx-go="new" tabindex="0" role="link" aria-label="See what is new">
+              <div class="cin-accent"></div><span class="hx-go">What&rsquo;s new &rarr;</span>
               <div class="cin-kicker"><span class="cin-pin"></span>Activity</div>
               <div class="cin-graphic" id="cin-g-activity"></div>
               <div class="cin-value"><span class="cin-num" id="cin-n-update">0</span><span class="cin-unit" id="cin-u-update">min ago</span></div>
               <div class="cin-label">Last update</div>
-              <div class="cin-sub">most recent commit</div>
+              <div class="cin-sub">most recent change</div>
               <div class="cin-foot"><div class="cin-actfoot" id="cin-f-act"></div></div>
             </article>
-            <article class="cin-card" data-accent="green" style="--d:3">
-              <div class="cin-accent"></div>
-              <div class="cin-kicker"><span class="cin-pin"></span>Reach</div>
+            <article class="cin-card hx-link" data-accent="green" style="--d:3" data-hx-go="discover" tabindex="0" role="link" aria-label="Try a demo">
+              <div class="cin-accent"></div><span class="hx-go">Try something &rarr;</span>
+              <div class="cin-kicker"><span class="cin-pin"></span>Try it</div>
               <div class="cin-graphic"><div class="cin-reach" id="cin-g-live"></div></div>
               <div class="cin-value"><span class="cin-num" id="cin-n-live">0</span></div>
-              <div class="cin-label">Live pages</div>
-              <div class="cin-sub">published &amp; reachable</div>
+              <div class="cin-label">Demos to try</div>
+              <div class="cin-sub">open safely in your browser</div>
               <div class="cin-foot"><div class="cin-demoscroll" id="cin-f-live"></div></div>
             </article>
           </div>
@@ -607,79 +620,37 @@
   </div>
 </section>
 
-<!-- ============ CONTROLS BAR (sticky) ============ -->
-<div id="controls" class="sticky top-[var(--header-h,68px)] z-40 bg-lightbg/95 backdrop-blur border-b border-cborder">
-  <div class="max-w-[1400px] mx-auto px-4 sm:px-8 py-3.5">
-    <div class="flex flex-col gap-3">
-      <!-- view toggle: Staff (by purpose) vs Developer (full detail) -->
-      <div class="flex items-center gap-3 flex-wrap">
-        <div id="view-toggle" role="radiogroup" aria-label="Choose how to view projects" class="inline-flex items-center bg-white border border-cborder rounded-full p-1 gap-1">
-          <button type="button" role="radio" aria-checked="true" data-view="staff" class="view-opt text-sm font-700 px-4 py-2 inline-flex items-center gap-1.5">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Staff view
-          </button>
-          <button type="button" role="radio" aria-checked="false" data-view="dev" class="view-opt text-sm font-700 px-4 py-2 inline-flex items-center gap-1.5">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Developer view
-          </button>
+<!-- ============ EXPLORER: ways to browse (assets/hub-views.js) ============ -->
+<section id="explore" aria-label="Explore our projects">
+  <nav class="hx-nav" id="hx-nav" aria-label="Ways to explore">
+    <div class="hx-nav-in">
+      <div class="hx-nav-row">
+        <div class="hx-tabs" id="hx-tabs" role="list"></div>
+        <div class="hx-search" id="hx-search" role="search">
+          <svg class="hx-search-ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <label for="hx-q" class="sr-only">Search projects</label>
+          <input id="hx-q" type="search" autocomplete="off" placeholder="Search projects, platforms or sites" />
+          <button type="button" class="hx-search-x" id="hx-q-x" aria-label="Clear the search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
+          <div class="hx-suggest" id="hx-suggest"></div>
         </div>
+      </div>
+      <div class="hx-nav-row">
+        <div class="hx-crumbs" id="hx-crumbs"></div>
+        <span class="hx-seg-label">Detail</span>
+        <div class="hx-seg" id="hx-level" role="radiogroup" aria-label="How much detail to show"></div>
         <div id="scope-toggle" role="radiogroup" aria-label="Choose which repositories to show" class="hidden items-center bg-white border border-cborder rounded-full p-1 gap-1">
           <button type="button" role="radio" aria-checked="true" data-scope="org" class="view-opt text-sm font-700 px-4 py-2 inline-flex items-center gap-1.5" title="Every repository in the CobblestoneLearning organisation">Organisation <span id="scope-org-n" class="scope-n"></span></button>
           <button type="button" role="radio" aria-checked="false" data-scope="mine" class="view-opt text-sm font-700 px-4 py-2 inline-flex items-center gap-1.5" title="Your own repositories, and organisation repositories you have pushed to in the last 90 days">Mine <span id="scope-mine-n" class="scope-n"></span></button>
         </div>
-        <span class="hidden sm:inline text-xs text-greytext font-600" id="view-hint">Grouped by what each project does — pick a tool and open it.</span>
       </div>
-      <div class="flex flex-col sm:flex-row gap-3">
-        <!-- search -->
-        <div class="control-field flex items-center gap-2 px-3.5 py-2.5 flex-1 min-w-0">
-          <svg class="text-grey shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <label for="search" class="sr-only">Search repositories by name, description or topic</label>
-          <input id="search" type="search" autocomplete="off" placeholder="Search repositories by name, description or topic…" aria-controls="repo-cards" class="w-full bg-transparent border-0 outline-none text-sm font-600 text-dark placeholder:text-greytext placeholder:font-400" />
-          <button id="search-clear" type="button" class="hidden shrink-0 -mr-1 p-2 rounded-full text-greytext hover:text-cblue" aria-label="Clear search">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
-          </button>
-        </div>
-        <!-- sort + toggles -->
-        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-          <div id="sort-field" class="control-field flex items-center gap-1.5 px-3 py-2.5">
-            <svg class="text-grey shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="13" y2="6"/><line x1="3" y1="12" x2="11" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/><polyline points="16 9 19 6 22 9"/><line x1="19" y1="6" x2="19" y2="18"/></svg>
-            <label for="sort" class="sr-only">Sort repositories</label>
-            <select id="sort" class="control-select text-sm font-600 text-dark pr-1 py-0">
-              <option value="updated">Recently updated</option>
-              <option value="name">Name A–Z</option>
-              <option value="size">Largest</option>
-            </select>
-          </div>
-          <label class="control-field flex items-center gap-2 px-3 py-2.5 cursor-pointer select-none" title="Show forked and archived repositories">
-            <input id="show-extra" type="checkbox" class="accent-cyan w-4 h-4 cursor-pointer" />
-            <span class="text-sm font-600 text-greytext whitespace-nowrap">Forks &amp; archived</span>
-          </label>
-        </div>
-      </div>
-      <!-- filter chips: categories (Staff view) or languages (Developer view), rendered by JS -->
-      <div class="flex items-center gap-2 overflow-x-auto -mx-1 px-1 pt-1 pb-1.5" id="lang-filter" role="group" aria-label="Filter projects">
-        <span id="lang-chip-skeleton" class="flex items-center gap-2" aria-hidden="true">
-          <span class="skeleton inline-block h-8 w-20 rounded-full"></span>
-          <span class="skeleton inline-block h-8 w-24 rounded-full"></span>
-          <span class="skeleton inline-block h-8 w-16 rounded-full"></span>
-        </span>
-      </div>
-      <!-- staff-only secondary filter: "Works with" plugins/services, rendered by JS -->
-      <div class="flex items-center gap-2 overflow-x-auto -mx-1 px-1 pb-1.5 hidden" id="integration-filter" role="group" aria-label="Filter by plugin or service"></div>
     </div>
-  </div>
-</div>
-
-<!-- ============ REPOSITORIES ============ -->
-<section id="repos" class="max-w-[1400px] mx-auto px-4 sm:px-8 pt-7 pb-12 sm:pt-9">
-  <div class="flex items-baseline justify-between gap-4 mb-5">
-    <h2 class="text-lg sm:text-xl font-800 tracking-tight">Repositories</h2>
-    <p id="repo-count" class="text-sm font-600 text-greytext" aria-hidden="true"></p>
-  </div>
-  <p id="repo-status" class="sr-only" role="status" aria-live="polite">Loading repositories…</p>
-  <div id="repo-cards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5" aria-busy="true"></div>
+  </nav>
+  <p id="repo-status" class="sr-only" role="status" aria-live="polite">Loading projects…</p>
+  <div id="hx-view" class="hx-view" aria-busy="true"></div>
 </section>
 
 <!-- ============ GISTS ============ -->
-<section id="gists" class="bg-white border-t border-cborder">
+<section id="gists" class="bg-white border-t border-cborder" hidden>
   <div class="max-w-[1400px] mx-auto px-4 sm:px-8 py-11 sm:py-12">
     <div class="flex items-baseline justify-between gap-4 mb-5">
       <h2 id="gists-heading" class="text-lg sm:text-xl font-800 tracking-tight">Gists</h2>
@@ -1055,9 +1026,6 @@ function showRepoSkeletons(container, count) {
    State
    ============================================================ */
 var ALL_REPOS = [];
-var FILTERS = { search: '', lang: '__all', cat: '__all', integration: '__all', sort: 'updated', showExtra: false };
-/* 'staff' (group by purpose, default) | 'dev' (today's full developer view). UI
-   preference only — persisted to localStorage (never the OAuth token). */
 /* 'org' (the organisation's repos, default) | 'mine' (signed in only: the viewer's own repos
    plus org repos they pushed to recently). Persisted like VIEW. */
 var SCOPE = 'org';
@@ -1084,8 +1052,8 @@ function updateScopeUI(data) {
   });
 }
 
+/* 'staff' | 'dev'. Set by the explorer from its detail level (Overview, How it's built, Code). */
 var VIEW = 'staff';
-try { var _savedView = localStorage.getItem('cb_view'); if (_savedView === 'staff' || _savedView === 'dev') VIEW = _savedView; } catch (e) {}
 
 /* ============================================================
    Fetch + bootstrap
@@ -1094,10 +1062,9 @@ document.addEventListener('DOMContentLoaded', function () {
   var gistCards = document.getElementById('gist-cards');
   var gistStatus = document.getElementById('gist-status');
 
-  showRepoSkeletons(document.getElementById('repo-cards'), 6);
   showRepoSkeletons(gistCards, 3);
 
-  wireControls();
+  HX.init();          /* the explorer: assets/hub-views.js */
   wireAuth();
 
   /* ---- Repos: restore a persisted GitHub session if present, else public-first ---- */
@@ -1115,27 +1082,20 @@ function loadGists() {
   var heading = document.getElementById('gists-heading');
   if (!gistCards) return;
   if (heading) heading.textContent = ghToken ? 'Your gists' : 'Gists';
-  if (!ghToken) {
-    emptyState(gistCards, gistStatus, 'Sign in to see your gists',
-      'Organisations cannot own gists, so gists live on each person\'s own account. The team\'s old shared snippets are in the csl-gists repository.', false);
-    document.getElementById('gist-count').textContent = '';
-    return;
-  }
+  /* The panel shows only when there is something in it: organisations cannot own gists, so
+     it lists the signed-in person's own, and most people have none. */
+  var section = document.getElementById('gists');
+  if (section) section.hidden = true;
+  if (!ghToken) return;
   showRepoSkeletons(gistCards, 3);
   ghFetchAll('https://api.github.com/gists?per_page=100', 3)
     .then(function (data) {
-      if (!Array.isArray(data) || data.length === 0) {
-        emptyState(gistCards, gistStatus, 'No gists yet',
-          'You have no gists on your GitHub account. The team\'s old shared snippets are in the csl-gists repository.', false);
-        document.getElementById('gist-count').textContent = '';
-        return;
-      }
+      if (!Array.isArray(data) || data.length === 0) return;
+      if (section) section.hidden = false;
       renderGists(data, gistCards, gistStatus);
     })
     .catch(function (error) {
-      console.error('Error fetching GitHub gists:', error);
-      emptyState(gistCards, gistStatus, 'Could not load gists',
-        'We could not reach GitHub just now. Please try again in a little while.', false);
+      console.warn('Could not load gists:', error);   /* the panel stays hidden */
     });
 }
 
@@ -1144,17 +1104,13 @@ function loadGists() {
    ============================================================ */
 function loadRepos() {
   loadGists();
-  var repoCards = document.getElementById('repo-cards');
+  var repoCards = document.getElementById('hx-view');
   var repoStatus = document.getElementById('repo-status');
 
   repoCards.setAttribute('aria-busy', 'true');
-  repoCards.className = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5';
-  showRepoSkeletons(repoCards, 6);
-  if (repoStatus) repoStatus.textContent = 'Loading repositories…';
-
-  /* Show the chip skeleton while loading; renderChips() rebuilds the row
-     (categories in Staff view, languages in Developer view) once data lands. */
-  showChipSkeleton();
+  ALL_REPOS = [];
+  HX.render();        /* shows the loading skeleton while ALL_REPOS is empty */
+  if (repoStatus) repoStatus.textContent = 'Loading projects…';
 
   function okJson(response) {
     if (!response.ok) { var e = new Error('GitHub API responded ' + response.status); e.status = response.status; throw e; }
@@ -1178,8 +1134,6 @@ function loadRepos() {
   Promise.all([orgReq, personalReq, eventsReq])
     .then(function (parts) {
       hideFullscreenLoader();
-      var skel = document.getElementById('lang-chip-skeleton');
-      if (skel) skel.remove();
       /* Org repos the viewer has pushed to or created in the last ~90 days. */
       var worked = {};
       (parts[2] || []).forEach(function (ev) {
@@ -1208,21 +1162,16 @@ function loadRepos() {
       if (data.length === 0) {
         ALL_REPOS = [];
         computeStats([]);
-        renderChips();
         emptyState(repoCards, repoStatus, 'No repositories found',
           'No repositories were returned. If this is unexpected, the unauthenticated GitHub API may be temporarily rate-limited.', false);
         return;
       }
       ALL_REPOS = data;
-      computeStats(data.filter(function (r) { return !r._personal; }));
-      renderChips();
-      applyFilters();
+      HX.onRepos();       /* renders the current view and the header, then loads each project's details */
     })
     .catch(function (error) {
       console.error('Error fetching GitHub repos:', error);
       hideFullscreenLoader();
-      var skel = document.getElementById('lang-chip-skeleton');
-      if (skel) skel.remove();
       computeStats([]);
       var rl = error && error.status === 403;
       emptyState(repoCards, repoStatus,
@@ -1233,30 +1182,13 @@ function loadRepos() {
     });
 }
 
-/* Show the chip-row loading skeleton and reset both filters to "all" before a
-   (re)load, so a stale filter from the previous repo set can't hide everything. */
-function showChipSkeleton() {
-  var wrap = document.getElementById('lang-filter');
-  if (!wrap) return;
-  FILTERS.lang = '__all';
-  FILTERS.cat = '__all';
-  FILTERS.integration = '__all';
-  var integ = document.getElementById('integration-filter');
-  if (integ) { integ.innerHTML = ''; integ.classList.add('hidden'); }
-  wrap.innerHTML =
-    '<span id="lang-chip-skeleton" class="flex items-center gap-2" aria-hidden="true">' +
-      '<span class="skeleton inline-block h-8 w-20 rounded-full"></span>' +
-      '<span class="skeleton inline-block h-8 w-24 rounded-full"></span>' +
-      '<span class="skeleton inline-block h-8 w-16 rounded-full"></span>' +
-    '</span>';
-}
-
 /* ============================================================
    Stats
    ============================================================ */
 /* Build the cinematic scene's data from the loaded repo set and render it. */
 function computeStats(repos) {
   if (typeof window.cinRender !== 'function') return;
+  if (repos.length && window.HX && HX.updateHero) { HX.updateHero(); return; }   /* kinds, platforms, demos */
   if (!repos.length) {
     window.cinRender({ repositories:0, languages:{count:0,items:[]}, lastUpdateMins:0, activity:{daily:null,active7:0,active30:0}, liveDemos:{count:0,items:[]} });
     return;
@@ -1312,16 +1244,19 @@ function computeStats(repos) {
     Array.prototype.forEach.call(floor.children,function(t,i){ var r=Math.floor(i/cols), delay=reduceM?0:(500+(rows-r)*48+(i%cols)*6); setTimeout(function(){t.classList.add('in');},delay); });
   }
   function cube(svg,x,y,W,D,H,cyan,plain){
+    if(cyan&&typeof cyan==='object'){ var cc=cyan; cyan=false; plain=false; }
     var top=x+','+(y-D)+' '+(x+W)+','+y+' '+x+','+(y+D)+' '+(x-W)+','+y;
     var left=(x-W)+','+y+' '+x+','+(y+D)+' '+x+','+(y+D+H)+' '+(x-W)+','+(y+H);
     var right=(x+W)+','+y+' '+x+','+(y+D)+' '+x+','+(y+D+H)+' '+(x+W)+','+(y+H);
-    var col=cyan?{t:'#46b9e8',l:'#1582AB',r:'#2497C6',e:'#1582AB'}:plain?{t:'#eef2f7',l:'#cdd5e0',r:'#dfe5ec',e:'#cdd5e0'}:{t:'#ffffff',l:'#d5dce5',r:'#e9edf3',e:'#d5dce5'};
+    var col=cc?cc:cyan?{t:'#46b9e8',l:'#1582AB',r:'#2497C6',e:'#1582AB'}:plain?{t:'#eef2f7',l:'#cdd5e0',r:'#dfe5ec',e:'#cdd5e0'}:{t:'#ffffff',l:'#d5dce5',r:'#e9edf3',e:'#d5dce5'};
     svg.appendChild(SS('polygon',{points:left,fill:col.l}));
     svg.appendChild(SS('polygon',{points:right,fill:col.r}));
     svg.appendChild(SS('polygon',{points:top,fill:col.t,stroke:col.e,'stroke-width':'1','stroke-linejoin':'round'}));
   }
   function rhash(i,s){ var x=((i+1)*2654435761 ^ (s||0)*40503)>>>0; return (x%1000)/1000; }
-  function buildRepos(n){
+  function kindCol(hex){ return {t:lighten(hex,.35),l:cinDarken(hex,.72),r:hex,e:cinDarken(hex,.8)}; }
+  function lighten(hex,f){ var m=/^#?([0-9a-f]{6})$/i.exec(hex||''); if(!m)return hex; var n=parseInt(m[1],16); function c(v){return Math.round(v+(255-v)*f);} return 'rgb('+c((n>>16)&255)+','+c((n>>8)&255)+','+c(n&255)+')'; }
+  function buildRepos(n,colors){
     var h=el('cin-g-repos'); if(!h)return; h.innerHTML=''; n=Math.max(0,n|0);
     var svg=SS('svg',{role:'img','aria-label':n+' repositories'});
     if(!n){ h.appendChild(svg); return; }
@@ -1334,7 +1269,8 @@ function computeStats(repos) {
       var bh=Math.round(6+rhash(f.k,1)*11), cyan=rhash(f.k,2)<0.16, g=SS('g',{class:'cin-wv'});
       g.style.animationDelay=(-(f.c+f.r)*0.16 - rhash(f.k,3)).toFixed(2)+'s';
       g.style.setProperty('--amp',(-(2.2+rhash(f.k,4)*2.8)).toFixed(1)+'px');
-      cube(g,f.x,f.y,uw,ud,bh,cyan); svg.appendChild(g); groups.push(g); track(f.x,uw,f.y,ud,bh);
+      var kc=colors&&colors.length?colors[Math.min(colors.length-1,Math.floor(f.k*colors.length/Math.max(1,U)))]:null;
+      cube(g,f.x,f.y,uw,ud,bh,kc?kindCol(kc):cyan); svg.appendChild(g); groups.push(g); track(f.x,uw,f.y,ud,bh);
     });
     var bigs=[], b; for(b=0;b<H100;b++) bigs.push({w:31,d:15.5,h:23,label:'×100'}); for(b=0;b<F50;b++) bigs.push({w:21,d:10.5,h:15,label:'×50'});
     if(bigs.length){
@@ -1444,7 +1380,7 @@ function computeStats(repos) {
     var hero=el('cin-hero'); if(!hero)return;
     if(!floorBuilt){ buildFloor(); floorBuilt=true; }
     var act=d.activity||{}, daily=(act.daily&&act.daily.length)?act.daily:synthDaily(91);
-    buildRepos(d.repositories); buildLangs(d.languages||{count:0,items:[]}); buildActivity(d.lastUpdateMins); buildLive(d.liveDemos||{count:0,items:[]});
+    buildRepos(d.repositories,d.cubeColors); buildLangs(d.languages||{count:0,items:[]}); buildActivity(d.lastUpdateMins); buildLive(d.liveDemos||{count:0,items:[]});
     var fr=el('cin-f-repos'); if(fr){ fr.innerHTML=''; var MAX=24, dots=Math.min(d.repositories,MAX), i;
       for(i=0;i<dots;i++){ var u=document.createElement('i'); if(i%5===0)u.className='on'; fr.appendChild(u); }
       if(d.repositories>MAX){ var m=document.createElement('span'); m.className='more'; m.textContent='+'+(d.repositories-MAX); fr.appendChild(m); } }
@@ -1458,446 +1394,6 @@ function computeStats(repos) {
 
   /* Hover parallax removed — the cards stay stationary. */
 })();
-
-/* ============================================================
-   Filter chips — categories (Staff view) or languages (Developer view)
-   ============================================================ */
-/* Render the chip row for the current VIEW from the loaded repo set. */
-function renderChips() {
-  var integ = document.getElementById('integration-filter');
-  if (VIEW === 'dev') {
-    buildLangChips(scopedRepos());
-    if (integ) { integ.classList.add('hidden'); integ.innerHTML = ''; }
-  } else {
-    buildCategoryChips(scopedRepos());
-    buildIntegrationChips(scopedRepos());
-    updateChipStates();
-  }
-}
-
-/* Developer view: one chip per primary language (+ an "All languages" chip). */
-function buildLangChips(repos) {
-  var wrap = document.getElementById('lang-filter');
-  if (!wrap) return;
-  wrap.innerHTML = '';
-  wrap.appendChild(makeChip('lang', '__all', 'All languages', FILTERS.lang === '__all'));
-  var counts = {};
-  repos.forEach(function (r) { if (r.language) counts[r.language] = (counts[r.language] || 0) + 1; });
-  Object.keys(counts).sort(function (a, b) {
-    return counts[b] - counts[a] || a.localeCompare(b);
-  }).forEach(function (lang) {
-    var inner = '<span class="dot" style="background:' + langColor(lang) + '"></span>' + escapeHtml(lang) +
-      ' <span class="chip-count text-greytext font-600">' + counts[lang] + '</span>';
-    wrap.appendChild(makeChip('lang', lang, inner, lang === FILTERS.lang));
-  });
-}
-
-/* Staff view: one chip per non-empty category (+ an "All projects" chip). */
-function buildCategoryChips(repos) {
-  var wrap = document.getElementById('lang-filter');
-  if (!wrap) return;
-  wrap.innerHTML = '';
-  var counts = {};
-  repos.forEach(function (r) { var c = categoryForRepo(r); counts[c] = (counts[c] || 0) + 1; });
-  wrap.appendChild(makeChip('cat', '__all', 'All projects <span class="chip-count text-greytext font-600"></span>', FILTERS.cat === '__all'));
-  CATEGORIES.forEach(function (cat) {
-    if (!counts[cat.id]) return;
-    var inner = '<span class="chip-ico" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + cat.icon + '</svg></span>' +
-      escapeHtml(cat.label) + ' <span class="chip-count text-greytext font-600">' + counts[cat.id] + '</span>';
-    wrap.appendChild(makeChip('cat', cat.id, inner, cat.id === FILTERS.cat));
-  });
-}
-
-/* Staff view, secondary row: one chip per plugin/service a tool "works with"
-   (LearnDash, Tin Canny, Rise, DeepL, …). Lets staff pull up every tool for a
-   given platform. Hidden when nothing in the set declares an integration. */
-function buildIntegrationChips(repos) {
-  var wrap = document.getElementById('integration-filter');
-  if (!wrap) return;
-  var counts = {};
-  repos.forEach(function (r) {
-    integrationsForRepo(r).forEach(function (name) { counts[name] = (counts[name] || 0) + 1; });
-  });
-  var names = Object.keys(counts);
-  if (!names.length) { wrap.innerHTML = ''; wrap.classList.add('hidden'); return; }
-  wrap.classList.remove('hidden');
-  wrap.innerHTML = '<span class="text-xs font-700 text-body-muted mr-1 shrink-0">Works with</span>';
-  wrap.appendChild(makeChip('integration', '__all', 'All tools <span class="chip-count text-greytext font-600"></span>', FILTERS.integration === '__all'));
-  names.sort(function (a, b) { return counts[b] - counts[a] || a.localeCompare(b); }).forEach(function (name) {
-    var inner = escapeHtml(name) + ' <span class="chip-count text-greytext font-600">' + counts[name] + '</span>';
-    wrap.appendChild(makeChip('integration', name, inner, name === FILTERS.integration));
-  });
-}
-
-/* Build a single chip button (inner is already-escaped/safe markup). */
-function makeChip(type, value, inner, pressed) {
-  var btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'chip';
-  btn.setAttribute('data-' + type, value);
-  btn.setAttribute('aria-pressed', String(!!pressed));
-  btn.innerHTML = inner;
-  return btn;
-}
-
-/* Delegated click handler for the chip row — bound once. Reads data-cat or
-   data-lang so the same row serves both views. */
-function wireChipRow() {
-  ['lang-filter', 'integration-filter'].forEach(function (id) {
-    var wrap = document.getElementById(id);
-    if (!wrap || wrap.dataset.bound) return;
-    wrap.dataset.bound = '1';
-    wrap.addEventListener('click', function (e) {
-      var btn = e.target.closest('.chip');
-      if (!btn) return;
-      if (btn.hasAttribute('data-cat')) FILTERS.cat = btn.getAttribute('data-cat');
-      else if (btn.hasAttribute('data-lang')) FILTERS.lang = btn.getAttribute('data-lang');
-      else if (btn.hasAttribute('data-integration')) FILTERS.integration = btn.getAttribute('data-integration');
-      wrap.querySelectorAll('.chip').forEach(function (c) {
-        c.setAttribute('aria-pressed', String(c === btn));
-      });
-      applyFilters();
-    });
-  });
-}
-
-/* Reflect the current VIEW in the non-chip controls (sort visibility, search
-   placeholder, toggle state, hint). Chips are handled by renderChips(). */
-function applyViewUI() {
-  var sortField = document.getElementById('sort-field');
-  if (sortField) sortField.classList.toggle('hidden', VIEW !== 'dev');
-
-  var search = document.getElementById('search');
-  if (search) search.placeholder = (VIEW === 'staff')
-    ? 'Search tools by name or what they do…'
-    : 'Search repositories by name, description or topic…';
-
-  var toggle = document.getElementById('view-toggle');
-  if (toggle) toggle.querySelectorAll('.view-opt').forEach(function (b) {
-    b.setAttribute('aria-checked', String(b.getAttribute('data-view') === VIEW));
-  });
-
-  var hint = document.getElementById('view-hint');
-  if (hint) hint.textContent = (VIEW === 'staff')
-    ? 'Grouped by what each project does — pick a tool and open it.'
-    : 'Every repository with language filters, sizes and clone commands.';
-}
-
-/* ============================================================
-   Controls wiring
-   ============================================================ */
-function wireControls() {
-  var search = document.getElementById('search');
-  var clearBtn = document.getElementById('search-clear');
-  var sort = document.getElementById('sort');
-  var showExtra = document.getElementById('show-extra');
-
-  var debounce;
-  search.addEventListener('input', function () {
-    clearBtn.classList.toggle('hidden', !search.value);
-    clearTimeout(debounce);
-    debounce = setTimeout(function () {
-      FILTERS.search = search.value.trim().toLowerCase();
-      applyFilters();
-    }, 120);
-  });
-  clearBtn.addEventListener('click', function () {
-    search.value = ''; clearBtn.classList.add('hidden');
-    FILTERS.search = ''; applyFilters(); search.focus();
-  });
-  sort.addEventListener('change', function () { FILTERS.sort = sort.value; applyFilters(); });
-  showExtra.addEventListener('change', function () { FILTERS.showExtra = showExtra.checked; applyFilters(); });
-
-  /* View toggle (Staff / Developer). Buttons are role="radio"; Enter/Space fire
-     a native click, so no extra keyboard handling is needed beyond focus. */
-  var viewToggle = document.getElementById('view-toggle');
-  if (viewToggle) viewToggle.addEventListener('click', function (e) {
-    var b = e.target.closest('.view-opt');
-    if (!b) return;
-    var v = b.getAttribute('data-view');
-    if (!v || v === VIEW) return;
-    VIEW = v;
-    try { localStorage.setItem('cb_view', VIEW); } catch (e2) {}
-    applyViewUI();
-    renderChips();
-    applyFilters();
-  });
-
-  var scopeToggle = document.getElementById('scope-toggle');
-  if (scopeToggle) scopeToggle.addEventListener('click', function (e) {
-    var b = e.target.closest('.view-opt');
-    if (!b) return;
-    var sc = b.getAttribute('data-scope');
-    if (!sc || sc === SCOPE) return;
-    SCOPE = sc;
-    try { localStorage.setItem('cb_scope', SCOPE); } catch (e2) {}
-    updateScopeUI();
-    FILTERS.lang = '__all'; FILTERS.cat = '__all'; FILTERS.integration = '__all';
-    renderChips();
-    applyFilters();
-  });
-
-  wireChipRow();
-  applyViewUI();
-}
-
-/* ============================================================
-   Filter + sort + render
-   ============================================================ */
-/* Does a repo match the current free-text search? (shared by list + chip counts) */
-function repoMatchesSearch(r) {
-  if (!FILTERS.search) return true;
-  var hay = (r.name + ' ' + (r.description || '') + ' ' + summaryForRepo(r) + ' ' + integrationsForRepo(r).join(' ') + ' ' + ((r.topics || []).join(' '))).toLowerCase();
-  return hay.indexOf(FILTERS.search) !== -1;
-}
-
-/* The staff project list under a hypothetical {category, integration} selection.
-   The other live filters (search + forks/archived) still apply. Used both to
-   render the list and to decide which chips would still yield projects. */
-function staffListFor(catVal, integVal) {
-  return scopedRepos().filter(function (r) {
-    if (!FILTERS.showExtra && (r.fork || r.archived)) return false;
-    if (catVal !== '__all' && categoryForRepo(r) !== catVal) return false;
-    if (integVal !== '__all' && integrationsForRepo(r).indexOf(integVal) === -1) return false;
-    return repoMatchesSearch(r);
-  });
-}
-
-/* Cross-filter the two staff chip rows: disable any category / "Works with" chip
-   that would yield zero projects given the *other* active selection, and keep
-   every chip's count live. The selected chip and the "All" chips are never
-   disabled (so you can always widen again). */
-function updateChipStates() {
-  if (VIEW !== 'staff') return;
-  [['cat', 'lang-filter', FILTERS.cat], ['integration', 'integration-filter', FILTERS.integration]].forEach(function (spec) {
-    var type = spec[0], wrap = document.getElementById(spec[1]), selected = spec[2];
-    if (!wrap) return;
-    wrap.querySelectorAll('.chip').forEach(function (chip) {
-      var val = chip.getAttribute('data-' + type);
-      if (val === null) return;
-      var count = (type === 'cat')
-        ? staffListFor(val, FILTERS.integration).length
-        : staffListFor(FILTERS.cat, val).length;
-      var isSel = (selected === val);
-      chip.disabled = (val !== '__all' && count === 0 && !isSel);
-      chip.setAttribute('aria-pressed', String(isSel));
-      var cb = chip.querySelector('.chip-count');
-      if (cb) cb.textContent = count;
-    });
-  });
-}
-
-function applyFilters() {
-  var list = scopedRepos();
-
-  if (!FILTERS.showExtra) {
-    list = list.filter(function (r) { return !r.fork && !r.archived; });
-  }
-  /* Primary filter differs by view: category (Staff) or language (Developer). */
-  if (VIEW === 'dev') {
-    if (FILTERS.lang !== '__all') {
-      list = list.filter(function (r) { return r.language === FILTERS.lang; });
-    }
-  } else {
-    if (FILTERS.cat !== '__all') {
-      list = list.filter(function (r) { return categoryForRepo(r) === FILTERS.cat; });
-    }
-    if (FILTERS.integration !== '__all') {
-      list = list.filter(function (r) { return integrationsForRepo(r).indexOf(FILTERS.integration) !== -1; });
-    }
-  }
-  if (FILTERS.search) {
-    var q = FILTERS.search;
-    list = list.filter(function (r) {
-      /* Staff view also searches the friendly summary so plain-language terms hit. */
-      var hay = (r.name + ' ' + (r.description || '') + ' ' + summaryForRepo(r) + ' ' + integrationsForRepo(r).join(' ') + ' ' + ((r.topics || []).join(' '))).toLowerCase();
-      return hay.indexOf(q) !== -1;
-    });
-  }
-
-  if (VIEW === 'dev') {
-    list.sort(function (a, b) {
-      if (FILTERS.sort === 'name') return a.name.localeCompare(b.name);
-      if (FILTERS.sort === 'size') return (b.size || 0) - (a.size || 0);
-      return new Date(b.pushed_at || b.updated_at) - new Date(a.pushed_at || a.updated_at);
-    });
-    renderRepos(list);
-  } else {
-    /* Staff view sorts alphabetically within each category section. */
-    list.sort(function (a, b) { return a.name.localeCompare(b.name); });
-    renderStaffView(list);
-    updateChipStates();
-  }
-}
-
-function renderRepos(list) {
-  var container = document.getElementById('repo-cards');
-  var statusEl = document.getElementById('repo-status');
-  var countEl = document.getElementById('repo-count');
-  container.setAttribute('aria-busy', 'false');
-  container.className = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5';
-
-  var total = scopedRepos().length;
-  var shown = list.length;
-  countEl.textContent = shown === total ? shown + ' shown' : shown + ' of ' + total + ' shown';
-  announceStatus(statusEl, shown === 0
-    ? 'No repositories match your filters.'
-    : shown + (shown === 1 ? ' repository' : ' repositories') + ' shown.');
-
-  if (shown === 0) {
-    container.innerHTML =
-      '<div class="col-span-full surface rounded-2xl p-9 text-center">' +
-        '<div class="w-14 h-14 mx-auto mb-4 rounded-full grid place-items-center" style="background:rgba(39,170,225,0.12);color:#0074B4;">' +
-          '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
-        '</div>' +
-        '<h3 class="text-lg font-700 mb-2">No matching repositories</h3>' +
-        '<p class="text-body-muted text-sm max-w-md mx-auto mb-5">Try a different search term, language filter, or include forks &amp; archived repositories.</p>' +
-        '<button type="button" id="reset-filters" class="btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full">Reset filters</button>' +
-      '</div>';
-    var rb = document.getElementById('reset-filters');
-    if (rb) rb.addEventListener('click', resetFilters);
-    return;
-  }
-
-  var frag = document.createDocumentFragment();
-  list.forEach(function (repo, idx) {
-    frag.appendChild(buildRepoCard(repo, idx));
-  });
-  container.innerHTML = '';
-  container.appendChild(frag);
-  observeReveals(container);
-}
-
-function resetFilters() {
-  FILTERS = { search: '', lang: '__all', cat: '__all', integration: '__all', sort: 'updated', showExtra: false };
-  var search = document.getElementById('search');
-  search.value = '';
-  document.getElementById('search-clear').classList.add('hidden');
-  document.getElementById('sort').value = 'updated';
-  document.getElementById('show-extra').checked = false;
-  renderChips();
-  applyFilters();
-}
-
-/* ============================================================
-   Staff view — group by purpose, plain-language cards
-   ============================================================ */
-function renderStaffView(list) {
-  var container = document.getElementById('repo-cards');
-  var statusEl = document.getElementById('repo-status');
-  var countEl = document.getElementById('repo-count');
-  container.setAttribute('aria-busy', 'false');
-
-  var total = scopedRepos().length;
-  var shown = list.length;
-  countEl.textContent = shown === total ? shown + ' shown' : shown + ' of ' + total + ' shown';
-  announceStatus(statusEl, shown === 0
-    ? 'No projects match your filters.'
-    : shown + (shown === 1 ? ' project' : ' projects') + ' shown.');
-
-  if (shown === 0) {
-    container.className = '';
-    container.innerHTML =
-      '<div class="surface rounded-2xl p-9 text-center">' +
-        '<div class="w-14 h-14 mx-auto mb-4 rounded-full grid place-items-center" style="background:rgba(39,170,225,0.12);color:#0074B4;">' +
-          '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
-        '</div>' +
-        '<h3 class="text-lg font-700 mb-2">No matching projects</h3>' +
-        '<p class="text-body-muted text-sm max-w-md mx-auto mb-5">Try a different search term or category, or include forks &amp; archived projects.</p>' +
-        '<button type="button" id="reset-filters" class="btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full">Reset filters</button>' +
-      '</div>';
-    var rb = document.getElementById('reset-filters');
-    if (rb) rb.addEventListener('click', resetFilters);
-    return;
-  }
-
-  /* Bucket by category, then render one section per non-empty category in
-     CATEGORIES order. */
-  var groups = {};
-  list.forEach(function (r) { var c = categoryForRepo(r); (groups[c] = groups[c] || []).push(r); });
-
-  container.className = 'space-y-10';
-  var frag = document.createDocumentFragment();
-  CATEGORIES.forEach(function (cat) {
-    var items = groups[cat.id];
-    if (!items || !items.length) return;
-    var section = document.createElement('section');
-    section.className = 'reveal';
-    section.setAttribute('aria-labelledby', 'cat-' + cat.id);
-    section.innerHTML =
-      '<div class="flex items-start gap-3 mb-4 pb-3" style="border-bottom:3px solid var(--cyan)">' +
-        '<span class="shrink-0 mt-0.5 text-cblue" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + cat.icon + '</svg></span>' +
-        '<div class="min-w-0">' +
-          '<h3 id="cat-' + cat.id + '" class="text-base sm:text-lg font-800 tracking-tight leading-snug">' + escapeHtml(cat.label) + ' <span class="text-greytext font-700">' + items.length + '</span></h3>' +
-          '<p class="text-body-muted text-sm">' + escapeHtml(cat.blurb) + '</p>' +
-        '</div>' +
-      '</div>';
-    var grid = document.createElement('div');
-    grid.className = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5';
-    items.forEach(function (repo, i) { grid.appendChild(buildStaffCard(repo, i)); });
-    section.appendChild(grid);
-    frag.appendChild(section);
-  });
-  container.innerHTML = '';
-  container.appendChild(frag);
-  observeReveals(container);
-}
-
-/* A plain-language card for non-technical staff: friendly summary + a prominent
-   "Open the tool" action. No clone command / file tree / code on the card. */
-function buildStaffCard(repo, idx) {
-  var card = document.createElement('article');
-  card.className = 'data-card reveal surface rounded-2xl p-6 flex flex-col';
-  card.style.transitionDelay = (idx % 3) * 50 + 'ms';
-
-  var live = !!repo.has_pages;
-  var titleHref = escapeHtml(safeHttpUrl(live ? pagesUrl(repo) : repo.html_url));
-
-  var badges = '';
-  if (repo.private === true) {
-    badges += '<span class="badge badge-private" title="Private — visible because you are signed in">' +
-      '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Private</span>';
-  }
-  badges += scopeBadges(repo);
-  if (live) {
-    badges += '<span class="badge badge-live"><span class="w-1.5 h-1.5 rounded-full" style="background:#2D9E5A" aria-hidden="true"></span>Live</span>';
-  }
-  if (repo.archived) badges += '<span class="badge badge-archived">Archived</span>';
-  if (repo.fork) badges += '<span class="badge badge-fork">Fork</span>';
-
-  var extLink = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
-  var infoIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
-
-  /* Uniform actions on EVERY card, same order + style: View details · Open on GitHub · Open demo (when available). */
-  var demo = demoForRepo(repo);
-  var playIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
-  var btnRow =
-    '<button type="button" class="btn btn-primary text-xs font-700 px-3 py-2 rounded-full inline-flex items-center gap-1" data-repo="' + escapeHtml(repo.name) + '" aria-label="Details for ' + escapeHtml(repo.name) + '">' + infoIcon + 'Details</button>' +
-    '<a href="' + escapeHtml(safeHttpUrl(repo.html_url)) + '" target="_blank" rel="noopener" class="btn btn-ghost text-xs font-700 px-3 py-2 rounded-full inline-flex items-center gap-1" aria-label="' + escapeHtml(repo.name) + ' on GitHub">GitHub' + extLink + '</a>' +
-    (demo ? '<button type="button" class="btn btn-ghost text-xs font-700 px-3 py-2 rounded-full inline-flex items-center gap-1" data-demo="1" aria-label="Open ' + escapeHtml(repo.name) + ' demo">' + playIcon + 'Demo</button>' : '');
-
-  card.innerHTML =
-    '<div class="flex items-start justify-between gap-3 mb-2">' +
-      '<h3 class="text-base font-800 break-words min-w-0 leading-snug">' +
-        '<a href="' + titleHref + '" target="_blank" rel="noopener" class="hover:text-cblue hover:underline underline-offset-2 decoration-cyan">' + escapeHtml(repo.name) + '</a>' +
-      '</h3>' +
-      (badges ? '<div class="flex flex-wrap items-center gap-1.5 justify-end shrink-0">' + badges + '</div>' : '') +
-    '</div>' +
-    '<p class="text-body-muted text-sm leading-relaxed mb-3">' + escapeHtml(summaryForRepo(repo)) + '</p>' +
-    integrationsRowHtml(repo) +
-    '<div class="flex items-center gap-x-3.5 text-xs text-body-muted mb-4 mt-auto">' +
-      '<span class="inline-flex items-center gap-1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>updated ' + escapeHtml(timeAgo(repo.pushed_at || repo.updated_at)) + '</span>' +
-    '</div>' +
-    '<div class="flex items-center gap-1.5 mt-auto pt-1">' + btnRow + '</div>';
-
-  card.querySelectorAll('button[data-repo]').forEach(function (b) {
-    b.addEventListener('click', function () { fetchRepoDetails(repo.name); });
-  });
-  card.querySelectorAll('[data-demo]').forEach(function (b) {
-    b.addEventListener('click', function () { openDemo(repo); });
-  });
-  return card;
-}
 
 function buildRepoCard(repo, idx) {
   var card = document.createElement('article');
@@ -2088,6 +1584,8 @@ modal.addEventListener('mousedown', function (e) { if (e.target === modal) close
    ============================================================ */
 var modalClipboard = null;
 function fetchRepoDetails(repoName) {
+  /* Details live on the explorer's project page now (#/p/<repo>). */
+  if (window.HX && HX.go) { if (modal.classList.contains('open')) closeModal(); HX.go('p/' + encodeURIComponent(repoName)); return; }
   /* preserve the trigger focus across the async detail render */
   if (!modal.classList.contains('open')) lastFocused = document.activeElement;
   ghFetch('https://api.github.com/repos/' + repoFull(repoName))
@@ -2375,7 +1873,15 @@ function docSkeleton() {
 /* Demo viewer — fetch a project's self-contained HTML through the AUTHENTICATED
    GitHub API and render it in a sandboxed iframe. A private demo only loads for a
    signed-in user with repo access (404 otherwise); nothing is exposed publicly. */
-function demoForRepo(repo){ var c = CURATED[((repo && repo.name) || '').toLowerCase()]; return (c && c.demo) || null; }
+function demoForRepo(repo){ var d = window.HX && HX.demoFor ? HX.demoFor(repo) : null; if (d) return d; var c = CURATED[((repo && repo.name) || '').toLowerCase()]; return (c && c.demo) || null; }
+/* A sealed-off (opaque-origin) frame throws when a demo touches localStorage or sessionStorage.
+   Put an in-memory stand-in first in the page, so demos that save settings still work. */
+function demoStorageShim(html) {
+  var shim = '<script>(function(){function mem(){var d={};return{getItem:function(k){return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}' +
+    '["localStorage","sessionStorage"].forEach(function(n){try{window[n].getItem("x")}catch(e){try{Object.defineProperty(window,n,{value:mem(),configurable:true})}catch(e2){}}})})();<\/script>';
+  var m = /<head[^>]*>/i.exec(html);
+  return m ? html.slice(0, m.index + m[0].length) + shim + html.slice(m.index + m[0].length) : shim + html;
+}
 function openDemo(repo){
   var path = demoForRepo(repo); if (!path || !repo) return;
   var ov = document.createElement('div'); ov.className = 'demo-overlay'; ov.id = 'demo-overlay';
@@ -2410,8 +1916,11 @@ function openDemo(repo){
       var frame = document.createElement('iframe');
       frame.className = 'demo-frame';
       frame.setAttribute('title', repo.name + ' demo');
-      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-downloads allow-popups allow-modals allow-forms');
-      frame.srcdoc = html;
+      /* SECURITY: never add allow-same-origin here. A srcdoc frame with it runs as this page,
+         so a demo's code could read the visitor's sign-in token (scope: repo). Without it the
+         demo runs in its own sealed-off origin; demoStorageShim gives it working storage. */
+      frame.setAttribute('sandbox', 'allow-scripts allow-downloads allow-popups allow-modals allow-forms');
+      frame.srcdoc = demoStorageShim(html);
       var stage = ov.querySelector('.demo-stage'); if (stage){ stage.innerHTML = ''; stage.appendChild(frame); }
     })
     .catch(function (err){
@@ -2542,7 +2051,7 @@ function showRepoExplore(repo) {
       var topics = (repo.topics || []).map(function (t) { return '<span class="topic-pill">' + escapeHtml(t) + '</span>'; }).join('');
 
       modalBody.innerHTML =
-        '<div class="mb-4"><button type="button" id="explore-back" class="btn btn-ghost font-700 text-sm px-4 py-2 rounded-full inline-flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back to overview</button></div>' +
+        '<div class="mb-4"><button type="button" id="explore-back" class="btn btn-ghost font-700 text-sm px-4 py-2 rounded-full inline-flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back to the project page</button></div>' +
         '<div class="surface rounded-xl p-5 mb-5">' +
           (badges ? '<div class="flex flex-wrap gap-2 mb-3">' + badges + '</div>' : '') +
           '<p class="text-dark leading-relaxed mb-4">' + escapeHtml(repo.description || 'No description provided.') + '</p>' +
@@ -2580,7 +2089,7 @@ function showRepoExplore(repo) {
       }
 
       var backBtn = document.getElementById('explore-back');
-      if (backBtn) backBtn.onclick = function () { showRepoDocs(repo); };
+      if (backBtn) backBtn.onclick = function () { closeModal(); };
       var actions = document.getElementById('repo-actions');
       fetchFileStructure(repoName, '');
 
@@ -2677,8 +2186,8 @@ function showRepoExplore(repo) {
 function makeBackButton(repoName) {
   var back = document.createElement('button');
   back.className = 'btn btn-ghost font-700 text-sm px-5 py-2.5 rounded-full mt-4 inline-flex items-center gap-2';
-  back.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back to details';
-  back.onclick = function () { fetchRepoDetails(repoName); };
+  back.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back to the files';
+  back.onclick = function () { var i = HX.byName(repoName); if (i) showRepoExplore(i.repo); };
   return back;
 }
 
@@ -2970,7 +2479,7 @@ function wireAuth() {
 
   /* ONE message listener for the OAuth callback popup. */
   window.addEventListener('message', function (e) {
-    if (e.origin !== window.location.origin) return;
+    if (e.origin !== window.location.origin || !oauthPopup || e.source !== oauthPopup) return;   /* only the popup this page opened */
     if (!e.data || e.data.source !== 'cobblestone-oauth') return;
 
     if (e.data.error) {
@@ -3065,7 +2574,13 @@ function exchange(code) {
     });
 }
 
+/* Signing out cancels the token at GitHub (the worker's /revoke), not just here. */
+function revokeToken(t) {
+  if (!t || !authConfigured()) return;
+  try { fetch(AUTH_CONFIG.exchangeUrl.replace(/\/$/, '') + '/revoke', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ access_token: t }) }).catch(function () {}); } catch (e) {}
+}
 function signOut() {
+  revokeToken(ghToken);
   ghToken = null;
   try { sessionStorage.removeItem('cb_gh_token'); } catch (e) {}
   setSignedOutUI();
@@ -3088,7 +2603,8 @@ function restoreSessionThenLoad() {
       setSignedInUI(user.login, user.avatar_url);
       loadRepos();                                       /* signed-in: includes private repos */
     })
-    .catch(function () {
+    .catch(function (err) {
+      console.warn('Could not restore the GitHub session:', err);
       ghToken = null;
       try { sessionStorage.removeItem('cb_gh_token'); } catch (e) {}
       setSignedOutUI();
@@ -3113,5 +2629,7 @@ function restoreSessionThenLoad() {
   if ('ResizeObserver' in window) { new ResizeObserver(syncHeaderHeight).observe(header); }
 })();
 </script>
+<script src="assets/hub-data.js?v=4"></script>
+<script src="assets/hub-views.js?v=4"></script>
 </body>
 </html>

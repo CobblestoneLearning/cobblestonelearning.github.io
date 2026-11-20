@@ -30,7 +30,9 @@
     // which performs the secret-bearing token exchange via the worker. This page never
     // sees the client secret or the access token.
     (function () {
+      if (window.top !== window.self) return;                       /* never answer from inside a frame */
       var params = new URLSearchParams(window.location.search);
+      try { history.replaceState(null, '', window.location.pathname); } catch (e) {}   /* the one-use code leaves the URL and history */
       var message = {
         source: 'cobblestone-oauth',
         code: params.get('code'),
