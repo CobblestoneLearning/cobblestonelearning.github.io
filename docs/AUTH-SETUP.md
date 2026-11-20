@@ -102,8 +102,9 @@ stays in public-only mode.
 - On the hub (`index.html`) the user's access token is kept in **`sessionStorage`** (`cb_gh_token`),
   so a page refresh does not force a new sign-in (GitHub asks for two-factor again on each fresh
   OAuth round trip). It is checked against `/user` on load and is cleared when the tab closes, on
-  sign-out, or if GitHub rejects it. It is never written to `localStorage`. `manage.html` keeps its
-  broader admin token **in memory only**, so it is gone on reload.
+  sign-out, or if GitHub rejects it. It is never written to `localStorage`. The management page is no longer
+  here: it has its own address and OAuth app (repo `cobblestone-manage`), and the hub's app asks only
+  for `read:org repo`.
 - Sign-out clears the token and returns the hub to the public view.
 - The OAuth app is **owned by the CobblestoneLearning organisation** (moved there on 2026-11-17).
   The organisation restricts third-party apps, and only apps it owns get through, so keep it there.
