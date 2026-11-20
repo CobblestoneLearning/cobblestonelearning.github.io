@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "name": "Repository Hub",
+  "tagline": "Lists all our GitHub projects in one place, with plain-language notes, so you can find and open a tool.",
+  "summary": "The repository hub is a web page on GitHub Pages for everyone in the Cobblestone Learning organisation. Sign in with your own GitHub account to see every project. Managers also get a link to the management page.",
+  "purpose": "tools",
+  "kind": "website",
+  "helps": [
+    "our team"
+  ],
+  "works_with": [
+    "GitHub",
+    "GitHub Pages",
+    "Cloudflare"
+  ],
+  "runs_on": [],
+  "status": "live",
+  "features": [
+    "Browse projects by the job they do, or follow a learner's journey from sign-in to report.",
+    "See which projects work with each platform, and which run on each site.",
+    "Explore every project as a building in the **City**, or as a stone on the **Map**.",
+    "Open a project page with its pictures, step-by-step guides, staff notes and demo.",
+    "Switch between **Organisation** and **Mine** once you have signed in."
+  ],
+  "live_url": "https://cobblestonelearning.github.io/",
+  "owner": "Bryan Hurley",
+  "updated": "2026-11-20"
+}
