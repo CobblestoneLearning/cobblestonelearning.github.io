@@ -469,6 +469,46 @@
       showToast('The files of this project could not be read. Try again in a minute.');
     });
   }
+  function cityHandlers() {
+    return {
+      onSelect: cityPanel,
+      onLevel: cityLevel,
+      onWalk: function (on) { var w = document.getElementById('hx-city-walk'), c = document.getElementById('hx-city'); if (w) w.hidden = !on; if (c) c.classList.toggle('walking', on); },
+      onOpen: function (key) { HX.go('p/' + encodeURIComponent(key)); },
+      onOpenSite: function (alias) { HX.go('site/' + encodeURIComponent(alias)); },
+      fetchBlob: cityBlob,
+      loadImage: function (key, path) { var i = HX.byName(key); return i && path ? HX.image(i.repo, path).catch(function () { return null; }) : Promise.resolve(null); },
+      demoPreview: cityDemoPreview,
+      onTour: cityTourBar
+    };
+  }
+  /* The project page's City slide: the shared City, looking inside this one project. The canvas moves into the
+     slide while it shows and out again when it does not, so the City only draws while someone can see it. */
+  function slideCity(slot) {
+    var name = slot.getAttribute('data-hx-slide-city');
+    if (cityFail) { var sl = slot.closest('.hx-slide'); if (sl) sl.classList.add('hx-slide-nogl'); return; }
+    if (!HX.extraReady) return;                 /* the page draws again once every project's details are in */
+    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=2', document.baseURI).href);
+    HX._cityP.then(function (mod) {
+      cityMod = mod;
+      if (!slot.isConnected || !slot.closest('.hx-slide.on')) return;
+      if (!cityHost) { cityHost = document.createElement('div'); cityHost.className = 'hx-city-host'; }
+      slot.appendChild(cityHost);
+      if (!city) {
+        city = mod.mountCity(cityHost, cityHandlers());
+        if (!city) { cityFail = true; slot.closest('.hx-slide').classList.add('hx-slide-nogl'); return; }
+        HX._city = city;
+      }
+      city.attach();
+      var list = HX.list();
+      city.setProjects(cityItems(list), cityHoods(), cityPlatforms(list), citySites(list));
+      if (city.level.repo !== name) { cityIn = name; cityInside(name); }
+      var w = slot.querySelector('.hx-slide-wait'); if (w) w.remove();
+    }).catch(function (e) { console.warn('The city could not load:', e); cityFail = true; });
+  }
+  function slideCityOff(box) {
+    if (cityHost && box.contains(cityHost)) { cityHost.remove(); if (city && city._sync) city._sync(); }
+  }
   function afterCity(list, route) {
     if (cityFail) { cityNoGL(); return; }
     if (!HX.extraReady) { cityBoot('Building the city', 'Reading the details of ' + plural(list.length, 'project', 'projects'), true); return; }
@@ -479,17 +519,7 @@
       if (!cityHost) { cityHost = document.createElement('div'); cityHost.className = 'hx-city-host'; }
       slot.appendChild(cityHost);
       if (!city) {
-        city = mod.mountCity(cityHost, {
-          onSelect: cityPanel,
-          onLevel: cityLevel,
-          onWalk: function (on) { var w = document.getElementById('hx-city-walk'), c = document.getElementById('hx-city'); if (w) w.hidden = !on; if (c) c.classList.toggle('walking', on); },
-          onOpen: function (key) { HX.go('p/' + encodeURIComponent(key)); },
-          onOpenSite: function (alias) { HX.go('site/' + encodeURIComponent(alias)); },
-          fetchBlob: cityBlob,
-          loadImage: function (key, path) { var i = HX.byName(key); return i && path ? HX.image(i.repo, path).catch(function () { return null; }) : Promise.resolve(null); },
-          demoPreview: cityDemoPreview,
-          onTour: cityTourBar
-        });
+        city = mod.mountCity(cityHost, cityHandlers());
         if (!city) { cityFail = true; cityNoGL(); return; }
         HX._city = city;
       }
@@ -1004,13 +1034,70 @@
     var facts = '<div class="hx-facts"><span>Updated <b>' + esc(timeAgo(repo.pushed_at || repo.updated_at)) + '</b></span>' + (info.runs.length ? '<span>Runs on <b>' + esc(info.runs.map(function (s) { return s.name; }).join(', ')) + '</b></span>' : '') + (info.owner ? '<span>Owner <b>' + esc(info.owner) + '</b></span>' : '') + '</div>';
     var thumbs = info.gallery.length > 1 ? '<div class="hx-thumbs">' + info.gallery.map(function (g, i) { return '<button type="button" class="hx-thumb" data-hx-lb="' + i + '" aria-label="' + esc(g.alt || g.caption || 'Picture ' + (i + 1)) + '"><img alt="" data-hx-img="' + esc(g.src) + '" data-hx-repo="' + esc(repo.name) + '"></button>'; }).join('') + '</div>' : '';
     var out = '<div class="hx-proj-hero"><div>' + purposeTag(info, true) + '<h1>' + esc(info.name) + '</h1><p class="hx-proj-tag">' + esc(info.tagline) + '</p><div class="hx-chiprow">' + badges + '</div>' + facts + '<div class="hx-proj-actions">' + actions + '</div></div>' +
-      '<div class="hx-proj-media"><div class="hx-proj-cover">' + coverMedia(info) + '</div>' + thumbs + '</div></div>';
+      '<div class="hx-proj-media"><div class="hx-proj-cover">' + heroSlides(info) + '</div>' + thumbs + '</div></div>';
     out += '<div class="hx-ptabs" role="tablist">' + [['overview', 'Overview', 'What it does'], ['built', 'How it’s built', 'Languages and files'], ['code', 'Code', 'For developers']].map(function (t) {
       return '<button type="button" role="tab" class="hx-ptab" aria-selected="' + (tab === t[0]) + '" data-hx-ptab="' + t[0] + '">' + t[1] + '<small>' + t[2] + '</small></button>';
     }).join('') + '</div><div id="hx-ppane" style="--hx-c:' + st.color + '">' + projectPane(info, tab) + '</div>';
     out += related(info, list);
     return out;
   };
+  /* Project page hero: a slideshow of the project's own picture (when it has one), the project in the City,
+     and its building blocks, which wave on a loop here (on cards they wave only on hover). */
+  function heroSlides(info) {
+    var name = info.repo.name, pic = info.cover || (info.gallery[0] && info.gallery[0].src) || '', slides = [];
+    if (pic) slides.push({ label: 'Picture', html: '<img alt="' + esc((!info.cover && info.gallery[0] && info.gallery[0].alt) || 'A picture of ' + info.name) + '" data-hx-img="' + esc(pic) + '" data-hx-repo="' + esc(name) + '">' });
+    if (!cityFail && window.WebGLRenderingContext) slides.push({ label: 'In the City', city: 1, html:
+      '<div class="hx-slide-city" data-hx-slide-city="' + esc(name) + '"><span class="hx-slide-wait">Opening the City</span></div>' +
+      '<a class="hx-slide-open" href="' + href('city', { 'in': name }) + '">Open in the City</a>' });
+    slides.push({ label: 'Building blocks', loop: 1, html: HX.coverSVG(info) });
+    if (slides.length === 1) return slides[0].html;
+    var n = slides.length;
+    return '<div class="hx-slides" data-hx-slides role="region" aria-roledescription="carousel" aria-label="' + esc(info.name) + ': pictures">' +
+      slides.map(function (sl, i) {
+        return '<div class="hx-slide' + (i ? '' : ' on') + (sl.loop ? ' hx-loop' : '') + (sl.city ? ' hx-slide-cityslide' : '') + '" role="group" aria-roledescription="slide" aria-label="' + (i + 1) + ' of ' + n + ': ' + sl.label + '"' + (i ? ' aria-hidden="true"' : '') + '>' +
+          sl.html + '<span class="hx-slide-tag">' + sl.label + '</span></div>';
+      }).join('') +
+      '<div class="hx-slide-nav">' +
+        '<button type="button" class="hx-slide-btn" data-hx-slide="prev" aria-label="Previous picture"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+        '<span class="hx-slide-dots">' + slides.map(function (sl, i) { return '<button type="button" data-hx-dot="' + i + '" aria-label="Show: ' + sl.label + '"' + (i ? '' : ' aria-current="true"') + '></button>'; }).join('') + '</span>' +
+        '<button type="button" class="hx-slide-btn" data-hx-slide="next" aria-label="Next picture"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+        '<button type="button" class="hx-slide-btn" data-hx-slide="pause" aria-label="Stop the slideshow" aria-pressed="false"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path class="i-pause" d="M8 5v14M16 5v14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path class="i-play" d="M8 5l11 7-11 7z" fill="currentColor"/></svg></button>' +
+      '</div></div>';
+  }
+  function initSlides() {
+    var box = document.querySelector('[data-hx-slides]');
+    if (!box || box._on) return;
+    box._on = 1;
+    var slides = [].slice.call(box.querySelectorAll('.hx-slide')), dots = [].slice.call(box.querySelectorAll('[data-hx-dot]'));
+    var idx = 0, timer = null, hold = false, stopped = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var pauseBtn = box.querySelector('[data-hx-slide="pause"]');
+    function setStopped(on) { stopped = on; box.classList.toggle('stopped', on); pauseBtn.setAttribute('aria-pressed', String(on)); pauseBtn.setAttribute('aria-label', on ? 'Play the slideshow' : 'Stop the slideshow'); tick(); }
+    function show(i) {
+      idx = (i + slides.length) % slides.length;
+      slides.forEach(function (sl, k) { sl.classList.toggle('on', k === idx); if (k === idx) sl.removeAttribute('aria-hidden'); else sl.setAttribute('aria-hidden', 'true'); });
+      dots.forEach(function (d, k) { if (k === idx) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current'); });
+      var c = slides[idx].querySelector('[data-hx-slide-city]');
+      if (c) slideCity(c); else slideCityOff(box);
+    }
+    function tick() {
+      clearTimeout(timer);
+      if (stopped || hold) return;
+      timer = setTimeout(function () { if (!box.isConnected) return; show(idx + 1); tick(); }, slides[idx].classList.contains('hx-slide-cityslide') ? 9000 : 6000);
+    }
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-hx-slide], [data-hx-dot]'); if (!b) return;
+      var a = b.getAttribute('data-hx-slide');
+      if (a === 'pause') return setStopped(!stopped);
+      if (a === 'prev') show(idx - 1); else if (a === 'next') show(idx + 1); else show(+b.getAttribute('data-hx-dot'));
+      tick();
+    });
+    box.addEventListener('mouseenter', function () { hold = true; tick(); });
+    box.addEventListener('mouseleave', function () { hold = false; tick(); });
+    box.addEventListener('focusin', function () { hold = true; tick(); });
+    box.addEventListener('focusout', function (e) { if (!box.contains(e.relatedTarget)) { hold = false; tick(); } });
+    if (stopped) setStopped(true);
+    show(0); tick();
+  }
   function projectPane(info, tab) {
     var repo = info.repo, k = HX.KINDS[info.kind];
     var explain = '<div class="hx-explain">' + I('info') + '<div><b>This is ' + (/^[aeiou]/i.test(k.label) ? 'an ' : 'a ') + esc(k.label.charAt(0).toLowerCase() === k.label.charAt(0) || /^Word/.test(k.label) ? k.label : k.label.charAt(0).toLowerCase() + k.label.slice(1)) + '</b>' + esc(k.explain) + (info.kind === 'snippet' || info.kind === 'plugin' || info.kind === 'theme' ? ' The live site is the true version. The copy on GitHub is for review and history.' : '') + '</div></div>';
@@ -1069,6 +1156,7 @@
   }
   function afterProject(info, tab) {
     var repo = info.repo;
+    initSlides();
     var notes = document.getElementById('hx-notes');
     if (notes) fetchRenderedCLReadme(repo.name).then(function (val) {
       if (!document.body.contains(notes)) return;
