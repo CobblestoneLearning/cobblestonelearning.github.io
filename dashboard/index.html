@@ -5,7 +5,10 @@
 <!-- SECURITY: never shown inside another site's frame (clickjacking). GitHub Pages cannot send
      X-Frame-Options, and a meta policy cannot set frame-ancestors, so the page hides itself instead. -->
 <style id="fb">html{display:none!important}</style>
-<script>if (self === top) { var fb = document.getElementById('fb'); fb.parentNode.removeChild(fb); } else { try { top.location = self.location; } catch (e) {} }</script>
+<!-- In the hub's sealed demo frame (sandbox without allow-same-origin) the origin is opaque, "null": no cookies,
+     no storage and no sign-in can complete there (the sign-in worker accepts only the Pages origin), so there is
+     nothing to clickjack, and the page may show. Any other frame still hides it. -->
+<script>if (self === top || window.origin === 'null') { var fb = document.getElementById('fb'); fb.parentNode.removeChild(fb); } else { try { top.location = self.location; } catch (e) {} }</script>
 <noscript><style>html{display:block!important}</style></noscript>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Cobblestone Learning — Organisation Dashboard</title>
