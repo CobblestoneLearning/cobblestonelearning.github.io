@@ -286,7 +286,7 @@
       var gone = !!i.repo.archived || i.status === 'retired';
       return { key: i.repo.name, name: i.name, tagline: i.tagline, purpose: i.purpose, kind: i.kind, kindLabel: HX.KINDS[i.kind].label,
         size: i.langTotal || (i.repo.size || 0) * 1024, demo: !!i.demo && !gone, works: i.works.filter(function (w) { return !HX.EVERYWHERE[w]; }),
-        status: i.status, retired: gone, runs: i.runs.map(function (r) { return r.site; }), cover: i.cover || '', icon: i.icon || '',
+        status: i.status, retired: gone, archived: !!i.repo.archived, runs: i.runs.map(function (r) { return r.site; }), cover: i.cover || '', icon: i.icon || '',
         recent: i.recent || 0, issues: i.repo.open_issues_count || 0, notes: !!i.hasNotes,
         lastChange: i.repo.pushed_at || i.repo.updated_at || '', stale: Date.now() - new Date(i.repo.pushed_at || i.repo.updated_at || 0).getTime() > 365 * 864e5 };
     });
@@ -520,7 +520,7 @@
     var name = slot.getAttribute('data-hx-slide-city');
     if (cityFail) { var sl = slot.closest('.hx-slide'); if (sl) sl.classList.add('hx-slide-nogl'); return; }
     if (!HX.extraReady) return;                 /* the page draws again once every project's details are in */
-    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=2', document.baseURI).href);
+    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=3', document.baseURI).href);
     HX._cityP.then(function (mod) {
       cityMod = mod;
       if (!slot.isConnected || !slot.closest('.hx-slide.on')) return;
@@ -544,7 +544,7 @@
   function afterCity(list, route) {
     if (cityFail) { cityNoGL(); return; }
     if (!HX.extraReady) { cityBoot('Building the city', 'Reading the details of ' + plural(list.length, 'project', 'projects'), true); return; }
-    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=2', document.baseURI).href);
+    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=3', document.baseURI).href);
     HX._cityP.then(function (mod) {
       cityMod = mod;
       var slot = document.getElementById('hx-city-slot'); if (!slot) return;     /* left the view meanwhile */
@@ -1415,7 +1415,10 @@
   /* ---------------- The cinematic header, fed with explorer data ---------------- */
   HX.updateHero = function () {
     if (typeof window.cinRender !== 'function') return;
-    var repos = ALL_REPOS.filter(function (r) { return !r._personal; }), list = repos.map(HX.info).filter(function (i) { return !HX.isCopy(i); });
+    /* The same projects as the City and the lists (HX.list): no archived repos, no forks, one card per project. The rest are
+       counted on the line under the number (Bryan, 2026-11-23: "119, plus a note"). Organisation repos only, whatever the scope. */
+    var all = ALL_REPOS.filter(function (r) { return !r._personal; }).map(HX.info).filter(function (i) { return !HX.isCopy(i); });
+    var list = all.filter(function (i) { return !i.repo.fork && !i.repo.archived; }), extra = all.length - list.length;
     var now = Date.now(), latest = 0, a7 = 0, a30 = 0, DAYS = 91, daily = [], i;
     for (i = 0; i < DAYS; i++) daily.push(0);
     var mid = new Date(); mid.setHours(0, 0, 0, 0);
@@ -1441,12 +1444,13 @@
     }
     var order = HX.KIND_ORDER.filter(function (k) { return kinds[k]; }), cubeColors = [];
     order.forEach(function (k) { for (var j = 0; j < kinds[k]; j++) cubeColors.push(HX.KIND_COLOR[k]); });
-    window.cinRender({ repositories: repos.length, languages: comp, lastUpdateMins: latest ? Math.max(0, Math.round((now - latest) / 60000)) : 0,
+    window.cinRender({ repositories: list.length, languages: comp, lastUpdateMins: latest ? Math.max(0, Math.round((now - latest) / 60000)) : 0,
       activity: { daily: daily, active7: a7, active30: a30 }, liveDemos: { count: demos.length, items: demos }, cubeColors: cubeColors });
     var fr = document.getElementById('cin-f-repos');
-    var top3 = order.slice().sort(function (a, b) { return kinds[b] - kinds[a]; }).slice(0, 3), rest = repos.length - top3.reduce(function (t, k) { return t + kinds[k]; }, 0);
+    var top3 = order.slice().sort(function (a, b) { return kinds[b] - kinds[a]; }).slice(0, 3), rest = list.length - top3.reduce(function (t, k) { return t + kinds[k]; }, 0);
     if (fr) fr.innerHTML = top3.map(function (k) { return '<span class="hx-kind-key"><i style="background:' + HX.KIND_COLOR[k] + '"></i>' + esc(HX.kindCount(k, kinds[k])) + '</span>'; }).join('') + (rest > 0 ? '<span class="hx-kind-key"><i style="background:#C9D2DC"></i>' + rest + ' other</span>' : '');
     function txt(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
+    var xr = document.getElementById('cin-x-repos'); if (xr) { xr.textContent = extra ? extra + ' more archived or forked' : ''; xr.hidden = !extra; }
     var ov = HX.level === 'overview';
     txt('cin-k-langs', ov ? 'Works with' : 'Composition');
     txt('cin-l-langs', ov ? 'Platforms' : 'Languages');

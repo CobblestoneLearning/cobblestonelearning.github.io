@@ -424,8 +424,11 @@ export class City {
   goCrumb(i) { const c = this.crumbs()[i]; if (c) this.go(c.level); }
   _summary() {
     if (this.level.kind === 'estate') {
-      const n = this.districts.length, p = this.towers.filter((t) => t.type === 'project').length;
-      return p + ' projects in ' + n + (n === 1 ? ' neighbourhood' : ' neighbourhoods');
+      /* Count as the header and the lists do (archived repos are not projects there); the archived ruins come after. */
+      const n = this.districts.length, all = this.towers.filter((t) => t.type === 'project');
+      const gone = all.filter((t) => t.item && t.item.archived).length, p = all.length - gone;
+      return p + (p === 1 ? ' project' : ' projects') + ' in ' + n + (n === 1 ? ' neighbourhood' : ' neighbourhoods') +
+        (gone ? ', plus ' + gone + ' archived, shown as ruins' : '');
     }
     const dirs = this.districts.filter((d) => d.target).length, f = this.towers.length + (this._propFiles || 0);
     return (dirs ? dirs + (dirs === 1 ? ' folder, ' : ' folders, ') : '') + f + (f === 1 ? ' file' : ' files');
