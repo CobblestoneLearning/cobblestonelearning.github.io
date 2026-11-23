@@ -14,6 +14,7 @@ repo, read its staff notes or README, open its demo, browse its code, and copy a
 | `manage.html` | **Manage**: a page for organisation owners and managers (people, teams, access to each repo, recent activity and metrics). |
 | `dashboard/index.html` | A copy of the single-screen visual dashboard ([`cobblestone-gh-dashboard`](https://github.com/CobblestoneLearning/cobblestone-gh-dashboard)). |
 | `callback.html` | The sign-in popup's landing page; it hands the login code back to the page that opened it. |
+| `bryanslog/index.html` | A forwarder for the short address https://cobblestonelearning.github.io/bryanslog: it sends the browser to the hub's `#/p/bryansLog?launch=demo`. It holds nothing from the log; the hub opens the log only for a signed-in viewer who can read the private repo. |
 | `auth/` | The Cloudflare Worker that swaps the login code for a token (it holds the OAuth client secret). |
 | `docs/AUTH-SETUP.md`, `.github/setup-auth.py` | One-time sign-in setup. |
 | `CLREADME.md` | Plain-language staff notes for this repo. |
@@ -37,6 +38,9 @@ GitHub Pages serves `main` from the repo root, so every push to `main` redeploys
   - your own gists (organisations cannot own gists; the old shared ones are in the private repo
     `csl-gists`);
   - a **Manage** link, for organisation owners and members of the `managers` team.
+- **Direct demo addresses:** `#/p/<repo>?launch=demo` opens that project's demo straight away,
+  filling the window. Signed out, the page asks you to sign in first and opens the demo once you
+  have. Closing the demo leaves you on the project page.
 - Every repo list is fetched page by page (the organisation has more than 100 repos).
 - Skeleton loaders, and a clear message if the GitHub API rate limit is hit (60 requests an hour
   per visitor when signed out).

@@ -26,6 +26,7 @@ The Repository Hub shows everything that we have built for our learning sites, i
 - Each project page uses the project's own details: its staff notes, and the `hub/project.json` file with its pictures and guides. Projects that have no pictures yet show a generated picture.
 - This repo is public, because the hub is a public web page. Never put passwords, keys or client details in it.
 - Your sign-in lasts until you close the tab. Sign out on a shared computer.
+- A project page address that ends in `?launch=demo` opens the demo of that project immediately. If you have not signed in, the hub asks you to sign in first.
 
 ## Who to ask
 - Owner: **Bryan Hurley**

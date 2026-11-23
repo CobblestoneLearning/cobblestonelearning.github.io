@@ -1885,8 +1885,10 @@ function demoStorageShim(html) {
   var m = /<head[^>]*>/i.exec(html);
   return m ? html.slice(0, m.index + m[0].length) + shim + html.slice(m.index + m[0].length) : shim + html;
 }
-function openDemo(repo){
+/* opts.onClose runs when the viewer closes the demo (the hub's #/p/<repo>?launch=demo route uses it). */
+function openDemo(repo, opts){
   var path = demoForRepo(repo); if (!path || !repo) return;
+  opts = opts || {};
   var ov = document.createElement('div'); ov.className = 'demo-overlay'; ov.id = 'demo-overlay';
   ov.innerHTML =
     '<div class="demo-bar"><span class="demo-nm"></span><span class="demo-badge">Live demo</span><span class="demo-sp"></span>' +
@@ -1896,7 +1898,7 @@ function openDemo(repo){
   ov.querySelector('.demo-nm').textContent = repo.name;
   ov.querySelector('.demo-gh').href = safeHttpUrl(repo.html_url);
   document.body.appendChild(ov);
-  function close(){ if (ov.parentNode) ov.parentNode.removeChild(ov); document.removeEventListener('keydown', onKey); }
+  function close(){ if (ov.parentNode) ov.parentNode.removeChild(ov); document.removeEventListener('keydown', onKey); if (typeof opts.onClose === 'function') opts.onClose(); }
   function onKey(e){ if (e.key === 'Escape') close(); }
   document.addEventListener('keydown', onKey);
   ov.querySelector('.demo-close').onclick = close;
@@ -2649,6 +2651,6 @@ function restoreSessionThenLoad() {
 })();
 </script>
 <script src="assets/hub-data.js?v=5"></script>
-<script src="assets/hub-views.js?v=7"></script>
+<script src="assets/hub-views.js?v=8"></script>
 </body>
 </html>

@@ -43,6 +43,38 @@
   function pHref(info) { return href('p/' + encodeURIComponent(info.repo.name)); }
   function wHref(name) { return href('with/' + encodeURIComponent(name)); }
 
+  /* ---------------- A project's demo, straight from the address ----------------
+     #/p/<repo>?launch=demo opens that project's demo over its page, for direct addresses such as
+     /bryanslog/. (`demo` and `open` are already filter parameters on #/all, hence `launch`.)
+     It waits until the repo list AND the cards have loaded (HX.onRepos sets detailsReady), because a
+     card is where `demo` lives. Signed out, R.p asks the viewer to sign in; the popup sign-in reloads
+     the list, so the demo opens then. No access: R.p's "could not find" message, or openDemo's own.
+     Closing the demo takes `launch` out of the address (replaceState), so the viewer stays on the
+     project page and a later render or reload does not open it again. */
+  var detailsReady = false, launchedFor = '', repoGen = 0;
+  function launchFromRoute() {
+    var r = parseRoute();
+    if (r.view !== 'p' || r.params.launch !== 'demo') { launchedFor = ''; return; }
+    if (!detailsReady || !ALL_REPOS.length || document.getElementById('demo-overlay')) return;
+    var info = HX.byName(r.arg), key = String(r.arg).toLowerCase() + (ghToken ? '+' : '-');   /* one try signed out, one signed in */
+    if (!info || launchedFor === key) return;
+    launchedFor = key;
+    var name = info.repo.name;
+    if (demoForRepo(info.repo)) { openDemo(info.repo, { onClose: function () { dropLaunch(name); } }); return; }
+    if (ghToken) { dropLaunch(name); showToast('This project has no demo.'); }   /* signed out, R.p asks the viewer to sign in: the card may name one */
+  }
+  function dropLaunch(name) {
+    var r = parseRoute();
+    if (r.view !== 'p' || !r.params.launch || String(r.arg).toLowerCase() !== String(name).toLowerCase()) return;
+    delete r.params.launch;
+    history.replaceState(null, '', href('p/' + encodeURIComponent(r.arg), r.params));
+  }
+  function launchSignIn() {
+    return '<div class="hx-empty" style="margin-bottom:22px"><b>Sign in to open this demo</b>' +
+      'Use a GitHub account that has access to this project. After you sign in, the demo opens.' +
+      '<div style="margin-top:16px"><button type="button" class="hx-btn primary" data-hx-signin="1">' + I('access') + 'Sign in with GitHub</button></div></div>';
+  }
+
   /* ---------------- Small parts ---------------- */
   function purposeTag(info, asLink) {
     var p = HX.PURPOSE[info.purpose], st = HX.STAGE[p.stage];
@@ -1018,7 +1050,9 @@
   /* ---------------- Project page ---------------- */
   R.p = function (list, route) {
     var info = HX.byName(route.arg);
-    if (!info) return '<div class="hx-empty"><b>We could not find that project</b>' + (ghToken ? 'It may have a new name, or you may not have access to it.' : 'It may be private. Sign in at the top of the page to see private projects.') + '</div>';
+    /* #/p/<repo>?launch=demo, signed out: until the viewer signs in, the hub cannot see a private project or read its card */
+    var ask = (route.params.launch === 'demo' && !ghToken && !(info && demoForRepo(info.repo))) ? launchSignIn() : '';
+    if (!info) return ask || '<div class="hx-empty"><b>We could not find that project</b>' + (ghToken ? 'It may have a new name, or you may not have access to it.' : 'It may be private. Sign in at the top of the page to see private projects.') + '</div>';
     var repo = info.repo, st = HX.STAGE[info.stage], tab = route.params.tab || (HX.level === 'overview' ? 'overview' : HX.level);
     var badges = kindPill(info);
     if (info.status !== 'live') badges += '<span class="hx-pill hx-pill-status">' + esc(info.status === 'in-progress' ? 'In progress' : info.status.charAt(0).toUpperCase() + info.status.slice(1)) + '</span>';
@@ -1033,7 +1067,7 @@
     actions += '<button type="button" class="hx-btn" data-hx-copylink="1">' + I('link') + 'Copy link</button>';
     var facts = '<div class="hx-facts"><span>Updated <b>' + esc(timeAgo(repo.pushed_at || repo.updated_at)) + '</b></span>' + (info.runs.length ? '<span>Runs on <b>' + esc(info.runs.map(function (s) { return s.name; }).join(', ')) + '</b></span>' : '') + (info.owner ? '<span>Owner <b>' + esc(info.owner) + '</b></span>' : '') + '</div>';
     var thumbs = info.gallery.length > 1 ? '<div class="hx-thumbs">' + info.gallery.map(function (g, i) { return '<button type="button" class="hx-thumb" data-hx-lb="' + i + '" aria-label="' + esc(g.alt || g.caption || 'Picture ' + (i + 1)) + '"><img alt="" data-hx-img="' + esc(g.src) + '" data-hx-repo="' + esc(repo.name) + '"></button>'; }).join('') + '</div>' : '';
-    var out = '<div class="hx-proj-hero"><div>' + purposeTag(info, true) + '<h1>' + esc(info.name) + '</h1><p class="hx-proj-tag">' + esc(info.tagline) + '</p><div class="hx-chiprow">' + badges + '</div>' + facts + '<div class="hx-proj-actions">' + actions + '</div></div>' +
+    var out = ask + '<div class="hx-proj-hero"><div>' + purposeTag(info, true) + '<h1>' + esc(info.name) + '</h1><p class="hx-proj-tag">' + esc(info.tagline) + '</p><div class="hx-chiprow">' + badges + '</div>' + facts + '<div class="hx-proj-actions">' + actions + '</div></div>' +
       '<div class="hx-proj-media"><div class="hx-proj-cover">' + heroSlides(info) + '</div>' + thumbs + '</div></div>';
     out += '<div class="hx-ptabs" role="tablist">' + [['overview', 'Overview', 'What it does'], ['built', 'How it’s built', 'Languages and files'], ['code', 'Code', 'For developers']].map(function (t) {
       return '<button type="button" role="tab" class="hx-ptab" aria-selected="' + (tab === t[0]) + '" data-hx-ptab="' + t[0] + '">' + t[1] + '<small>' + t[2] + '</small></button>';
@@ -1331,12 +1365,14 @@
     else if (key !== lastRoute && lastRoute) scrollToView(route, false);
     lastRoute = key; HX._scrollNext = false;
     var st = document.getElementById('repo-status'); if (st) announceStatus(st, (VIEW_BY[route.view] ? VIEW_BY[route.view].label : 'Page') + ' shown.');
+    launchFromRoute();
   };
 
   /* ---------------- Events (delegated, bound once) ---------------- */
   function wire() {
     document.addEventListener('click', function (e) {
       var t = e.target;
+      var si = t.closest('[data-hx-signin]'); if (si) { e.preventDefault(); if (typeof signIn === 'function') signIn(); return; }   /* inside the click, so the sign-in popup is allowed */
       var demo = t.closest('[data-hx-demo]'); if (demo) { e.preventDefault(); e.stopPropagation(); var di = HX.byName(demo.getAttribute('data-hx-demo')); if (di) openDemo(di.repo); return; }
       var lv = t.closest('[data-hx-level]'); if (lv) { HX.setLevel(lv.getAttribute('data-hx-level')); return; }
       var so = t.closest('#scope-toggle .view-opt'); if (so) { var sc2 = so.getAttribute('data-scope'); if (sc2 && sc2 !== SCOPE) { SCOPE = sc2; try { localStorage.setItem('cb_scope', SCOPE); } catch (e2) {} updateScopeUI(); HX.render(); } return; }
@@ -1419,10 +1455,11 @@
 
   /* Called by index.html once the repo list has loaded. */
   HX.onRepos = function () {
+    var gen = ++repoGen; detailsReady = false;   /* a ?launch=demo route waits for the cards below */
     HX._cache = {};
     HX.render(); HX.updateHero();
     if (!ghToken) HX.extra = {};
-    HX.loadExtras().then(function () { HX._cache = {}; HX.render(); HX.updateHero(); });
+    HX.loadExtras().then(function () { if (gen === repoGen) detailsReady = true; HX._cache = {}; HX.render(); HX.updateHero(); });
   };
   HX.init = function () {
     VIEW = HX.level === 'code' ? 'dev' : 'staff';
