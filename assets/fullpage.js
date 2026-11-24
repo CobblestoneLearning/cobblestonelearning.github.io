@@ -199,8 +199,11 @@
     frame = document.createElement('iframe');
     frame.className = 'page-frame';
     frame.setAttribute('title', body.getAttribute('data-title') || document.title);
-    /* SECURITY: never add allow-same-origin (see the top of this file). */
-    frame.setAttribute('sandbox', 'allow-scripts allow-downloads allow-popups allow-modals allow-forms');
+    /* SECURITY: never add allow-same-origin (see the top of this file). allow-popups-to-escape-sandbox lets a link the
+       page opens in a new tab load as a normal page (with its own cookies), not as a sealed copy with none: without it
+       the log's links to /lmsplan and to private GitHub pages opened signed out and broke (2026-11-24). It does not
+       give the frame this page's origin, so the token stays out of reach. */
+    frame.setAttribute('sandbox', 'allow-scripts allow-downloads allow-popups allow-popups-to-escape-sandbox allow-modals allow-forms');
     frame.srcdoc = html;
     body.appendChild(frame);
     gate.hidden = true;
