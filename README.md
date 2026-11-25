@@ -16,7 +16,7 @@ repo, read its staff notes or README, open its demo, browse its code, and copy a
 | `callback.html` | The sign-in popup's landing page; it hands the login code back to the page that opened it. |
 | `bryanslog/index.html` | Bryan's Log at its own address, https://cobblestonelearning.github.io/bryanslog: after a GitHub sign-in, the page shows the private log full window, as if `bryans-log.html` were opened from disk (with `assets/fullpage.js`). It holds nothing from the log; only an account that can read the private repo sees it. |
 | `assets/fullpage.js` | The full-window viewer behind `bryanslog/`. Keep it: the log's address depends on it. |
-| `lmsplan/index.html` | A forwarder for https://cobblestonelearning.github.io/lmsplan: it sends the browser to the LMS plan's own site, https://cobblestone-private-pages.cobblestonelearning.workers.dev/lmsplan/ (repo `cobblestone-private-pages`), which signs the viewer in and shows the plan as the real page. It holds nothing from the plan. |
+| `lmsplan/index.html` | A forwarder for https://cobblestonelearning.github.io/lmsplan: it sends the browser to the LMS plan's own site, https://cobblestone-lmsplan.cobblestonelearning.workers.dev/lmsplan/ (repo `cobblestone-private-pages`), which signs the viewer in and shows the plan as the real page. It holds nothing from the plan. |
 | `auth/` | The Cloudflare Worker that swaps the login code for a token (it holds the OAuth client secret). |
 | `docs/AUTH-SETUP.md`, `.github/setup-auth.py` | One-time sign-in setup. |
 | `CLREADME.md` | Plain-language staff notes for this repo. |
