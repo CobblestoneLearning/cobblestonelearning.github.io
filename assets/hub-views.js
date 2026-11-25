@@ -122,6 +122,9 @@
     else if (info.repo.has_pages) right += '<span class="hx-pill hx-pill-site">Live page</span>';
     return '<article class="hx-card reveal" style="--hx-c:' + st.color + ';transition-delay:' + ((i || 0) % 4) * 40 + 'ms">' +
       '<div class="hx-cover">' + coverMedia(info) +
+        /* The picture opens the project page too (Bryan, 2026-11-25). A second link to the title's page, so it is left out of
+           the tab order and hidden from screen readers; the play button comes after it, so it stays on top and still opens the demo. */
+        '<a class="hx-cover-link" href="' + pHref(info) + '" tabindex="-1" aria-hidden="true"></a>' +
         '<div class="hx-cover-tags">' + tags + '<span style="display:flex;gap:6px">' + right + '</span></div>' +
         (info.demo ? '<button type="button" class="hx-play" data-hx-demo="' + esc(info.repo.name) + '" aria-label="Try the demo of ' + esc(info.name) + '">' + I('play') + '</button>' : '') +
       '</div>' +

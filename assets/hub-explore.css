@@ -97,6 +97,7 @@ button.hx-pill { cursor: pointer; font-family: inherit; }
 .hx-gen .hx-cb { will-change: transform; }
 .hx-card:hover .hx-gen .hx-cb, .hx-card:focus-within .hx-gen .hx-cb { animation: hx-cube-wave var(--wdur, 2.6s) ease-in-out var(--wd, 0s) infinite; }
 @keyframes hx-cube-wave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(var(--amp, -5px)); } }
+.hx-cover-link { position: absolute; inset: 0; display: block; }
 .hx-cover-tags { position: absolute; left: 10px; top: 10px; right: 10px; display: flex; gap: 6px; justify-content: space-between; pointer-events: none; }
 .hx-cover-tags .hx-pill { box-shadow: 0 2px 8px rgba(0, 0, 0, .08); }
 .hx-play { position: absolute; right: 12px; bottom: 12px; width: 42px; height: 42px; border-radius: 999px; display: grid; place-items: center; background: #fff; color: #0074B4; border: 0; box-shadow: 0 8px 20px -8px rgba(0, 0, 0, .35); cursor: pointer; transition: transform .25s var(--hx-ease), background .2s, color .2s; }
