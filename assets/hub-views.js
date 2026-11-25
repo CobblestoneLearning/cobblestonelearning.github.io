@@ -306,8 +306,8 @@
     var full = repoFull(key);
     var url = sha ? 'https://api.github.com/repos/' + full + '/git/blobs/' + sha
       : 'https://api.github.com/repos/' + full + '/contents/' + String(path || '').split('/').map(encodeURIComponent).join('/');
-    return (cityBlobs[id] = ghFetch(url, { headers: { 'Accept': sha ? 'application/vnd.github.raw+json' : 'application/vnd.github.raw' } })
-      .then(function (r) { return r.ok ? r.arrayBuffer() : null; }).catch(function () { return null; }));
+    return (cityBlobs[id] = HubLoad.track('files', ghFetch(url, { headers: { 'Accept': sha ? 'application/vnd.github.raw+json' : 'application/vnd.github.raw' } })
+      .then(function (r) { return r.ok ? r.arrayBuffer() : null; }).catch(function () { return null; })));
   }
   /* What the hologram shows: the project's own picture, or else the demo page itself. */
   function cityDemoPreview(key) {
@@ -325,7 +325,7 @@
           return t ? { html: typeof demoStorageShim === 'function' ? demoStorageShim(t) : t } : null;
         }).catch(function () { return null; });
     }
-    return (cityDemos[key] = pic ? HX.image(info.repo, pic).then(function (u) { return { img: u }; }, page) : page());
+    return (cityDemos[key] = pic ? HX.image(info.repo, pic, 'files').then(function (u) { return { img: u }; }, page) : page());
   }
   /* Every project's file list, six at a time; each block fills in as its list lands. */
   function cityLoadTrees(items) {
@@ -479,8 +479,8 @@
   function cityTree(info) {
     var repo = info.repo, key = 'cb_tree2_' + repo.name + '_' + (repo.pushed_at || '');
     try { var c = sessionStorage.getItem(key); if (c) return Promise.resolve(JSON.parse(c)); } catch (e) {}
-    return ghFetch('https://api.github.com/repos/' + repoFull(repo.name) + '/git/trees/' + encodeURIComponent(repo.default_branch || 'main') + '?recursive=1')
-      .then(function (r) { if (!r.ok) throw new Error('GitHub API responded ' + r.status); return r.json(); })
+    return HubLoad.track('files', ghFetch('https://api.github.com/repos/' + repoFull(repo.name) + '/git/trees/' + encodeURIComponent(repo.default_branch || 'main') + '?recursive=1')
+      .then(function (r) { if (!r.ok) throw new Error('GitHub API responded ' + r.status); return r.json(); }))
       .then(function (d) {
         var files = ((d && d.tree) || []).filter(function (n) { return n.type === 'blob'; }).map(function (n) { return { p: n.path, s: n.size || 0, h: n.sha }; });
         try { sessionStorage.setItem(key, JSON.stringify(files)); } catch (e) {}
@@ -509,7 +509,7 @@
       onOpen: function (key) { HX.go('p/' + encodeURIComponent(key)); },
       onOpenSite: function (alias) { HX.go('site/' + encodeURIComponent(alias)); },
       fetchBlob: cityBlob,
-      loadImage: function (key, path) { var i = HX.byName(key); return i && path ? HX.image(i.repo, path).catch(function () { return null; }) : Promise.resolve(null); },
+      loadImage: function (key, path) { var i = HX.byName(key); return i && path ? HX.image(i.repo, path, 'files').catch(function () { return null; }) : Promise.resolve(null); },
       demoPreview: cityDemoPreview,
       onTour: cityTourBar
     };
@@ -1463,7 +1463,9 @@
     HX._cache = {};
     HX.render(); HX.updateHero();
     if (!ghToken) HX.extra = {};
-    HX.loadExtras().then(function () { if (gen === repoGen) detailsReady = true; HX._cache = {}; HX.render(); HX.updateHero(); });
+    /* One update when every project's details are in, so the cards do not move about several times.
+       The status beside the title shows the progress meanwhile (HubLoad). */
+    HX.loadExtras().then(function () { if (gen !== repoGen) return; detailsReady = true; HX._cache = {}; HX.render(); HX.updateHero(); });
   };
   HX.init = function () {
     VIEW = HX.level === 'code' ? 'dev' : 'staff';

@@ -5,7 +5,7 @@
    CLREADME.md, topics), so they never sit in this public file.
    Text follows LMS-CTE100 (British English, short sentences, plain words).
    Relies on globals from index.html: ghFetch, ghToken, ORG, ALL_REPOS,
-   scopedRepos, CURATED, escapeHtml, langColor, safeAtob.
+   scopedRepos, CURATED, escapeHtml, langColor, safeAtob, HubLoad.
    ========================================================================== */
 (function () {
   var HX = window.HX = window.HX || {};
@@ -184,40 +184,65 @@
   HX.hash = hash;
   HX.rand = function (seed, i) { var x = Math.imul((seed ^ (i + 1) * 2654435761) >>> 0, 1597334677) >>> 0; x ^= x >>> 15; return (x % 10000) / 10000; };
 
-  /* ---- Bulk details: one GraphQL query per 50 repos (signed in only) ---- */
-  var Q = 'query($org:String!,$after:String,$since:GitTimestamp!){organization(login:$org){repositories(first:50,after:$after){pageInfo{hasNextPage endCursor}nodes{name ' +
+  /* ---- Bulk details: small GraphQL queries sent together (signed in only) ----
+     Each field reads git objects in every repo, so a query is slow in proportion to its repos.
+     One query per 50 repos, one after another, took about 13 s for 86 repos; ten repos a query,
+     up to eight at once, takes about 3 s (measured 2026-11-25). Each query is counted in the
+     status beside the title (HubLoad), and one that fails is tried once more. */
+  var FRAG = 'fragment D on Repository{name ' +
     'cl:object(expression:"HEAD:CLREADME.md"){...on Blob{text}} hub:object(expression:"HEAD:hub/project.json"){...on Blob{text}} ' +
     'languages(first:8,orderBy:{field:SIZE,direction:DESC}){totalSize edges{size node{name color}}} ' +
-    'defaultBranchRef{target{...on Commit{history(first:1){nodes{committedDate messageHeadline}} recent:history(since:$since){totalCount}}}}}}}}';
+    'defaultBranchRef{target{...on Commit{history(first:1){nodes{committedDate messageHeadline}} recent:history(since:$since){totalCount}}}}}';
+  var BATCH = 10, AT_ONCE = 8, extraGen = 0;
+  function wait(ms) { return new Promise(function (res) { setTimeout(res, ms); }); }
+  function parseNode(n) {
+    var hub = null;
+    if (n.hub && n.hub.text) { try { hub = JSON.parse(n.hub.text); } catch (e) { hub = null; } }
+    var langs = ((n.languages && n.languages.edges) || []).map(function (e) { return { name: e.node.name === 'Hack' ? 'PHP' : e.node.name, size: e.size, color: e.node.name === 'Hack' ? '#4F5D95' : (e.node.color || langColor(e.node.name)) }; });
+    var merged = {}; langs.forEach(function (l) { if (merged[l.name]) merged[l.name].size += l.size; else merged[l.name] = l; });
+    var tgt = n.defaultBranchRef && n.defaultBranchRef.target, hist = tgt && tgt.history && tgt.history.nodes;
+    return {
+      cl: (n.cl && n.cl.text) || '', hub: hub,
+      langs: Object.keys(merged).map(function (k) { return merged[k]; }).sort(function (a, b) { return b.size - a.size; }),
+      langTotal: (n.languages && n.languages.totalSize) || 0,
+      last: hist && hist[0] ? { date: hist[0].committedDate, msg: hist[0].messageHeadline } : null,
+      recent: (tgt && tgt.recent && tgt.recent.totalCount) || 0   /* changes in the last 30 days */
+    };
+  }
   HX.loadExtras = function () {
+    var gen = ++extraGen;
     if (!ghToken) { HX.extraReady = true; return Promise.resolve(); }
-    var out = {};
-    function page(after, n) {
+    HX.extraReady = false;                       /* the City waits for every project's details */
+    var names = ALL_REPOS.filter(function (r) { return !r._personal && r.owner && String(r.owner.login).toLowerCase() === ORG.toLowerCase(); })
+      .map(function (r) { return r.name; });
+    var batches = [], i;
+    for (i = 0; i < names.length; i += BATCH) batches.push(names.slice(i, i + BATCH));
+    var since = new Date(Date.now() - 30 * 864e5).toISOString(), out = {}, failed = 0, next = 0;
+    function query(batch) {
+      var decl = ['$o:String!', '$since:GitTimestamp!'], body = [], vars = { o: ORG, since: since };
+      batch.forEach(function (name, k) { decl.push('$n' + k + ':String!'); vars['n' + k] = name; body.push('r' + k + ':repository(owner:$o,name:$n' + k + '){...D}'); });
       return ghFetch('https://api.github.com/graphql', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: Q, variables: { org: ORG, after: after || null, since: new Date(Date.now() - 30 * 864e5).toISOString() } }) })
+        body: JSON.stringify({ query: 'query(' + decl.join(',') + '){' + body.join(' ') + '}' + FRAG, variables: vars }) })
         .then(function (r) { if (!r.ok) throw new Error('graphql ' + r.status); return r.json(); })
-        .then(function (j) {
-          var repos = j && j.data && j.data.organization && j.data.organization.repositories;
-          if (!repos) throw new Error('graphql: no data');
-          repos.nodes.forEach(function (n) {
-            var hub = null;
-            if (n.hub && n.hub.text) { try { hub = JSON.parse(n.hub.text); } catch (e) { hub = null; } }
-            var langs = ((n.languages && n.languages.edges) || []).map(function (e) { return { name: e.node.name === 'Hack' ? 'PHP' : e.node.name, size: e.size, color: e.node.name === 'Hack' ? '#4F5D95' : (e.node.color || langColor(e.node.name)) }; });
-            var merged = {}; langs.forEach(function (l) { if (merged[l.name]) merged[l.name].size += l.size; else merged[l.name] = l; });
-            var hist = n.defaultBranchRef && n.defaultBranchRef.target && n.defaultBranchRef.target.history && n.defaultBranchRef.target.history.nodes;
-            out[n.name.toLowerCase()] = {
-              cl: (n.cl && n.cl.text) || '', hub: hub,
-              langs: Object.keys(merged).map(function (k) { return merged[k]; }).sort(function (a, b) { return b.size - a.size; }),
-              langTotal: (n.languages && n.languages.totalSize) || 0,
-              last: hist && hist[0] ? { date: hist[0].committedDate, msg: hist[0].messageHeadline } : null,
-              recent: (n.defaultBranchRef && n.defaultBranchRef.target && n.defaultBranchRef.target.recent && n.defaultBranchRef.target.recent.totalCount) || 0   /* changes in the last 30 days */
-            };
-          });
-          if (repos.pageInfo.hasNextPage && n < 10) return page(repos.pageInfo.endCursor, n + 1);
-        });
+        .then(function (j) { if (!j || !j.data) throw new Error('graphql: no data'); return j.data; });   /* a repo it cannot read is null; the rest still count */
     }
-    return page(null, 0).then(function () { HX.extra = out; HX.extraReady = true; HX._cache = {}; })
-      .catch(function (e) { console.warn('hub details', e); HX.extraReady = true; });
+    var ends = batches.map(function (b) { return HubLoad.start('details', b.length); });   /* the whole set up front */
+    function run(k) {
+      var batch = batches[k];
+      return query(batch).catch(function () { return wait(1500).then(function () { return query(batch); }); })
+        .then(function (data) {
+          Object.keys(data).forEach(function (a) { var n = data[a]; if (n && n.name) out[n.name.toLowerCase()] = parseNode(n); });
+        }, function (e) { failed++; console.warn('hub details', e); })
+        .then(ends[k]);
+    }
+    function worker() { if (next >= batches.length) return Promise.resolve(); return run(next++).then(worker); }
+    var pool = [];
+    for (i = 0; i < Math.min(AT_ONCE, batches.length); i++) pool.push(worker());
+    return Promise.all(pool).then(function () {
+      if (gen !== extraGen) return;              /* a newer load (sign in or out) has started */
+      HX.extra = out; HX.extraReady = true; HX._cache = {};
+      if (failed) HubLoad.fail('Some details missing');
+    });
   };
 
   /* ---- Reading a CLREADME ---- */
@@ -392,13 +417,14 @@
 
   /* ---- Images inside private repos: fetched with the viewer's token, shown as blob URLs ---- */
   var imgCache = {};
-  HX.image = function (repo, path) {
+  /* kind: what the status beside the title calls it while it loads (HubLoad); the City passes 'files'. */
+  HX.image = function (repo, path, kind) {
     if (!safePath(path)) return Promise.reject(new Error('not a path in the repo'));
     var k = repo.full_name + '/' + path;
     if (imgCache[k]) return imgCache[k];
     var p = String(path).replace(/^\/+/, '').split('/').map(encodeURIComponent).join('/');
-    imgCache[k] = ghFetch('https://api.github.com/repos/' + repo.full_name + '/contents/' + p, { headers: { 'Accept': 'application/vnd.github.raw' } })
-      .then(function (r) { if (!r.ok) throw new Error('img ' + r.status); return r.blob(); })
+    imgCache[k] = HubLoad.track(kind || 'pics', ghFetch('https://api.github.com/repos/' + repo.full_name + '/contents/' + p, { headers: { 'Accept': 'application/vnd.github.raw' } })
+      .then(function (r) { if (!r.ok) throw new Error('img ' + r.status); return r.blob(); }))
       .then(function (b) { if (!/^image\//.test(b.type) && !/\.(png|jpe?g|webp|gif)$/i.test(path)) throw new Error('not an image'); return URL.createObjectURL(b); });
     return imgCache[k];
   };

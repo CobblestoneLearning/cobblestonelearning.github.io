@@ -503,6 +503,35 @@
   .demo-stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;background:#0f1721}
   .demo-frame{flex:1;width:100%;height:100%;border:0;background:#fff}
   .demo-msg{color:#cfe0f0;text-align:center;max-width:360px;padding:24px;font:600 14px/1.55 'Montserrat',Helvetica,Arial,sans-serif}
+
+  /* What is still loading, beside "Repository Hub" (HubLoad). Rounded, so a full border. */
+  /* It gives way before the title has to wrap (flex-shrink), and its label then hides (.tight, set by HubLoad's fit). */
+  .hub-load{display:inline-flex;align-items:center;gap:7px;height:26px;padding:0 11px;border:1px solid #E8ECF0;border-radius:999px;background:#F8F9FB;color:#6B6B6B;font:600 11.5px/1 'Montserrat',Helvetica,Arial,sans-serif;white-space:nowrap;min-width:0;max-width:100%;flex-shrink:1000}
+  .hub-load[hidden],.hub-load-retry[hidden]{display:none}
+  .hub-load-txt{overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .hub-load-n{color:#0074B4;font-weight:700;font-variant-numeric:tabular-nums;flex:none}
+  .hub-load.tight{padding:0 8px;min-width:max-content}
+  .hub-load.tight .hub-load-txt{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%)}
+  .hub-load-n:empty{display:none}
+  .hub-load-spin{width:11px;height:11px;flex:none;border-radius:50%;border:2px solid rgba(39,170,225,.28);border-top-color:#27AAE1;animation:hubspin .8s linear infinite}
+  .hub-load-i{display:none;width:13px;height:13px;flex:none}
+  .hub-load.done{border-color:#BFE3CC;background:#F1FAF4;color:#22784A}
+  .hub-load.warn{border-color:#FFC20E;background:#FFF8E1;color:#5E4500}
+  .hub-load.done .hub-load-spin,.hub-load.warn .hub-load-spin{display:none}
+  .hub-load.done .hub-load-ok,.hub-load.warn .hub-load-bad{display:block}
+  .hub-load-retry{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 11px;border:1px solid #0074B4;border-radius:999px;background:#fff;color:#0074B4;font:700 11.5px/1 'Montserrat',Helvetica,Arial,sans-serif;cursor:pointer;white-space:nowrap;flex:none}
+  .hub-load-retry svg{width:12px;height:12px;flex:none}
+  .hub-load.tight + .hub-load-retry{padding:0 8px}
+  .hub-load.tight + .hub-load-retry .hub-load-retry-t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%)}
+  .hub-load-retry:hover{background:#0074B4;color:#fff}
+  .hub-load-retry:focus-visible{outline:2px solid #0074B4;outline-offset:2px}
+  @keyframes hubspin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion: reduce){.hub-load-spin{animation-duration:2.4s}}
+  @media (max-width:639px){
+    .hub-load{padding:0 7px}
+    .hub-load-txt{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%)}
+    .hub-load-n{display:none}
+  }
 </style>
 </head>
 
@@ -520,6 +549,15 @@
         <span class="hidden sm:inline-flex items-center gap-2 text-xs font-700 tracking-wide uppercase text-greytext">
           <span class="w-1.5 h-1.5 rounded-full bg-cyan" aria-hidden="true"></span>Repository Hub
         </span>
+        <!-- What is still loading (HubLoad). The percentage and counts are hidden from screen readers, so only the stage is announced. -->
+        <span id="hub-load" class="hub-load" role="status" aria-live="polite" hidden>
+          <span class="hub-load-spin" aria-hidden="true"></span>
+          <svg class="hub-load-i hub-load-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg class="hub-load-i hub-load-bad" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 21h20z"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="12" y1="17.5" x2="12.01" y2="17.5"/></svg>
+          <span class="hub-load-txt"></span>
+          <span class="hub-load-n" aria-hidden="true"></span>
+        </span>
+        <button id="hub-load-retry" type="button" class="hub-load-retry" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span class="hub-load-retry-t">Try again</span></button>
       </div>
       <div class="flex items-center gap-2 sm:gap-3 shrink-0">
         <a href="https://cobblestonelearning.github.io/" target="_blank" rel="noopener" class="hidden md:inline-flex items-center gap-1.5 text-sm font-600 text-greytext hover:text-cblue px-3 py-2 rounded-lg transition-colors">
@@ -544,7 +582,7 @@
           <a id="manage-link" href="https://cobblestone-manage.cobblestonelearning.workers.dev/" class="hidden btn btn-ghost text-sm font-700 px-3.5 py-2 rounded-full items-center gap-1.5" title="People, access and activity (managers only)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Manage
           </a>
-          <span id="auth-private-pill" class="hidden sm:inline-flex badge badge-private items-center" title="Private organisation repositories are now included">
+          <span id="auth-private-pill" class="hidden 2xl:inline-flex badge badge-private items-center" title="Private organisation repositories are now included">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             Private repos included
           </span>
@@ -724,6 +762,93 @@ function ghFetch(url, opts) {
   if (ghToken) h['Authorization'] = 'Bearer ' + ghToken;
   return fetch(url, Object.assign({}, opts, { headers: h }));
 }
+
+/* ============================================================
+   What is still loading: the status beside "Repository Hub" (#hub-load).
+   Bryan, 2026-11-25: after sign-in the projects showed, but pictures and details
+   arrived much later with no sign that anything was still coming. Every fetch that
+   fills the page goes through HubLoad.track(kind, promise[, weight]); the status
+   shows the first unfinished stage in ORDER, then "Ready", or what failed with
+   Try again. loadRepos() starts a new count (reset), and a fetch from an earlier
+   load no longer counts when it ends.
+   ============================================================ */
+var HubLoad = (function () {
+  var ORDER = ['auth', 'repos', 'details', 'pics', 'files'];
+  /* Short: the header has little room to spare (it is full at 1440 px with the Manage link). */
+  var LABEL = { auth: 'Checking sign-in', repos: 'Loading projects', details: 'Loading details',
+                pics: 'Loading pictures', files: 'Loading city files' };
+  var st = {}, gen = 0, failMsg = '', shown = false, last = '', showT = null, idleT = null, hideT = null;
+  ORDER.forEach(function (k) { st[k] = { n: 0, done: 0 }; });
+  function active() { for (var i = 0; i < ORDER.length; i++) { var s = st[ORDER[i]]; if (s.done < s.n) return ORDER[i]; } return ''; }
+  /* Details as a percentage: a count of repos would not match the project count in the header.
+     The City asks for its files a few at a time, so its total keeps growing: no count there. */
+  function amount(k) { var s = st[k]; return k === 'details' && s.n ? Math.floor(s.done / s.n * 100) + '%' : k === 'pics' && s.n > 1 ? s.done + ' of ' + s.n : ''; }
+  function parts() { var box = document.getElementById('hub-load'); return box && { box: box, txt: box.querySelector('.hub-load-txt'), num: box.querySelector('.hub-load-n'), retry: document.getElementById('hub-load-retry') }; }
+  /* Where the label does not fit, show only the icon and the number; the full text stays in the
+     tooltip and for screen readers. */
+  function fit() {
+    var P = parts(); if (!P || P.box.hidden) return;
+    P.box.title = (P.txt.textContent + ' ' + P.num.textContent).trim();
+    P.box.classList.remove('tight');
+    if (P.txt.scrollWidth > P.txt.clientWidth + 1) P.box.classList.add('tight');
+  }
+  window.addEventListener('resize', function () { fit(); }, { passive: true });
+  function paint() {
+    var P = parts(); if (!P) return;
+    var k = active();
+    if (k) {
+      clearTimeout(idleT); idleT = null; clearTimeout(hideT);
+      last = k;
+      P.box.classList.remove('done', 'warn');
+      if (P.txt.textContent !== LABEL[k]) P.txt.textContent = LABEL[k];
+      P.num.textContent = amount(k);
+      if (P.retry) P.retry.hidden = true;
+      fit();
+      /* Only for loads that take a moment, so a quick one does not flicker. */
+      if (!shown && !showT) showT = setTimeout(function () { showT = null; if (active()) { shown = true; P.box.hidden = false; fit(); } }, 300);
+      return;
+    }
+    /* Nothing is loading. One stage often starts just after another ends, so wait a moment
+       before saying Ready; meanwhile the last stage shows as complete. */
+    clearTimeout(showT); showT = null;
+    if (last) { P.num.textContent = amount(last); fit(); }
+    if (!idleT) idleT = setTimeout(settle, 500);
+  }
+  function settle() {
+    idleT = null;
+    var P = parts(); if (!P || active()) return;
+    clearTimeout(hideT); hideT = null;   /* an earlier Ready must not hide what comes now */
+    ORDER.forEach(function (x) { st[x].n = st[x].done = 0; });   /* the next burst (pictures further down) counts from 0 */
+    last = ''; P.num.textContent = '';
+    if (failMsg) {
+      P.box.classList.remove('done'); P.box.classList.add('warn'); P.txt.textContent = failMsg; P.box.hidden = false; shown = true;
+      if (P.retry) P.retry.hidden = false;
+      fit();
+      return;
+    }
+    if (P.retry) P.retry.hidden = true;
+    if (!shown) return;
+    P.box.classList.remove('warn'); P.box.classList.add('done'); P.txt.textContent = 'Ready'; fit();
+    clearTimeout(hideT);
+    hideT = setTimeout(function () { hideT = null; if (active() || failMsg) return; P.box.hidden = true; shown = false; }, 2500);
+  }
+  /* start(kind, weight) counts something as loading now and returns the function that ends it.
+     Count a whole set up front, so a percentage never goes back. */
+  function start(kind, weight) {
+    var g = gen, w = weight || 1, ended = false;
+    st[kind].n += w; paint();
+    return function () { if (ended || g !== gen) return; ended = true; st[kind].done += w; paint(); };
+  }
+  return {
+    reset: function () { gen++; failMsg = ''; ORDER.forEach(function (k) { st[k].n = st[k].done = 0; }); paint(); },
+    start: start,
+    track: function (kind, p, weight) {
+      var end = start(kind, weight);
+      return Promise.resolve(p).then(function (v) { end(); return v; }, function (e) { end(); throw e; });
+    },
+    fail: function (msg) { failMsg = msg; paint(); }
+  };
+})();
 
 /* CobblestoneLearning has been an ORGANISATION since 2026-11-16. The sign-in OAuth app is
    owned by the organisation, so the org's third-party restriction does not apply to it.
@@ -1071,6 +1196,10 @@ document.addEventListener('DOMContentLoaded', function () {
   HX.init();          /* the explorer: assets/hub-views.js */
   wireAuth();
 
+  /* "Try again" beside the loading status: load the list and every project's details again. */
+  var retry = document.getElementById('hub-load-retry');
+  if (retry) retry.addEventListener('click', function () { loadRepos(); });
+
   /* ---- Repos: restore a persisted GitHub session if present, else public-first ---- */
   restoreSessionThenLoad();
 });
@@ -1112,6 +1241,7 @@ function loadRepos() {
   var repoStatus = document.getElementById('repo-status');
 
   repoCards.setAttribute('aria-busy', 'true');
+  HubLoad.reset();    /* a new count for the status beside the title */
   ALL_REPOS = [];
   HX.render();        /* shows the loading skeleton while ALL_REPOS is empty */
   if (repoStatus) repoStatus.textContent = 'Loading projects…';
@@ -1131,11 +1261,16 @@ function loadRepos() {
   var personalReq = signedIn
     ? ghFetchAll(personalReposUrl()).catch(function () { return []; })
     : Promise.resolve([]);
+  /* GitHub keeps 3 pages of events. Asked for together, not one after another (3.4 s down to 1.4 s,
+     2026-11-25), so they no longer hold up the list, which takes about 2 s. */
   var eventsReq = (signedIn && me)
-    ? ghFetchAll('https://api.github.com/users/' + encodeURIComponent(me) + '/events?per_page=100', 3).catch(function () { return []; })
+    ? Promise.all([1, 2, 3].map(function (pg) {
+        return ghFetch('https://api.github.com/users/' + encodeURIComponent(me) + '/events?per_page=100&page=' + pg)
+          .then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; });
+      })).then(function (pages) { return pages.reduce(function (all, pg) { return all.concat(Array.isArray(pg) ? pg : []); }, []); })
     : Promise.resolve([]);
 
-  Promise.all([orgReq, personalReq, eventsReq])
+  HubLoad.track('repos', Promise.all([orgReq, personalReq, eventsReq]))
     .then(function (parts) {
       hideFullscreenLoader();
       /* Org repos the viewer has pushed to or created in the last ~90 days. */
@@ -1165,6 +1300,7 @@ function loadRepos() {
       });
       if (data.length === 0) {
         ALL_REPOS = [];
+        HubLoad.fail('No projects found');
         computeStats([]);
         emptyState(repoCards, repoStatus, 'No repositories found',
           'No repositories were returned. If this is unexpected, the unauthenticated GitHub API may be temporarily rate-limited.', false);
@@ -1176,6 +1312,7 @@ function loadRepos() {
     .catch(function (error) {
       console.error('Error fetching GitHub repos:', error);
       hideFullscreenLoader();
+      HubLoad.fail('Projects did not load');
       computeStats([]);
       var rl = error && error.status === 403;
       emptyState(repoCards, repoStatus,
@@ -2618,8 +2755,8 @@ function restoreSessionThenLoad() {
   try { stored = sessionStorage.getItem('cb_gh_token'); } catch (e) {}
   if (!stored) { loadRepos(); return; }
   ghToken = stored;
-  ghFetch('https://api.github.com/user')
-    .then(function (r) { if (!r.ok) { var e = new Error('user ' + r.status); e.status = r.status; throw e; } return r.json(); })
+  HubLoad.track('auth', ghFetch('https://api.github.com/user')
+    .then(function (r) { if (!r.ok) { var e = new Error('user ' + r.status); e.status = r.status; throw e; } return r.json(); }))
     .then(function (user) {
       CBUSER = { login: user.login, name: user.name || user.login, avatar: user.avatar_url || '' };
       setSignedInUI(user.login, user.avatar_url);
@@ -2651,7 +2788,7 @@ function restoreSessionThenLoad() {
   if ('ResizeObserver' in window) { new ResizeObserver(syncHeaderHeight).observe(header); }
 })();
 </script>
-<script src="assets/hub-data.js?v=5"></script>
-<script src="assets/hub-views.js?v=10"></script>
+<script src="assets/hub-data.js?v=6"></script>
+<script src="assets/hub-views.js?v=11"></script>
 </body>
 </html>
