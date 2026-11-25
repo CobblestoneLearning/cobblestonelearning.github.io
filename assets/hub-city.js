@@ -636,8 +636,10 @@ export class City {
     this.jobs.push(() => fn().catch((e) => { if (gen === this.gen) console.warn('City: a prop could not load', e); }));
     this._pump();
   }
+  /* Eight props at a time: each is a download of about a second and a few milliseconds of drawing.
+     Three at a time took about 18 s for the 42 billboards and the stones (2026-11-25). */
   _pump() {
-    while (this.active < 3 && this.jobs.length) {
+    while (this.active < 8 && this.jobs.length) {
       const run = this.jobs.shift();
       this.active++;
       Promise.resolve().then(run).finally(() => { this.active--; this._pump(); });
