@@ -248,9 +248,12 @@
   /* ---- Reading a CLREADME ---- */
   function parseCL(md) {
     var res = { title: '', intro: '', features: [], sites: [] };
-    if (!md) return res;
-    var m = md.match(/^#\s+(.+?)\s*$/m);
-    if (m) res.title = m[1].replace(/\s*[:\u2014\u2013-]\s*Staff Notes\s*$/i, '').trim();
+    if (!md || typeof md !== 'string') return res;
+    md = md.slice(0, 200000);   /* a CLREADME is a few KB; a huge one must not slow the hub for everyone */
+    /* The first "# " line, found line by line: a regex here took seconds on one long line of spaces (2026-11-25 review). */
+    var lines = md.split('\n'), h1 = '';
+    for (var li = 0; li < lines.length; li++) if (/^#\s/.test(lines[li])) { h1 = lines[li].slice(1, 400).trim(); break; }
+    if (h1) res.title = h1.replace(/\s*[:\u2014\u2013-]\s*Staff Notes$/i, '').trim();
     var body = md.split(/^##\s/m)[0].split('\n').slice(1).join('\n');
     var paras = body.split(/\n\s*\n/).map(function (p) { return p.replace(/\s+/g, ' ').trim(); })
       .filter(function (p) { return p && !/^Cobblestone Learning\s*·/.test(p) && !/^#/.test(p); });
@@ -318,14 +321,59 @@
     return p;
   }
   HX.safePath = safePath;
+  /* ---- A card from a repo, made safe ----
+     Anyone who can write to a repo writes its card, and the hub shows every card to everyone. So a card is checked
+     before use: each field must have the right type and a sane size, and names (purpose, kind, helps, status) must be
+     real ones. Lookups use own properties only, so "constructor" or "__proto__" is just an unknown name. A field that
+     fails is dropped, and the hub falls back as if it were missing (2026-11-25 review: a bad card could stop the hub). */
+  var own = function (map, k) { return typeof k === 'string' && Object.prototype.hasOwnProperty.call(map, k); };
+  HX.own = own;
+  var STATUSES = { live: 1, 'in-progress': 1, experimental: 1, retired: 1 };
+  function str(v, max) { return typeof v === 'string' ? v.slice(0, max || 2000) : undefined; }
+  function strs(v, max, n) { return Array.isArray(v) ? v.filter(function (x) { return typeof x === 'string'; }).slice(0, n || 50).map(function (x) { return x.slice(0, max || 600); }) : undefined; }
+  function objs(v, n) { return Array.isArray(v) ? v.filter(function (x) { return x && typeof x === 'object' && !Array.isArray(x); }).slice(0, n || 50) : undefined; }
+  function cleanCard(c) {
+    if (!c || typeof c !== 'object' || Array.isArray(c)) return null;
+    var o = {};
+    ['name', 'tagline', 'summary', 'owner', 'live_url', 'same_as', 'demo', 'cover', 'icon', 'no_demo', 'updated'].forEach(function (k) { var v = str(c[k]); if (v !== undefined) o[k] = v; });
+    if (own(HX.PURPOSE, c.purpose)) o.purpose = c.purpose;
+    if (own(HX.KINDS, c.kind)) o.kind = c.kind;
+    if (own(STATUSES, c.status)) o.status = c.status;
+    var helps = strs(c.helps, 40, 10); if (helps) o.helps = helps.filter(function (h) { return own(HX.HELPS, h); });
+    var works = strs(c.works_with, 60, 30); if (works) o.works_with = works.filter(function (w) { return w !== '__proto__'; });
+    var feats = strs(c.features, 600, 20); if (feats) o.features = feats;
+    if (Array.isArray(c.runs_on)) o.runs_on = c.runs_on.slice(0, 40).map(function (r) {
+      if (typeof r === 'string') return { site: r.slice(0, 80) };
+      return r && typeof r === 'object' && typeof r.site === 'string' ? { site: r.site.slice(0, 80), name: str(r.name, 120) } : null;
+    }).filter(function (r) { return r && /^[A-Za-z0-9._-]+$/.test(r.site) && r.site !== '__proto__'; });
+    var gal = objs(c.gallery, 30); if (gal) o.gallery = gal.map(function (g) { return { src: str(g.src, 300), caption: str(g.caption, 600), alt: str(g.alt, 600) }; }).filter(function (g) { return g.src; });
+    var gd = objs(c.guides, 20);
+    if (gd) o.guides = gd.map(function (g) {
+      return { title: str(g.title, 200), for: str(g.for, 40), slug: str(g.slug, 80), steps: (objs(g.steps, 60) || []).map(function (st) {
+        return { text: str(st.text, 1000) || '', image: str(st.image, 300), alt: str(st.alt, 600),
+          marks: (objs(st.marks, 40) || []).map(function (m) { return { n: str(m.n, 10), kind: str(m.kind, 20), label: str(m.label, 200), x: +m.x || 0, y: +m.y || 0, w: +m.w || 0, h: +m.h || 0 }; }) };
+      }) };
+    }).filter(function (g) { return g.steps.length; });
+    return o;
+  }
+  HX.cleanCard = cleanCard;
+
   HX.info = function (repo) {
     if (!repo) return null;
-    var key = repo.name.toLowerCase();
+    var key = String(repo.name || '').toLowerCase();
     if (HX._cache[key]) return HX._cache[key];
-    var ex = HX.extra[key] || {};
+    /* A safety net: if anything about this project still fails, show it from its GitHub details alone. */
+    try { return buildInfo(repo, key, true); }
+    catch (e) {
+      console.warn('hub: the card or notes of ' + repo.name + ' could not be read; showing GitHub details only', e && e.message);
+      try { return buildInfo(repo, key, false); } catch (e2) { return null; }
+    }
+  };
+  function buildInfo(repo, key, useCard) {
+    var ex = (useCard && own(HX.extra, key) && HX.extra[key]) || {};
     var ov = (window.HUB_OVERRIDES && window.HUB_OVERRIDES.repos && window.HUB_OVERRIDES.repos[repo.name]) || null;   /* local preview only */
     /* A card that is not valid JSON, or still has {{placeholders}}, is ignored (the standard says so). */
-    var hub = (ex.hub && typeof ex.hub === 'object' && JSON.stringify(ex.hub).indexOf('{{') < 0) ? ex.hub : null;
+    var hub = (ex.hub && typeof ex.hub === 'object' && JSON.stringify(ex.hub).indexOf('{{') < 0) ? cleanCard(ex.hub) : null;
     if (ov && ov.friendly_name) ov = Object.assign({}, ov, { name: ov.friendly_name });
     var src = hub || ov || {};
     var cl = parseCL(ex.cl);
@@ -333,10 +381,10 @@
     var topics = (repo.topics || []).map(function (t) { return String(t).toLowerCase(); });
     var cat = ''; topics.forEach(function (t) { if (/^cat-/.test(t)) cat = t; });
     var text = (repo.description || '') + ' ' + (cl.intro || '');
-    var topicPurpose = ''; topics.forEach(function (t) { var m = t.match(/^purpose-([a-z]+)$/); if (m && HX.PURPOSE[m[1]]) topicPurpose = m[1]; });
+    var topicPurpose = ''; topics.forEach(function (t) { var m = t.match(/^purpose-([a-z]+)$/); if (m && own(HX.PURPOSE, m[1])) topicPurpose = m[1]; });
 
-    var purpose = (HX.PURPOSE[src.purpose] && src.purpose) || topicPurpose || guessPurpose(repo, cat, text, topics);
-    var kind = (HX.KINDS[src.kind] && src.kind) || guessKind(repo, cat, text);
+    var purpose = (own(HX.PURPOSE, src.purpose) && src.purpose) || topicPurpose || guessPurpose(repo, cat, text, topics);
+    var kind = (own(HX.KINDS, src.kind) && src.kind) || guessKind(repo, cat, text);
 
     var withSet = {}, works = [];
     function addW(n) { if (n && !withSet[n]) { withSet[n] = 1; works.push(n); } }
@@ -352,13 +400,13 @@
     var name = stripMd(src.name || cl.title || repo.name);
     var tagline = stripMd(src.tagline || firstSentence(cl.intro) || cur.summary || repo.description || '');
     var summary = stripMd(src.summary || cl.intro || cur.summary || repo.description || '');
-    var status = src.status || (repo.archived ? 'retired' : 'live');
+    var status = own(STATUSES, src.status) ? src.status : (repo.archived ? 'retired' : 'live');
     var demo = safePath(src.demo) || cur.demo || null;
 
     var info = {
       repo: repo, key: key, name: name, tagline: tagline, summary: summary,
       purpose: purpose, stage: HX.PURPOSE[purpose].stage, kind: kind,
-      helps: Array.isArray(src.helps) ? src.helps.filter(function (h) { return HX.HELPS[h]; }) : [],
+      helps: Array.isArray(src.helps) ? src.helps.filter(function (h) { return own(HX.HELPS, h); }) : [],
       works: works, runs: runs, status: status,
       features: (Array.isArray(src.features) && src.features.length ? src.features : cl.features).map(String),   /* keeps **labels**, rendered by HX.md */
       demo: demo, live_url: (typeof src.live_url === 'string' && /^https:\/\//.test(src.live_url)) ? src.live_url : '',
@@ -374,7 +422,7 @@
       works.join(' '), runs.map(function (s) { return s.name + ' ' + s.site; }).join(' '), topics.join(' '), (info.features || []).join(' ')].join(' ').toLowerCase();
     HX._cache[key] = info;
     return info;
-  };
+  }
   /* Text from a card: shown exactly as typed, except **Label** marks a real interface label. */
   HX.md = function (t) { return escapeHtml(String(t == null ? '' : t)).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>'); };
   HX.demoFor = function (repo) { var i = HX.info(repo); return i && i.demo; };
@@ -386,7 +434,7 @@
     for (var i = 0; i < ALL_REPOS.length; i++) if (ALL_REPOS[i].name.toLowerCase() === info.same_as) return true;
     return false;
   };
-  HX.list = function () { return scopedRepos().filter(function (r) { return !r.fork && !r.archived || HX.showExtra; }).map(HX.info).filter(function (i) { return !HX.isCopy(i); }); };
+  HX.list = function () { return scopedRepos().filter(function (r) { return !r.fork && !r.archived || HX.showExtra; }).map(HX.info).filter(function (i) { return i && !HX.isCopy(i); }); };
   HX.showExtra = false;
   HX.byName = function (name) {
     var n = String(name || '').toLowerCase();
@@ -405,7 +453,7 @@
 
   /* All sites, platforms and counts across the visible projects. */
   HX.index = function (list) {
-    var sites = {}, plats = {}, purposes = {}, kinds = {};
+    var sites = Object.create(null), plats = Object.create(null), purposes = Object.create(null), kinds = Object.create(null);   /* keys come from cards */
     list.forEach(function (i) {
       purposes[i.purpose] = (purposes[i.purpose] || 0) + 1;
       kinds[i.kind] = (kinds[i.kind] || 0) + 1;

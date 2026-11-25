@@ -710,6 +710,7 @@ export class City {
     this._job(() => this.h.fetchBlob(owner.repo, src.sha || null, src.path).then((buf) => {
       if (!buf || gen !== this.gen) return;
       const text = typeof buf === 'string' ? buf : new TextDecoder().decode(buf);
+      if (text.length > 200000) return;   /* a statue is a small icon; a huge SVG from a repo must not stall the City (2026-11-25) */
       const geo = P.svgGeometry(text);
       if (!geo) return;
       const st = new THREE.Mesh(geo, this.bronzeMat);

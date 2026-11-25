@@ -282,7 +282,7 @@
   /* Everything the City draws: the listed projects plus retired (archived) ones, which stand as ruins. */
   function cityItems(list) {
     var seen = {}; list.forEach(function (i) { seen[i.repo.name] = 1; });
-    var retired = scopedRepos().filter(function (r) { return r.archived && !r.fork && !seen[r.name]; }).map(HX.info).filter(function (i) { return !HX.isCopy(i); });
+    var retired = scopedRepos().filter(function (r) { return r.archived && !r.fork && !seen[r.name]; }).map(HX.info).filter(function (i) { return i && !HX.isCopy(i); });
     return list.concat(retired).map(function (i) {
       var gone = !!i.repo.archived || i.status === 'retired';
       return { key: i.repo.name, name: i.name, tagline: i.tagline, purpose: i.purpose, kind: i.kind, kindLabel: HX.KINDS[i.kind].label,
@@ -512,7 +512,7 @@
     var name = slot.getAttribute('data-hx-slide-city');
     if (cityFail) { var sl = slot.closest('.hx-slide'); if (sl) sl.classList.add('hx-slide-nogl'); return; }
     if (!HX.extraReady) return;                 /* the page draws again once every project's details are in */
-    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=5', document.baseURI).href);
+    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=6', document.baseURI).href);
     HX._cityP.then(function (mod) {
       cityMod = mod;
       if (!slot.isConnected || !slot.closest('.hx-slide.on')) return;
@@ -536,7 +536,7 @@
   function afterCity(list, route) {
     if (cityFail) { cityNoGL(); return; }
     if (!HX.extraReady) { cityBoot('Building the city', 'Reading the details of ' + plural(list.length, 'project', 'projects'), true); return; }
-    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=5', document.baseURI).href);
+    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=6', document.baseURI).href);
     HX._cityP.then(function (mod) {
       cityMod = mod;
       var slot = document.getElementById('hx-city-slot'); if (!slot) return;     /* left the view meanwhile */
@@ -1344,7 +1344,14 @@
     var list = HX.list();
     var fn = R[route.view] || R.discover;
     if (graphStop) { graphStop(); graphStop = null; }
-    mount.innerHTML = fn(list, route);
+    /* A safety net: one faulty card must not leave everyone a blank page (2026-11-25 review). */
+    var html;
+    try { html = fn(list, route); }
+    catch (e) {
+      console.error('hub: this view could not be drawn', e);
+      html = '<div class="hx-empty"><b>This page could not be shown</b>One project’s details may be faulty. Try another view, or reload the page.</div>';
+    }
+    mount.innerHTML = html;
     mount.setAttribute('aria-busy', 'false');
     mountDevCards(mount); loadImages(mount); observeReveals(mount);
     if (route.view === 'journey') drawRoad(list);
@@ -1409,7 +1416,7 @@
     if (typeof window.cinRender !== 'function') return;
     /* The same projects as the City and the lists (HX.list): no archived repos, no forks, one card per project. The rest are
        counted on the line under the number (Bryan, 2026-11-23: "119, plus a note"). Organisation repos only, whatever the scope. */
-    var all = ALL_REPOS.filter(function (r) { return !r._personal; }).map(HX.info).filter(function (i) { return !HX.isCopy(i); });
+    var all = ALL_REPOS.filter(function (r) { return !r._personal; }).map(HX.info).filter(function (i) { return i && !HX.isCopy(i); });
     var list = all.filter(function (i) { return !i.repo.fork && !i.repo.archived; }), extra = all.length - list.length;
     var now = Date.now(), latest = 0, a7 = 0, a30 = 0, DAYS = 91, daily = [], i;
     for (i = 0; i < DAYS; i++) daily.push(0);
