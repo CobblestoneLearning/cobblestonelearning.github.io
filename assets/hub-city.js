@@ -1461,9 +1461,8 @@ export class City {
   }
 
   /* ================= the demo hologram ================= */
-  /* Point at a demo building (or select it) and a preview rises out of its roof:
-     the project's own picture if it has one, otherwise the demo itself, small and
-     sealed off (a sandboxed frame with no access to this page or the sign-in). */
+  /* Point at a demo building (or select it) and a preview rises out of its roof: the project's
+     own picture if it has one. The demo itself never runs here (2026-11-25): only Try the demo. */
   _holoPick() {
     const hov = this.hover && this.hover.tower;
     const sel = this.selected;
@@ -1483,15 +1482,7 @@ export class City {
     if (cached) { show(cached); return; }
     this.h.demoPreview(key).then((pv) => {
       let node = null;
-      if (pv && pv.img) { node = document.createElement('img'); node.alt = ''; node.src = pv.img; }
-      else if (pv && pv.html) {
-        node = document.createElement('div'); node.className = 'hx-holo-frame';
-        const f = document.createElement('iframe');
-        f.setAttribute('sandbox', 'allow-scripts');
-        f.setAttribute('tabindex', '-1'); f.setAttribute('aria-hidden', 'true'); f.setAttribute('title', 'Demo preview');
-        f.srcdoc = pv.html;
-        node.appendChild(f);
-      }
+      if (pv && pv.img) { node = document.createElement('img'); node.alt = ''; node.src = pv.img; }   /* a picture only: hovering never runs a demo */
       if (!node) { node = document.createElement('div'); node.className = 'hx-holo-wait'; node.textContent = 'Select the building, then Try the demo'; }
       this.holo.cache.set(key, node);
       show(node);

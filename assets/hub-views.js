@@ -60,7 +60,8 @@
     if (!info || launchedFor === key) return;
     launchedFor = key;
     var name = info.repo.name;
-    if (demoForRepo(info.repo)) { openDemo(info.repo, { onClose: function () { dropLaunch(name); } }); return; }
+    /* confirmFirst: a link alone never runs a demo; the viewer sees whose page it is and clicks (2026-11-25). */
+    if (demoForRepo(info.repo)) { openDemo(info.repo, { confirmFirst: true, onClose: function () { dropLaunch(name); } }); return; }
     if (ghToken) { dropLaunch(name); showToast('This project has no demo.'); }   /* signed out, R.p asks the viewer to sign in: the card may name one */
   }
   function dropLaunch(name) {
@@ -309,23 +310,13 @@
     return (cityBlobs[id] = HubLoad.track('files', ghFetch(url, { headers: { 'Accept': sha ? 'application/vnd.github.raw+json' : 'application/vnd.github.raw' } })
       .then(function (r) { return r.ok ? r.arrayBuffer() : null; }).catch(function () { return null; })));
   }
-  /* What the hologram shows: the project's own picture, or else the demo page itself. */
+  /* What the hologram shows: the project's own picture, never the demo itself. Hovering must not run a
+     page that a member wrote (2026-11-25 review); the demo runs only from Try the demo, through openDemo. */
   function cityDemoPreview(key) {
     if (cityDemos[key]) return cityDemos[key];
     var info = HX.byName(key); if (!info) return Promise.resolve(null);
     var pic = info.cover || (info.gallery[0] && info.gallery[0].src) || '';
-    function page() {
-      if (!info.demo) return Promise.resolve(null);
-      var url = 'https://api.github.com/repos/' + repoFull(info.repo.name) + '/contents/' + info.demo.split('/').map(encodeURIComponent).join('/');
-      return ghFetch(url, { headers: { 'Accept': 'application/vnd.github.raw' } })
-        .then(function (r) { return r.ok ? r.text() : null; })
-        .then(function (t) {
-          if (!t) return null;
-          if (t.charAt(0) === '{') { try { var j = JSON.parse(t); t = j.content ? safeAtob(j.content) : ''; } catch (e) { t = ''; } }
-          return t ? { html: typeof demoStorageShim === 'function' ? demoStorageShim(t) : t } : null;
-        }).catch(function () { return null; });
-    }
-    return (cityDemos[key] = pic ? HX.image(info.repo, pic, 'files').then(function (u) { return { img: u }; }, page) : page());
+    return (cityDemos[key] = pic ? HX.image(info.repo, pic, 'files').then(function (u) { return { img: u }; }, function () { return null; }) : Promise.resolve(null));
   }
   /* Every project's file list, twelve at a time; each block fills in as its list lands. Six at a time took
      about 11 s for 65 projects (2026-11-25); GitHub allows 100 requests at once. */
@@ -521,7 +512,7 @@
     var name = slot.getAttribute('data-hx-slide-city');
     if (cityFail) { var sl = slot.closest('.hx-slide'); if (sl) sl.classList.add('hx-slide-nogl'); return; }
     if (!HX.extraReady) return;                 /* the page draws again once every project's details are in */
-    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=4', document.baseURI).href);
+    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=5', document.baseURI).href);
     HX._cityP.then(function (mod) {
       cityMod = mod;
       if (!slot.isConnected || !slot.closest('.hx-slide.on')) return;
@@ -545,7 +536,7 @@
   function afterCity(list, route) {
     if (cityFail) { cityNoGL(); return; }
     if (!HX.extraReady) { cityBoot('Building the city', 'Reading the details of ' + plural(list.length, 'project', 'projects'), true); return; }
-    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=4', document.baseURI).href);
+    if (!HX._cityP) HX._cityP = import(new URL('assets/hub-city.js?v=5', document.baseURI).href);
     HX._cityP.then(function (mod) {
       cityMod = mod;
       var slot = document.getElementById('hx-city-slot'); if (!slot) return;     /* left the view meanwhile */

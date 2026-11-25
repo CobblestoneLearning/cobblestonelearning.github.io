@@ -503,6 +503,21 @@
   .demo-stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;background:#0f1721}
   .demo-frame{flex:1;width:100%;height:100%;border:0;background:#fff}
   .demo-msg{color:#cfe0f0;text-align:center;max-width:360px;padding:24px;font:600 14px/1.55 'Montserrat',Helvetica,Arial,sans-serif}
+  /* Demos: a lasting warning in the bar, a check before a linked demo opens, a mark on a demo with limits (2026-11-25) */
+  .demo-bar{flex-wrap:wrap;row-gap:6px}
+  .demo-warn{font:600 12px/1.4 'Montserrat',Helvetica,Arial,sans-serif;color:#FFE08A}
+  .demo-badge-limited{color:#FFE08A;border-color:rgba(255,224,138,.5)}
+  .demo-confirm{max-width:480px;margin:16px;background:#fff;color:#3D3D3D;border:1px solid #E8ECF0;border-radius:16px;padding:24px;font:500 14px/1.55 'Montserrat',Helvetica,Arial,sans-serif}
+  .demo-confirm h2{font-size:18px;font-weight:800;margin:0 0 10px}
+  .demo-confirm p{margin:0 0 10px}
+  .demo-prov{color:#6B6B6B;font-size:13px}
+  .demo-never{font-weight:700;color:#8A6500;background:#FFF8E1;border:1px solid #FFE08A;border-radius:10px;padding:8px 12px}
+  .demo-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  .demo-go,.demo-back{border-radius:9999px;padding:9px 18px;font:700 14px 'Montserrat',Helvetica,Arial,sans-serif;cursor:pointer}
+  .demo-go{background:#0074B4;color:#fff;border:1.5px solid #0074B4}
+  .demo-back{background:#fff;color:#0074B4;border:1.5px solid #E8ECF0}
+  .demo-go:focus-visible,.demo-back:focus-visible{outline:2px solid #0074B4;outline-offset:2px}
+  @media (max-width:640px){.demo-warn{order:9;flex-basis:100%}}
 
   /* What is still loading, beside "Repository Hub" (HubLoad). Rounded, so a full border. */
   /* It gives way before the title has to wrap (flex-shrink), and its label then hides (.tight, set by HubLoad's fit). */
@@ -2033,13 +2048,53 @@ function demoStorageShim(html) {
   var m = /<head[^>]*>/i.exec(html);
   return m ? html.slice(0, m.index + m[0].length) + shim + html.slice(m.index + m[0].length) : shim + html;
 }
-/* opts.onClose runs when the viewer closes the demo (the hub's #/p/<repo>?launch=demo route uses it). */
+/* Who last changed a demo, and whether it may run with everything. A demo is a page that anyone who
+   can write to a repo can add, even to a repo they made themselves, and it runs over the hub on the
+   hub's own address. So only a demo whose last change is a VERIFIED (signed) commit by an organisation
+   owner runs with forms, dialogs, downloads and the network. Any other demo runs restricted: no forms,
+   no dialogs, no downloads, and a content policy that lets it send nothing anywhere (2026-11-25 review:
+   a member's demo could otherwise show a fake GitHub sign-in here). A signature cannot be borrowed, so a
+   member cannot pass a demo off as an owner's by putting an owner's email on the commit. */
+var _ownersP = null;
+function orgOwners() {
+  if (!_ownersP) _ownersP = ghFetchAll('https://api.github.com/orgs/' + ORG + '/members?role=admin&per_page=100')
+    .then(function (l) { return l.map(function (u) { return String(u.login).toLowerCase(); }); })
+    .catch(function () { _ownersP = null; return []; });
+  return _ownersP;
+}
+function demoProvenance(repo, path) {
+  var url = 'https://api.github.com/repos/' + repoFull(repo.name) + '/commits?per_page=1&path=' + encodeURIComponent(path);
+  return Promise.all([
+    ghFetch(url).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+    orgOwners()
+  ]).then(function (res) {
+    var c = Array.isArray(res[0]) ? res[0][0] : null, owners = res[1];
+    var login = c && c.author && c.author.login ? String(c.author.login) : '';
+    var verified = !!(c && c.commit && c.commit.verification && c.commit.verification.verified);
+    var mine = !!(repo._personal && CBUSER && login.toLowerCase() === String(CBUSER.login).toLowerCase());
+    return { login: login, date: (c && c.commit && c.commit.committer && c.commit.committer.date) || '', verified: verified,
+             owner: !!login && owners.indexOf(login.toLowerCase()) >= 0, trusted: verified && !!login && (owners.indexOf(login.toLowerCase()) >= 0 || mine) };
+  });
+}
+var DEMO_STRICT_CSP = "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' data: blob:; style-src 'unsafe-inline' data: blob:; " +
+  "img-src data: blob:; font-src data:; media-src data: blob:; connect-src 'none'; form-action 'none'; frame-src 'none'; worker-src data: blob:; base-uri 'none'";
+/* A policy put first in the page can only tighten what the page may do, so the demo cannot undo it. */
+function demoStrict(html) {
+  var meta = '<meta http-equiv="Content-Security-Policy" content="' + DEMO_STRICT_CSP + '">';
+  var m = /<head[^>]*>/i.exec(html);
+  return m ? html.slice(0, m.index + m[0].length) + meta + html.slice(m.index + m[0].length) : '<head>' + meta + '</head>' + html;
+}
+function demoWhen(d) { try { return d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : ''; } catch (e) { return ''; } }
+
+/* opts.onClose runs when the viewer closes the demo (the hub's #/p/<repo>?launch=demo route uses it).
+   opts.confirmFirst shows who made the demo and opens it only on a click: a link alone never runs a demo. */
 function openDemo(repo, opts){
   var path = demoForRepo(repo); if (!path || !repo) return;
   opts = opts || {};
   var ov = document.createElement('div'); ov.className = 'demo-overlay'; ov.id = 'demo-overlay';
   ov.innerHTML =
-    '<div class="demo-bar"><span class="demo-nm"></span><span class="demo-badge">Live demo</span><span class="demo-sp"></span>' +
+    '<div class="demo-bar"><span class="demo-nm"></span><span class="demo-badge">Demo</span>' +
+    '<span class="demo-warn">This is a demo, not the hub. Never type a password or a sign-in code here.</span><span class="demo-sp"></span>' +
     '<a class="demo-gh" target="_blank" rel="noopener">Open on GitHub</a>' +
     '<button type="button" class="demo-close" aria-label="Close demo">Close ✕</button></div>' +
     '<div class="demo-stage">' + capLoaderHTML({ size: 96, label: 'Loading demo…', dark: true }) + '</div>';
@@ -2050,39 +2105,70 @@ function openDemo(repo, opts){
   function onKey(e){ if (e.key === 'Escape') close(); }
   document.addEventListener('keydown', onKey);
   ov.querySelector('.demo-close').onclick = close;
-  var apiPath = path.split('/').map(encodeURIComponent).join('/');
-  var base = 'https://api.github.com/repos/' + repoFull(repo.name) + '/contents/' + apiPath;
-  /* One authenticated request with the raw media type + cache:no-store (defeats the
-     stale-JSON cache). If it still comes back as JSON, decode the base64 content
-     (≤1MB) or fall back to the pre-signed download_url (larger files). */
-  ghFetch(base, { headers: { 'Accept': 'application/vnd.github.raw' }, cache: 'no-store' })
-    .then(function (r){ if (!r.ok){ var e = new Error('demo ' + r.status); e.status = r.status; throw e; } return r.text(); })
-    .then(function (t){
-      if (t && t.charAt(0) !== '{') return t;                                  /* raw HTML */
-      var j = null; try { j = JSON.parse(t); } catch (e) {}
-      if (j && j.content) return safeAtob(j.content);                          /* ≤1MB base64 */
-      if (j && j.download_url) return fetch(j.download_url, { cache: 'no-store' }).then(function (rr){ if (!rr.ok){ var e2 = new Error('raw ' + rr.status); e2.status = rr.status; throw e2; } return rr.text(); });
-      throw new Error('empty');
-    })
-    .then(function (html){
+  var stage = function () { return ov.querySelector('.demo-stage'); };
+  var prov = demoProvenance(repo, path);
+  function provText(p) {
+    if (!p.login) return 'We could not tell who last changed this demo, so it runs with limits.';
+    var who = p.login + (p.date ? ', on ' + demoWhen(p.date) : '');
+    return p.trusted ? 'Last changed by ' + who + ', an owner, in a signed change.'
+      : 'Last changed by ' + who + '. ' + (p.owner ? 'The change is not signed' : 'That is not an owner') + ', so the demo runs with limits: it cannot send anything, show dialogs or download files.';
+  }
+
+  function load() {
+    var s = stage(); if (s) s.innerHTML = capLoaderHTML({ size: 96, label: 'Loading demo…', dark: true });
+    var apiPath = path.split('/').map(encodeURIComponent).join('/');
+    var base = 'https://api.github.com/repos/' + repoFull(repo.name) + '/contents/' + apiPath;
+    /* One authenticated request with the raw media type + cache:no-store (defeats the
+       stale-JSON cache). If it still comes back as JSON, decode the base64 content
+       (≤1MB) or fall back to the pre-signed download_url (larger files). */
+    var htmlP = ghFetch(base, { headers: { 'Accept': 'application/vnd.github.raw' }, cache: 'no-store' })
+      .then(function (r){ if (!r.ok){ var e = new Error('demo ' + r.status); e.status = r.status; throw e; } return r.text(); })
+      .then(function (t){
+        if (t && t.charAt(0) !== '{') return t;                                  /* raw HTML */
+        var j = null; try { j = JSON.parse(t); } catch (e) {}
+        if (j && j.content) return safeAtob(j.content);                          /* ≤1MB base64 */
+        if (j && j.download_url) return fetch(j.download_url, { cache: 'no-store' }).then(function (rr){ if (!rr.ok){ var e2 = new Error('raw ' + rr.status); e2.status = rr.status; throw e2; } return rr.text(); });
+        throw new Error('empty');
+      });
+    Promise.all([htmlP, prov]).then(function (res){
+      var html = res[0], p = res[1];
       if (!html) throw new Error('empty');
+      var badge = ov.querySelector('.demo-badge');
+      badge.textContent = p.trusted ? 'Demo' : 'Demo with limits';
+      badge.title = provText(p);
+      if (!p.trusted) badge.classList.add('demo-badge-limited');
       var frame = document.createElement('iframe');
       frame.className = 'demo-frame';
       frame.setAttribute('title', repo.name + ' demo');
       /* SECURITY: never add allow-same-origin here. A srcdoc frame with it runs as this page,
          so a demo's code could read the visitor's sign-in token (scope: repo). Without it the
          demo runs in its own sealed-off origin; demoStorageShim gives it working storage. */
-      frame.setAttribute('sandbox', 'allow-scripts allow-downloads allow-popups allow-modals allow-forms');
-      frame.srcdoc = demoStorageShim(html);
-      var stage = ov.querySelector('.demo-stage'); if (stage){ stage.innerHTML = ''; stage.appendChild(frame); }
-    })
-    .catch(function (err){
-      var stage = ov.querySelector('.demo-stage'); if (!stage) return;
+      frame.setAttribute('sandbox', p.trusted ? 'allow-scripts allow-downloads allow-popups allow-modals allow-forms' : 'allow-scripts allow-popups');
+      frame.srcdoc = p.trusted ? demoStorageShim(html) : demoStrict(demoStorageShim(html));
+      var st = stage(); if (st){ st.innerHTML = ''; st.appendChild(frame); }
+    }).catch(function (err){
+      var st = stage(); if (!st) return;
       var msg = (err.status === 404 || err.status === 403 || err.status === 401)
         ? (CBUSER ? 'You don’t have access to this private demo.' : 'This is a private demo. Sign in (top-right) with a GitHub account that has access to view it.')
         : 'Could not load this demo right now. Please try again shortly.';
-      stage.innerHTML = '<div class="demo-msg">' + escapeHtml(msg) + '</div>';
+      st.innerHTML = '<div class="demo-msg">' + escapeHtml(msg) + '</div>';
     });
+  }
+
+  if (!opts.confirmFirst) { load(); return; }
+  /* Opened from a link: say whose page this is, and wait for a click. */
+  var s0 = stage();
+  s0.innerHTML = '<div class="demo-confirm" role="dialog" aria-modal="true" aria-labelledby="demo-confirm-h">' +
+    '<h2 id="demo-confirm-h"></h2>' +
+    '<p>A demo is a page that someone in our organisation made. It opens inside the hub, but it is not the hub.</p>' +
+    '<p class="demo-prov">Checking who last changed it…</p>' +
+    '<p class="demo-never">Never type a password or a sign-in code into a demo.</p>' +
+    '<div class="demo-actions"><button type="button" class="demo-go">Open the demo</button><button type="button" class="demo-back">Back to the project</button></div></div>';
+  s0.querySelector('#demo-confirm-h').textContent = 'Open the demo of ' + repo.name + '?';
+  prov.then(function (p){ var el = ov.querySelector('.demo-prov'); if (el) el.textContent = provText(p); });
+  s0.querySelector('.demo-go').onclick = load;
+  s0.querySelector('.demo-back').onclick = close;
+  s0.querySelector('.demo-go').focus();
 }
 
 /* Unified document modal. CLREADME (staff-facing notes) is the default in Staff
@@ -2800,6 +2886,6 @@ function restoreSessionThenLoad() {
 })();
 </script>
 <script src="assets/hub-data.js?v=6"></script>
-<script src="assets/hub-views.js?v=12"></script>
+<script src="assets/hub-views.js?v=13"></script>
 </body>
 </html>
