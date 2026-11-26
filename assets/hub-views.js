@@ -455,6 +455,13 @@
         (url ? '<div class="hx-cp-act"><a class="hx-btn primary sm" href="' + esc(url) + '" target="_blank" rel="noopener">Open the file on GitHub' + I('ext') + '</a></div>' : '');
     }
     var stage = document.getElementById('hx-city'); if (stage) stage.classList.toggle('has-panel', !!html);
+    /* the panel ends above the controls (hub-explore.css), so it needs their height, which
+       changes when they wrap, when Connections hides inside a project, and in full screen */
+    var ctrl = stage && stage.querySelector('.hx-city-ctrl');
+    if (ctrl && !ctrl._hxRO && 'ResizeObserver' in window) {
+      ctrl._hxRO = new ResizeObserver(function () { if (ctrl.offsetHeight) stage.style.setProperty('--hx-ctrl-h', ctrl.offsetHeight + 'px'); });
+      ctrl._hxRO.observe(ctrl);
+    }
     if (city) city.setInset(html && matchMedia('(max-width: 760px)').matches ? 0.5 : 0);
     if (!html) { el.hidden = true; el.innerHTML = ''; return; }
     el.innerHTML = '<button type="button" class="hx-cp-x" data-hx-city="close" aria-label="Close">' + I('x') + '</button>' + html;

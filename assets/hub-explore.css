@@ -479,7 +479,7 @@ button.hx-pill { cursor: pointer; font-family: inherit; }
 .hx-city-up { display: inline-flex; align-items: center; gap: 6px; font: 700 12.5px Montserrat, sans-serif; color: #fff; background: #0074B4; border: 1px solid #005C90; border-radius: 999px; padding: 7px 13px 7px 9px; cursor: pointer; }
 .hx-city-up svg { width: 15px; height: 15px; }
 
-.hx-city-panel { position: absolute; right: 14px; top: 14px; z-index: 4; width: 340px; max-width: calc(100% - 28px); max-height: calc(100% - 28px); overflow: auto; background: #fff; border: 1px solid var(--cborder); border-radius: 18px; padding: 18px; box-shadow: 0 24px 50px -24px rgba(20, 40, 60, .55); animation: hx-cp-in .22s ease; }
+.hx-city-panel { position: absolute; right: 14px; top: 14px; z-index: 4; width: 340px; max-width: calc(100% - 28px); max-height: calc(100% - 38px - var(--hx-ctrl-h, 280px)); overflow: auto; background: #fff; border: 1px solid var(--cborder); border-radius: 18px; padding: 18px; box-shadow: 0 24px 50px -24px rgba(20, 40, 60, .55); animation: hx-cp-in .22s ease; }
 @keyframes hx-cp-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .hx-cp-x { position: absolute; right: 10px; top: 10px; width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--cborder); background: #fff; color: #3D3D3D; display: grid; place-items: center; cursor: pointer; }
 .hx-cp-x:hover { border-color: var(--cyan); color: var(--cblue); }
@@ -523,8 +523,18 @@ button.hx-pill { cursor: pointer; font-family: inherit; }
 .hx-city-btn[aria-pressed="true"] { background: #0074B4; border-color: #005C90; color: #fff; }
 .hx-city-btn[aria-pressed="true"] svg { color: #fff; }
 .hx-city-btn[hidden] { display: none; }
-.hx-city.has-panel .hx-city-ctrl { right: 368px; }   /* sit beside the panel, not under it */
 .hx-city.has-panel .hx-city-help { display: none; }
+/* The controls never move when a panel opens: the panel ends above them instead
+   (--hx-ctrl-h is the controls' height, kept up to date by cityPanel in hub-views.js).
+   On a short stage that would leave the panel too little room, so the controls wrap
+   into rows no wider than the panel, still in their corner and still labelled. */
+.hx-city { container: hxcity / size; }
+@container hxcity (max-height: 640px) {
+  .hx-city.has-panel .hx-city-ctrl { flex-direction: row; flex-wrap: wrap; justify-content: flex-end; align-items: center; width: 340px; max-width: calc(100% - 28px); }
+  .hx-city.has-panel .hx-city-zoom { flex-direction: row; }
+  .hx-city.has-panel .hx-city-zoom button + button { border-top: 0; border-left: 1px solid var(--cborder); }
+  .hx-city.has-panel .hx-city-tours { bottom: calc(var(--hx-ctrl-h, 120px) + 22px); max-height: calc(100% - 36px - var(--hx-ctrl-h, 120px)); }
+}
 
 .hx-city-help { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 2; margin: 0; font-size: 11.5px; font-weight: 600; color: #3D4F5E; background: rgba(255, 255, 255, .72); border: 1px solid rgba(255, 255, 255, .9); border-radius: 999px; padding: 4px 12px; white-space: nowrap; pointer-events: none; }
 .hx-city-hint { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 5; background: rgba(38, 48, 58, .88); color: #fff; font-size: 13px; font-weight: 600; padding: 10px 16px; border-radius: 12px; pointer-events: none; opacity: 0; transition: opacity .25s ease; text-align: center; max-width: 80%; }
