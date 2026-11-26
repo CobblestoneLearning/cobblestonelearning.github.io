@@ -1227,15 +1227,47 @@
       var edge = (num(m.y) < 5 ? ' at-top' : '') + (num(m.x) < 3 ? ' at-left' : '') + (num(m.x) + num(m.w) > 82 ? ' at-right' : '') + (num(m.y) + num(m.h) > 90 ? ' at-bottom' : '');
       return '<div class="hx-mark' + (m.kind === 'focus' ? ' focus-only' : '') + edge + '" style="--hx-mc:' + c + ';left:' + num(m.x) + '%;top:' + num(m.y) + '%;width:' + num(m.w) + '%;height:' + num(m.h) + '%">' + (m.n && m.kind !== 'focus' ? '<span class="hx-mark-n">' + esc(m.n) + '</span>' : '') + (m.label ? '<span class="hx-mark-l" role="note">' + esc(m.label) + '</span>' : '') + '</div>';
     }).join('');
-    box.innerHTML = pick + '<div class="hx-guide"><div><div class="hx-shot">' + (step.image ? '<img alt="' + esc(step.alt || String(step.text || '').replace(/\*\*/g, '')) + '" data-hx-img="' + esc(step.image) + '" data-hx-repo="' + esc(info.repo.name) + '" style="opacity:1">' : '<div style="aspect-ratio:16/10"></div>') + marks + '</div>' +
-      '<div style="display:flex;gap:8px;margin-top:10px;align-items:center"><button type="button" class="hx-btn sm" data-hx-step="' + (si - 1) + '"' + (si <= 0 ? ' disabled' : '') + '>' + I('left') + 'Back</button><span style="font-size:12.5px;font-weight:700;color:#6B6B6B">Step ' + (si + 1) + ' of ' + steps.length + '</span><button type="button" class="hx-btn sm primary" data-hx-step="' + (si + 1) + '"' + (si >= steps.length - 1 ? ' disabled' : '') + '>Next' + I('right') + '</button></div></div>' +
+    /* a fixed stage (hub-explore.css): the picture's shape, once known, sizes its box inside it */
+    /* A picture seen before (or fetched ahead, guidePreload) shows at once in its own shape; a new one shows a
+       loader in the stage until it has arrived, never a broken image, and its marks appear with it. */
+    var shapeKey = info.repo.name + '/' + (step.image || ''), shape = GUIDE_SHAPES[shapeKey], waiting = !!step.image && !shape;
+    box.innerHTML = pick + '<div class="hx-guide"' + (shape ? ' style="--hx-ar:' + shape.ar + ';--hx-nw:' + shape.nw + 'px"' : '') + '><div class="hx-guide-main"><div class="hx-guide-stage' + (waiting ? ' is-loading" aria-busy="true' : '') + '"><div class="hx-shot">' + (step.image ? '<img alt="' + esc(step.alt || String(step.text || '').replace(/\*\*/g, '')) + '" decoding="async">' : '<div style="aspect-ratio:16/10"></div>') + marks + '</div></div>' +
+      '<div class="hx-guide-bar" style="display:flex;gap:8px;margin-top:10px;align-items:center"><button type="button" class="hx-btn sm" data-hx-step="' + (si - 1) + '"' + (si <= 0 ? ' disabled' : '') + '>' + I('left') + 'Back</button><span class="hx-guide-count" style="font-size:12.5px;font-weight:700;color:#6B6B6B">Step ' + (si + 1) + ' of ' + steps.length + '</span><button type="button" class="hx-btn sm primary" data-hx-step="' + (si + 1) + '"' + (si >= steps.length - 1 ? ' disabled' : '') + '>Next' + I('right') + '</button></div></div>' +
       '<div class="hx-steps">' + (g.title ? '<b style="font-size:14px">' + esc(g.title) + '</b>' : '') + steps.map(function (s, i) { return '<button type="button" class="hx-step" data-hx-step="' + i + '"' + (i === si ? ' aria-current="step"' : '') + '><b>' + (i + 1) + '</b><span>' + HX.md(s.text || '') + '</span></button>'; }).join('') + '</div></div>';
     box.onclick = function (e) {
       var b = e.target.closest('[data-hx-step],[data-hx-guide]'); if (!b || b.disabled) return;
       if (b.hasAttribute('data-hx-guide')) guideViewer(info, +b.getAttribute('data-hx-guide'), 0);
       else guideViewer(info, gi, +b.getAttribute('data-hx-step'));
     };
-    loadImages(box);
+    /* the picture's shape and own width size its box in the stage, so the marks stay on target; remembered per picture */
+    var gimg = box.querySelector('.hx-shot img'), gview = box.querySelector('.hx-guide'), gstage = box.querySelector('.hx-guide-stage');
+    function ready() { gstage.classList.remove('is-loading'); gstage.removeAttribute('aria-busy'); }
+    function failed() { ready(); gstage.innerHTML = '<p class="hx-guide-miss">This picture could not be loaded.</p>'; }
+    if (gimg) HX.image(info.repo, step.image).then(function (u) {
+      gimg.onload = function () {
+        if (gimg.naturalWidth && gimg.naturalHeight) {
+          var s = GUIDE_SHAPES[shapeKey] = { ar: (gimg.naturalWidth / gimg.naturalHeight).toFixed(4), nw: gimg.naturalWidth };
+          gview.style.setProperty('--hx-ar', s.ar); gview.style.setProperty('--hx-nw', s.nw + 'px');
+        }
+        ready();
+      };
+      gimg.onerror = failed;
+      gimg.src = u;
+    }).catch(failed);
+    guidePreload(info, gi);
+  }
+  var GUIDE_SHAPES = {}, GUIDE_PRELOADED = {};
+  /* Fetch every picture of a guide once it opens, and learn each one's shape, so Next is usually instant. */
+  function guidePreload(info, gi) {
+    var key = info.repo.name + '#' + gi; if (GUIDE_PRELOADED[key]) return; GUIDE_PRELOADED[key] = true;
+    ((info.guides[gi] || {}).steps || []).forEach(function (s) {
+      var k = info.repo.name + '/' + (s.image || ''); if (!s.image || GUIDE_SHAPES[k]) return;
+      HX.image(info.repo, s.image).then(function (u) {
+        var im = new Image();
+        im.onload = function () { if (im.naturalWidth && im.naturalHeight && !GUIDE_SHAPES[k]) GUIDE_SHAPES[k] = { ar: (im.naturalWidth / im.naturalHeight).toFixed(4), nw: im.naturalWidth }; };
+        im.src = u;
+      }).catch(function () {});
+    });
   }
   function lightbox(info, i) {
     var g = info.gallery; if (!g.length) return;

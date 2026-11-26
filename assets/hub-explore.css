@@ -397,7 +397,6 @@ button.hx-pill { cursor: pointer; font-family: inherit; }
 
 /* guide viewer */
 .hx-guide { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; }
-@media (max-width: 800px) { .hx-guide { grid-template-columns: 1fr; } }
 .hx-shot { position: relative; border-radius: 14px; background: #F4F7FA; }
 .hx-shot img { display: block; width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--cborder); }
 .hx-mark.at-top .hx-mark-n { top: 50%; left: auto; right: calc(100% + 6px); transform: translateY(-50%); }
@@ -405,6 +404,39 @@ button.hx-pill { cursor: pointer; font-family: inherit; }
 .hx-mark.at-right .hx-mark-l { left: auto; right: 0; }
 .hx-mark.at-bottom .hx-mark-l { top: auto; bottom: calc(100% + 6px); }
 .hx-guide { grid-template-columns: minmax(0, 1fr) 300px; }
+/* A fixed stage, like a gallery (Bryan, 2026-11-26). Every step's picture sits in a stage of one size: 16:10
+   across the picture column, but never taller than 90% of the window below the sticky header and explorer bar
+   (less 48 px for the Back / Next bar). A picture fits whole inside it, centred, and is never enlarged past its
+   own size, so a small picture does not shrink the viewer and Back / Next never move. The picture's box
+   (.hx-shot) takes the picture's own shape (--hx-ar and --hx-nw, set by guideViewer when it loads, remembered
+   per picture; 16:10 until then), so the marks, which are percentages of it, stay on target. The steps column
+   is never taller than the stage and bar, and scrolls. Sizes come from the viewer's width (container units). */
+.hx-guide {
+  --hx-guide-h: calc((100vh - var(--header-h, 68px) - var(--hx-nav-h, 100px)) * .9);
+  --hx-col: calc(100cqw - 316px);   /* the picture column: the viewer less the 300 px steps column and the 16 px gap */
+  --hx-stage-h: min(calc(var(--hx-col) / 1.6), calc(var(--hx-guide-h) - 48px));
+  container-type: inline-size; align-items: start;
+}
+.hx-guide-stage { height: var(--hx-stage-h); display: grid; place-items: center; background: #F4F7FA; border: 1px solid var(--cborder); border-radius: 14px; }
+.hx-guide-stage .hx-shot { width: min(100%, calc((var(--hx-stage-h) - 2px) * var(--hx-ar, 1.6)), var(--hx-nw, 100%)); aspect-ratio: var(--hx-ar, 1.6); border-radius: 13px; }
+.hx-guide-stage .hx-shot img { width: 100%; height: 100%; object-fit: contain; border: 0; border-radius: 13px; }
+/* while a new picture arrives: the stage keeps its size and shows a loader (after a moment, so a quick load
+   does not flicker), and the picture and its marks stay hidden, so a broken image never shows */
+.hx-guide-stage { position: relative; }
+.hx-guide-stage.is-loading .hx-shot { visibility: hidden; }
+.hx-guide-stage.is-loading::after { content: ''; position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 999px; border: 3px solid rgba(0, 116, 180, .18); border-top-color: #0074B4; animation: hx-spin .9s linear infinite, hx-guide-wait .2s ease .25s both; }
+@keyframes hx-guide-wait { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .hx-guide-stage.is-loading::after { animation-duration: 3s, .2s; } }
+.hx-guide-miss { margin: 0; padding: 16px; font-size: 13px; font-weight: 600; color: #6B6B6B; text-align: center; }
+.hx-guide-bar { height: 38px; }   /* with its 10 px margin, the 48 px the stage leaves for it */
+.hx-guide-count { min-width: 7.6em; text-align: center; font-variant-numeric: tabular-nums; }   /* Next does not shift as the number grows */
+.hx-guide .hx-steps { max-height: calc(var(--hx-stage-h) + 48px); overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; }
+/* one column on narrow screens, the steps under the stage (this must come after the two-column rule above,
+   which used to override it and squeeze the picture to nothing on a phone) */
+@media (max-width: 800px) {
+  .hx-guide { grid-template-columns: minmax(0, 1fr); --hx-col: 100cqw; }
+  .hx-guide .hx-steps { max-height: max(160px, calc(var(--hx-guide-h) - var(--hx-stage-h) - 64px)); }
+}
 .hx-mark { position: absolute; border: 3px solid var(--hx-mc, #0074B4); border-radius: 7px; box-shadow: 0 0 0 2px #fff; transition: opacity .25s, transform .25s; }
 .hx-mark.dim { opacity: .25; }
 .hx-mark.focus-only { border-style: dashed; }
