@@ -120,7 +120,9 @@
     var right = '';
     if (info.demo) right += '<span class="hx-pill hx-pill-demo">' + I('play') + 'Demo</span>';
     else if (info.repo.has_pages) right += '<span class="hx-pill hx-pill-site">Live page</span>';
-    return '<article class="hx-card reveal" style="--hx-c:' + st.color + ';transition-delay:' + ((i || 0) % 4) * 40 + 'ms">' +
+    /* The whole card opens the project page (Bryan, 2026-11-26), through data-hx-go: a click on its own links and
+       buttons (title, picture, play) still does their job, and the pills keep their tooltips. */
+    return '<article class="hx-card reveal" data-hx-go="p/' + esc(encodeURIComponent(info.repo.name)) + '" style="--hx-c:' + st.color + ';transition-delay:' + ((i || 0) % 4) * 40 + 'ms">' +
       '<div class="hx-cover">' + coverMedia(info) +
         /* The picture opens the project page too (Bryan, 2026-11-25). A second link to the title's page, so it is left out of
            the tab order and hidden from screen readers; the play button comes after it, so it stays on top and still opens the demo. */
@@ -1401,7 +1403,8 @@
       var hub = t.closest('[data-hx-hub]'); if (hub && route.view === 'connections') { e.preventDefault(); if (HX._graphSelect) HX._graphSelect(hub.getAttribute('data-hx-hub') || null); return; }
       var gAll = t.closest('#hx-g-all'); if (gAll) { HX._gAll = !HX._gAll; HX.render(); return; }
       var cty = t.closest('[data-hx-city]'); if (cty) { e.preventDefault(); cityAction(cty.getAttribute('data-hx-city'), cty); return; }
-      var go = t.closest('[data-hx-go]'); if (go && !t.closest('a[href]:not([data-hx-go]),button:not([data-hx-go])')) { e.preventDefault(); HX._scrollNext = !!go.closest('.cin-card'); location.hash = '#/' + go.getAttribute('data-hx-go'); return; }
+      /* not after dragging to select text in it (a card's tagline, say) */
+      var go = t.closest('[data-hx-go]'); if (go && !t.closest('a[href]:not([data-hx-go]),button:not([data-hx-go])') && !String(window.getSelection ? window.getSelection() : '')) { e.preventDefault(); HX._scrollNext = !!go.closest('.cin-card'); location.hash = '#/' + go.getAttribute('data-hx-go'); return; }
     });
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Enter' && e.key !== ' ') return;
